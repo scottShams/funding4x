@@ -2,19 +2,11 @@
 // save_waitlist.php
 header('Content-Type: application/json');
 
-// Database config
-$host = 'localhost';
-$dbname = 'funding4x';
-$username = 'root';
-$password = '';
+// Include database connection
+require_once 'database.php';
 
-try {
-    $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $username, $password);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} catch (PDOException $e) {
-    echo json_encode(['status' => 'error', 'message' => 'Database connection failed']);
-    exit;
-}
+// Get database connection
+$pdo = getPDO();
 
 // Get POST data
 $data = json_decode(file_get_contents('php://input'), true);
@@ -61,7 +53,18 @@ try {
     
     if ($existingUser) {
         $pdo->rollBack();
-        echo json_encode(['status' => 'error', 'message' => 'You’re already on the waitlist!']);
+        
+        // Return existing user's referral code for direct redirect
+        $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http';
+        $host = $_SERVER['HTTP_HOST'];
+        $existingReferralLink = $protocol . '://' . $host . '/referral_dashboard.php?user=' . urlencode($existingUser['referral_code']);
+        
+        echo json_encode([
+            'status' => 'existing_user', 
+            'message' => 'You\'re already on the waitlist!',
+            'referral_code' => $existingUser['referral_code'],
+            'referral_link' => $existingReferralLink
+        ]);
         exit;
     }
     

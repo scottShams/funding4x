@@ -2,18 +2,11 @@
 // referral_dashboard.php
 session_start();
 
-// Database config
-$host = 'localhost';
-$dbname = 'funding4x';
-$username = 'root';
-$password = '';
+// Include database connection
+require_once 'database.php';
 
-try {
-    $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $username, $password);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} catch (PDOException $e) {
-    die("Database connection failed");
-}
+// Get database connection
+$pdo = getPDO();
 
 // Get user referral code from URL parameter or session
 $referralCode = $_GET['user'] ?? $_SESSION['user_referral_code'] ?? '';

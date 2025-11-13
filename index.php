@@ -258,26 +258,32 @@
 
                     const result = await response.json();
 
-                    if (result.status === 'success') {
+                    if (result.status === 'success' || result.status === 'existing_user') {
                         // Store referral information for dashboard access
                         if (result.referral_code) {
                             sessionStorage.setItem('user_referral_code', result.referral_code);
                             sessionStorage.setItem('referral_link', result.referral_link);
                         }
                         
-                        // Show success message and redirect to dashboard
-                        Swal.fire({
-                            icon: 'success',
-                            title: '🎉 Welcome to the Program!',
-                            text: 'You\'ve been successfully registered. Redirecting to your referral dashboard...',
-                            confirmButtonColor: '#f97316',
-                            timer: 2000,
-                            timerProgressBar: true,
-                            willClose: () => {
-                                // Redirect to referral dashboard
-                                window.location.href = 'referral_dashboard.php?user=' + encodeURIComponent(result.id);
-                            }
-                        });
+                        // Direct redirect to referral dashboard (no SweetAlert for existing users)
+                        if (result.status === 'existing_user') {
+                            // For existing users, redirect immediately without showing error
+                            window.location.href = 'referral_dashboard.php?user=' + encodeURIComponent(result.referral_code);
+                        } else {
+                            // For new users, show success message and redirect
+                            Swal.fire({
+                                icon: 'success',
+                                title: '🎉 Welcome to the Program!',
+                                text: 'You\'ve been successfully registered. Redirecting to your referral dashboard...',
+                                confirmButtonColor: '#f97316',
+                                timer: 2000,
+                                timerProgressBar: true,
+                                willClose: () => {
+                                    // Redirect to referral dashboard
+                                    window.location.href = 'referral_dashboard.php?user=' + encodeURIComponent(result.referral_code);
+                                }
+                            });
+                        }
                     } else {
                         Swal.fire({
                             icon: 'error',
