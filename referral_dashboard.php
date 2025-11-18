@@ -125,6 +125,10 @@ $progressPercentage = min(($credits / $goalCredits) * 100, 100);
     <!-- Hero Section -->
     <section class="py-16 sm:py-24 bg-primary-purple text-white">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <span class="text-trophy-gold text-sm font-semibold uppercase tracking-widest block mb-4">
+                Thank you <?php echo htmlspecialchars($user['name']); ?>, we added you to the Waiting List for the $5000 Funded Account </br> As soon as everything is ready we will email you so make sure you </br> Whilest you are waiting, you can share your Referral link below to Earn Credits, which will give you unlimited Free Retry for the Trader Programme
+            </span>
+            </br>
             <span class="text-trophy-gold text-sm font-semibold uppercase tracking-widest block mb-4">The Ultimate Partner Program</span>
             <h2 class="text-4xl sm:text-6xl font-extrabold tracking-tighter leading-tight mb-4">
                 5 Referrals = <span class="text-trophy-gold">$5,000</span> Funded Account
