@@ -2,13 +2,17 @@
 /**
  * Database Configuration File
  * Centralized database connection for the referral system
+ * Loads configuration from environment variables
  */
 
-// Database configuration
-define('DB_HOST', 'localhost');
-define('DB_NAME', 'funding4x');
-define('DB_USER', 'root');
-define('DB_PASS', '');
+// Load environment variables
+require_once __DIR__ . '/env_loader.php';
+
+// Database configuration from environment
+define('DB_HOST', EnvLoader::get('DB_HOST', 'localhost'));
+define('DB_NAME', EnvLoader::get('DB_NAME', 'funding4x'));
+define('DB_USER', EnvLoader::get('DB_USER', 'root'));
+define('DB_PASS', EnvLoader::get('DB_PASS', ''));
 
 /**
  * Create and return PDO database connection
