@@ -7,6 +7,8 @@
     <!-- Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+
     <style>
         /* Custom styles for the countdown digits */
         .countdown-digit {
@@ -110,6 +112,8 @@
                     <option value="">Select your Country</option>
                 </select>
                 
+                <div class="g-recaptcha" data-sitekey="6LcOuRAsAAAAADRTtGqCLjh9JXF-_5nk8NFq_YSY"></div>
+
                 <button type="submit"
                     class="w-full bg-primary-accent hover:bg-yellow-600 text-gray-900 font-bold py-4 rounded-lg text-xl md:text-2xl uppercase tracking-wider shadow-2xl shadow-primary-accent/50 transition duration-300 ease-in-out transform hover:scale-105 active:scale-95">
                     Join Waitlist Now!
@@ -229,6 +233,17 @@
             waitlistForm.addEventListener('submit', async function (e) {
                 e.preventDefault();
 
+                const recaptchaResponse = grecaptcha.getResponse(); // Get reCAPTCHA token
+                if (!recaptchaResponse) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Please Verify',
+                        text: 'Please complete the reCAPTCHA to continue.',
+                        confirmButtonColor: '#f97316'
+                    });
+                    return;
+                }
+                
                 const name = waitlistForm.querySelector('input[name="name"]').value.trim();
                 const email = waitlistForm.querySelector('input[name="email"]').value.trim();
                 const country = countrySelect.value;

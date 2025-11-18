@@ -10,6 +10,19 @@ $pdo = getPDO();
 
 // Get POST data
 $data = json_decode(file_get_contents('php://input'), true);
+
+$recaptcha = $data['recaptcha'] ?? '';
+
+$secretKey = '6LcOuRAsAAAAAPWmgKX2Z4sO9k4aI0lsAY6lvsoB';
+$response = file_get_contents("https://www.google.com/recaptcha/api/siteverify?secret=$secretKey&response=$recaptcha");
+$responseData = json_decode($response, true);
+
+if (!$responseData['success']) {
+    echo json_encode(['status' => 'error', 'message' => 'reCAPTCHA verification failed.']);
+    exit;
+}
+
+// Extract data from POST
 $name = trim($data['name'] ?? '');
 $email = trim($data['email'] ?? '');
 $country = trim($data['country'] ?? '');
