@@ -1,0 +1,41 @@
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+error_log
+
+# Environment / Secrets
+.env
+*.env
+config.php
+secrets.php
+
+# Cache
+cache/
+*.cache
+
+# Composer (in case you add later)
+vendor/
+composer.lock
+composer.phar
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Backups
+*.bak
+*.backup
+
+# IDE / Editor files
+.idea/
+.vscode/
+*.swp
+
+# System folders for uploads (prevent accidental push)
+uploads/
+backups/
