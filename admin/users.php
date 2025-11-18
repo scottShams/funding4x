@@ -5,24 +5,11 @@ if (!isset($_SESSION['admin_logged_in'])) {
     exit;
 }
 
-// Database config
-$host = 'localhost';
-$dbname = 'funding4x';
-$username = 'root';
-$password = '';
+// Include database connection
+require_once '../database.php';
 
-// Database config
-// $host = 'localhost';
-// $dbname = 'staffi7_funding4x';
-// $username = 'staffi7_staffi7';
-// $password = 'E^jNBF)SmZkJ';
-
-try {
-    $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $username, $password);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} catch (PDOException $e) {
-    die('Database connection failed');
-}
+// Get database connection
+$pdo = getPDO();
 
 // Pagination
 $limit = 10;
@@ -56,10 +43,6 @@ $params_for_data = $params; // duplicate to avoid export conflict
 // Get paginated records
 // ----------------------
 $query = "SELECT * FROM waitlist_users $search_condition ORDER BY created_at DESC LIMIT $limit OFFSET $offset";
-$stmt = $pdo->prepare($query);
-$stmt->execute($params_for_data); // only search params here
-$users = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
 $stmt = $pdo->prepare($query);
 $stmt->execute($params_for_data);
 $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
