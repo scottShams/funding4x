@@ -164,6 +164,15 @@ $progressPercentage = min(($credits / $goalCredits) * 100, 100);
                     </button>
                 </div>
 
+                <!-- Telegram Button -->
+                <div class="flex justify-center mt-6">
+                    <a href="https://t.me/funding4x" target="_blank" rel="noopener noreferrer"
+                       class="inline-flex items-center px-6 py-3 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 transition duration-300 shadow-md">
+                        <i class="fab fa-telegram-plane text-xl mr-2"></i>
+                        Join us on Telegram for Instant Updates & Competitions
+                    </a>
+                </div>
+
                 <!-- Credit Tracker -->
                 <div class="mt-10">
                     <h3 class="text-2xl font-bold text-primary-purple mb-4">
