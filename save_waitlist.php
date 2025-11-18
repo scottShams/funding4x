@@ -2,6 +2,9 @@
 // save_waitlist.php
 header('Content-Type: application/json');
 
+// Load environment variables
+require_once __DIR__ . '/env_loader.php';
+
 // Include database connection
 require_once 'database.php';
 
@@ -13,7 +16,8 @@ $data = json_decode(file_get_contents('php://input'), true);
 
 $recaptcha = $data['recaptcha'] ?? '';
 
-$secretKey = '6LcOuRAsAAAAAPWmgKX2Z4sO9k4aI0lsAY6lvsoB';
+$recaptchaSiteKey = EnvLoader::get('RECAPTCHA_SECRET_KEY', 'your_recaptcha_secret_key_here');
+
 $response = file_get_contents("https://www.google.com/recaptcha/api/siteverify?secret=$secretKey&response=$recaptcha");
 $responseData = json_decode($response, true);
 
