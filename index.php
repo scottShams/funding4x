@@ -260,7 +260,12 @@
                 }
 
                 try {
-                    const requestData = { name, email, country };
+                    const requestData = { 
+                        name, 
+                        email, 
+                        country,
+                        recaptcha: recaptchaResponse
+                    };
                     if (referralCode) {
                         requestData.ref = referralCode;
                     }
@@ -274,6 +279,8 @@
                     const result = await response.json();
 
                     if (result.status === 'success' || result.status === 'existing_user') {
+                        grecaptcha.reset();
+
                         // Store referral information for dashboard access
                         if (result.referral_code) {
                             sessionStorage.setItem('user_referral_code', result.referral_code);
