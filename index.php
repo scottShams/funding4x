@@ -1,3 +1,10 @@
+<?php
+// Load environment variables
+require_once __DIR__ . '/env_loader.php';
+
+// Get reCAPTCHA site key from environment
+$recaptchaSiteKey = EnvLoader::get('RECAPTCHA_SITE_KEY', 'your_recaptcha_site_key_here');
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -112,7 +119,7 @@
                     <option value="">Select your Country</option>
                 </select>
                 
-                <div class="g-recaptcha" data-sitekey="6LcOuRAsAAAAADRTtGqCLjh9JXF-_5nk8NFq_YSY"></div>
+                <div class="g-recaptcha" data-sitekey="<?php echo htmlspecialchars($recaptchaSiteKey); ?>"></div>
 
                 <button type="submit"
                     class="w-full bg-primary-accent hover:bg-yellow-600 text-gray-900 font-bold py-4 rounded-lg text-xl md:text-2xl uppercase tracking-wider shadow-2xl shadow-primary-accent/50 transition duration-300 ease-in-out transform hover:scale-105 active:scale-95">
