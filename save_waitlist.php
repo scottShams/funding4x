@@ -18,7 +18,10 @@ $response = file_get_contents("https://www.google.com/recaptcha/api/siteverify?s
 $responseData = json_decode($response, true);
 
 if (!$responseData['success']) {
-    echo json_encode(['status' => 'error', 'message' => 'reCAPTCHA verification failed.']);
+    echo json_encode([
+        'status' => 'error', 
+        'message' => 'reCAPTCHA verification failed.'
+    ]);
     exit;
 }
 
