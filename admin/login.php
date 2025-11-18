@@ -5,11 +5,8 @@ if (isset($_SESSION['admin_logged_in'])) {
     exit;
 }
 
-// Database config
-$host = 'localhost';
-$dbname = 'funding4x';
-$username_db = 'root';
-$password_db = '';
+// Include database connection
+require_once '../database.php';
 
 $message = '';
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
@@ -17,8 +14,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $password = $_POST['password'] ?? '';
 
     try {
-        $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $username_db, $password_db);
-        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        // Get database connection
+        $pdo = getPDO();
 
         $stmt = $pdo->prepare("SELECT password FROM waitlist_users WHERE email = ?");
         $stmt->execute([$email]);
@@ -29,10 +26,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             header('Location: index.php');
             exit;
         } else {
-            $message = 'Invalid credentials';
+            $message = 'Invalid email or password';
         }
     } catch (PDOException $e) {
-        $message = 'Database error';
+        $message = 'Database error occurred';
     }
 }
 ?>
@@ -44,34 +41,54 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <title>Admin Login</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
-<body class="bg-light">
+<body class="bg-dark">
     <div class="container">
-        <div class="row justify-content-center mt-5">
-            <div class="col-md-6">
+        <div class="row justify-content-center align-items-center min-vh-100">
+            <div class="col-md-6 col-lg-4">
                 <div class="card">
-                    <div class="card-header">
-                        <h3 class="text-center">Admin Login</h3>
-                    </div>
-                    <div class="card-body">
+                    <div class="card-body p-5">
+                        <h2 class="text-center mb-4">Admin Login</h2>
+                        
                         <?php if ($message): ?>
-                            <div class="alert alert-danger"><?php echo $message; ?></div>
+                            <div class="alert alert-danger" role="alert">
+                                <?php echo htmlspecialchars($message); ?>
+                            </div>
                         <?php endif; ?>
+
                         <form method="POST">
                             <div class="mb-3">
                                 <label for="email" class="form-label">Email</label>
-                                <input type="email" class="form-control" id="email" name="email" required>
+                                <input type="email" 
+                                       class="form-control" 
+                                       id="email" 
+                                       name="email" 
+                                       required
+                                       value="<?php echo htmlspecialchars($email ?? ''); ?>">
                             </div>
+                            
                             <div class="mb-3">
                                 <label for="password" class="form-label">Password</label>
-                                <input type="password" class="form-control" id="password" name="password" required>
+                                <input type="password" 
+                                       class="form-control" 
+                                       id="password" 
+                                       name="password" 
+                                       required>
                             </div>
-                            <button type="submit" class="btn btn-primary w-100">Login</button>
+                            
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary">Login</button>
+                            </div>
                         </form>
+                        
+                        <div class="text-center mt-3">
+                            <a href="setup_admin.php" class="text-muted small">Setup Admin Account</a>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+    
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
