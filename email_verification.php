@@ -199,7 +199,7 @@ class EmailVerification {
             $body = str_replace("FNAME", htmlspecialchars($name), $body);
             $body = str_replace("REFERRAL_CODE", urlencode($referral_code), $body);
 
-            $subject = $name . "You're on the Waiting List — Funding4x";
+            $subject = $name . " You're on the Waiting List";
 
             // PHPMailer
             $mail = new PHPMailer(true);
