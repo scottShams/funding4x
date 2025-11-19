@@ -21,3 +21,13 @@ ADD COLUMN credits INT DEFAULT 0 AFTER parent_user_id;
 -- Create index for performance
 CREATE INDEX idx_referral_code ON waitlist_users(referral_code);
 CREATE INDEX idx_parent_user ON waitlist_users(parent_user_id);
+
+-- Add email verification columns
+ALTER TABLE waitlist_users
+ADD COLUMN email_verified TINYINT(1) DEFAULT 0 AFTER credits;
+ALTER TABLE waitlist_users
+ADD COLUMN verification_token VARCHAR(255) NULL AFTER email_verified;
+ALTER TABLE waitlist_users
+ADD COLUMN verification_token_expires TIMESTAMP NULL AFTER verification_token;
+
+CREATE INDEX idx_verification_token ON waitlist_users(verification_token);
