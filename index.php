@@ -148,6 +148,18 @@ $recaptchaSiteKey = EnvLoader::get('RECAPTCHA_SITE_KEY', 'your_recaptcha_site_ke
                 </button>
             </form>
 
+            <!-- Referral Dashboard Button -->
+            <div class="mt-6 max-w-lg mx-auto">
+                <a href="referral_dashboard.php"
+                   id="dashboard-link"
+                   class="w-full block bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 px-6 rounded-lg text-lg md:text-xl uppercase tracking-wider shadow-lg transition duration-300 ease-in-out transform hover:scale-105 active:scale-95 text-center">
+                    View Referral Dashboard
+                </a>
+                <p class="text-xs text-gray-400 mt-2 text-center">
+                    Already joined? Check your referral status and earnings here
+                </p>
+            </div>
+
             <p class="text-sm text-gray-500 mt-4">
                 *Limited slots remaining. Act before the timer expires.*
             </p>
