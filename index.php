@@ -24,6 +24,27 @@ $recaptchaSiteKey = EnvLoader::get('RECAPTCHA_SITE_KEY', 'your_recaptcha_site_ke
             text-shadow: 0 4px 15px rgba(249, 115, 22, 0.5); /* Subtle orange glow */
         }
     </style>
+    <style>
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #f97316;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loader-overlay {
+            background-color: rgba(17, 24, 39, 0.95);
+            backdrop-filter: blur(5px);
+        }
+    </style>
     <script>
         tailwind.config = {
             theme: {
@@ -273,9 +294,12 @@ $recaptchaSiteKey = EnvLoader::get('RECAPTCHA_SITE_KEY', 'your_recaptcha_site_ke
                 }
 
                 try {
-                    const requestData = { 
-                        name, 
-                        email, 
+                    // Show loader
+                    showEmailVerificationLoader();
+
+                    const requestData = {
+                        name,
+                        email,
                         country,
                         recaptcha: recaptchaResponse
                     };
@@ -291,7 +315,10 @@ $recaptchaSiteKey = EnvLoader::get('RECAPTCHA_SITE_KEY', 'your_recaptcha_site_ke
 
                     const result = await response.json();
 
-                    if (result.status === 'success' || result.status === 'existing_user') {
+                    // Hide loader
+                    hideEmailVerificationLoader();
+
+                    if (result.status === 'success') {
                         grecaptcha.reset();
 
                         // Store referral information for dashboard access
@@ -300,25 +327,59 @@ $recaptchaSiteKey = EnvLoader::get('RECAPTCHA_SITE_KEY', 'your_recaptcha_site_ke
                             sessionStorage.setItem('referral_link', result.referral_link);
                         }
                         
-                        // Direct redirect to referral dashboard (no SweetAlert for existing users)
-                        if (result.status === 'existing_user') {
-                            // For existing users, redirect immediately without showing error
-                            window.location.href = 'referral_dashboard.php?user=' + encodeURIComponent(result.referral_code);
-                        } else {
-                            // For new users, show success message and redirect
-                            Swal.fire({
-                                icon: 'success',
-                                title: '🎉 Welcome to the Program!',
-                                text: 'You\'ve been successfully registered. Redirecting to your referral dashboard...',
-                                confirmButtonColor: '#f97316',
-                                timer: 2000,
-                                timerProgressBar: true,
-                                willClose: () => {
-                                    // Redirect to referral dashboard
-                                    window.location.href = 'referral_dashboard.php?user=' + encodeURIComponent(result.referral_code);
-                                }
-                            });
-                        }
+                        // Show email verification message
+                        Swal.fire({
+                            icon: 'success',
+                            title: '🎉 Welcome to the Program!',
+                            html: `
+                                <div class="text-left">
+                                    <p class="mb-3">You've been successfully registered!</p>
+                                    <div class="bg-blue-100 border border-blue-300 rounded-lg p-3 mb-3">
+                                        <h4 class="font-bold text-blue-800 mb-2">📧 Next Step: Verify Your Email</h4>
+                                        <p class="text-blue-700 text-sm">
+                                            We've sent a verification link to <strong>${email}</strong>.
+                                            Please check your inbox (and spam folder) and click the link to activate your account.
+                                        </p>
+                                    </div>
+                                    <p class="text-sm text-gray-600">
+                                        Once verified, you'll be redirected to your exclusive dashboard.
+                                    </p>
+                                </div>
+                            `,
+                            confirmButtonColor: '#f97316',
+                            confirmButtonText: 'Got it!',
+                            width: '500px'
+                        });
+
+                    } else if (result.status === 'existing_user') {
+                        // User exists and is verified - redirect to dashboard
+                        window.location.href = 'referral_dashboard.php?user=' + encodeURIComponent(result.referral_code);
+                        
+                    } else if (result.status === 'email_not_verified') {
+                        // User exists but hasn't verified email
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Email Verification Required',
+                            html: `
+                                <div class="text-left">
+                                    <p class="mb-3">You're already registered, but need to verify your email address first.</p>
+                                    <div class="bg-orange-100 border border-orange-300 rounded-lg p-3 mb-3">
+                                        <h4 class="font-bold text-orange-800 mb-2">📧 Check Your Email</h4>
+                                        <p class="text-orange-700 text-sm">
+                                            Please check your email inbox (and spam folder) for a verification link.
+                                            Click the link to activate your account and access the referral dashboard.
+                                        </p>
+                                    </div>
+                                    <p class="text-sm text-gray-600">
+                                        Didn't receive an email? Contact our support team.
+                                    </p>
+                                </div>
+                            `,
+                            confirmButtonColor: '#f97316',
+                            confirmButtonText: 'Check Email',
+                            width: '500px'
+                        });
+                        
                     } else {
                         Swal.fire({
                             icon: 'error',
@@ -388,6 +449,35 @@ $recaptchaSiteKey = EnvLoader::get('RECAPTCHA_SITE_KEY', 'your_recaptcha_site_ke
                 dialog.classList.add('translate-y-0', 'opacity-100');
             }, 10);
         }
+
+        // Email verification loader
+        function showEmailVerificationLoader() {
+            const loaderHtml = `
+                <div id="email-verification-loader" class="fixed inset-0 loader-overlay z-50 flex items-center justify-center">
+                    <div class="bg-gray-800 p-8 rounded-2xl shadow-2xl border-t-8 border-primary-accent text-center max-w-md">
+                        <div class="spinner mb-4"></div>
+                        <h3 class="text-xl font-bold text-white mb-2">Creating Your Account...</h3>
+                        <p class="text-gray-300 mb-4">Please wait while we set up your exclusive access and send verification email.</p>
+                        <div class="flex items-center justify-center space-x-2 text-sm text-gray-400">
+                            <div class="w-2 h-2 bg-primary-accent rounded-full animate-pulse"></div>
+                            <div class="w-2 h-2 bg-primary-accent rounded-full animate-pulse" style="animation-delay: 0.2s;"></div>
+                            <div class="w-2 h-2 bg-primary-accent rounded-full animate-pulse" style="animation-delay: 0.4s;"></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', loaderHtml);
+        }
+
+        function hideEmailVerificationLoader() {
+            const loader = document.getElementById('email-verification-loader');
+            if (loader) {
+                loader.remove();
+            }
+        }
     </script>
+
+    <!-- Email Verification Loader -->
+    <div id="email-verification-loader" style="display: none;"></div>
 </body>
 </html>
