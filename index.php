@@ -284,11 +284,20 @@ $recaptchaSiteKey = EnvLoader::get('RECAPTCHA_SITE_KEY', 'your_recaptcha_site_ke
                 const referralCode = sessionStorage.getItem('referral_code') || '';
 
                 if (!name || !email || !country) {
+                    // Hide any existing loader first
+                    hideEmailVerificationLoader();
+                    ensureNoLoaderRemains();
+                    
                     Swal.fire({
                         icon: 'warning',
                         title: 'Missing Information',
                         text: 'Please fill in your name, email, and country.',
-                        confirmButtonColor: '#f97316'
+                        confirmButtonColor: '#f97316',
+                        didClose: () => {
+                            // Ensure no loader remains after alert is closed
+                            hideEmailVerificationLoader();
+                            ensureNoLoaderRemains();
+                        }
                     });
                     return;
                 }
@@ -315,19 +324,18 @@ $recaptchaSiteKey = EnvLoader::get('RECAPTCHA_SITE_KEY', 'your_recaptcha_site_ke
 
                     const result = await response.json();
 
-                    // Hide loader
+                    // Hide loader immediately and ensure complete cleanup
                     hideEmailVerificationLoader();
+                    ensureNoLoaderRemains();
 
                     if (result.status === 'success') {
-                        grecaptcha.reset();
-
                         // Store referral information for dashboard access
                         if (result.referral_code) {
                             sessionStorage.setItem('user_referral_code', result.referral_code);
                             sessionStorage.setItem('referral_link', result.referral_link);
                         }
                         
-                        // Show email verification message
+                        // Show email verification message and keep user on index page
                         Swal.fire({
                             icon: 'success',
                             title: '🎉 Welcome to the Program!',
@@ -348,11 +356,22 @@ $recaptchaSiteKey = EnvLoader::get('RECAPTCHA_SITE_KEY', 'your_recaptcha_site_ke
                             `,
                             confirmButtonColor: '#f97316',
                             confirmButtonText: 'Got it!',
-                            width: '500px'
+                            width: '500px',
+                            showConfirmButton: true,
+                            allowOutsideClick: false,
+                            didClose: () => {
+                                // Ensure no loader remains after alert is closed
+                                hideEmailVerificationLoader();
+                                ensureNoLoaderRemains();
+                                console.log('User confirmed email verification message');
+                            }
                         });
 
                     } else if (result.status === 'existing_user') {
                         // User exists and is verified - redirect to dashboard
+                        // Hide loader before redirect
+                        hideEmailVerificationLoader();
+                        ensureNoLoaderRemains();
                         window.location.href = 'referral_dashboard.php?user=' + encodeURIComponent(result.referral_code);
                         
                     } else if (result.status === 'email_not_verified') {
@@ -377,7 +396,29 @@ $recaptchaSiteKey = EnvLoader::get('RECAPTCHA_SITE_KEY', 'your_recaptcha_site_ke
                             `,
                             confirmButtonColor: '#f97316',
                             confirmButtonText: 'Check Email',
-                            width: '500px'
+                            width: '500px',
+                            showConfirmButton: true,
+                            allowOutsideClick: false,
+                            didClose: () => {
+                                // Reset form completely and ensure clean state
+                                resetFormToOriginalState();
+                                
+                                // Additional cleanup to ensure no lingering elements
+                                setTimeout(() => {
+                                    // Remove any SweetAlert elements that might persist
+                                    const swalElements = document.querySelectorAll('.swal2-container');
+                                    swalElements.forEach(el => el.remove());
+                                    
+                                    // Remove any custom modal backdrops
+                                    const customBackdrop = document.getElementById('custom-alert-backdrop');
+                                    if (customBackdrop) {
+                                        customBackdrop.remove();
+                                    }
+                                    
+                                    // Ensure no loader overlay remains
+                                    ensureNoLoaderRemains();
+                                }, 100);
+                            }
                         });
                         
                     } else {
@@ -385,70 +426,36 @@ $recaptchaSiteKey = EnvLoader::get('RECAPTCHA_SITE_KEY', 'your_recaptcha_site_ke
                             icon: 'error',
                             title: 'Oops!',
                             text: result.message || 'Something went wrong. Please try again.',
-                            confirmButtonColor: '#f97316'
+                            confirmButtonColor: '#f97316',
+                            showConfirmButton: true,
+                            allowOutsideClick: false,
+                            didClose: () => {
+                                // Ensure no loader remains after alert is closed
+                                hideEmailVerificationLoader();
+                                ensureNoLoaderRemains();
+                            }
                         });
                     }
 
                 } catch (error) {
+                    // Hide loader in case of network errors
+                    hideEmailVerificationLoader();
+                    ensureNoLoaderRemains();
+                    
                     Swal.fire({
                         icon: 'error',
                         title: 'Connection Error',
                         text: 'We couldn\'t submit your request. Please check your connection and try again.',
-                        confirmButtonColor: '#f97316'
+                        confirmButtonColor: '#f97316',
+                        didClose: () => {
+                            // Double check no loader remains
+                            hideEmailVerificationLoader();
+                            ensureNoLoaderRemains();
+                        }
                     });
                 }
             });
         });
-
-        // Using a custom alert function as per guidelines
-        function alert(message) {
-            const container = document.body;
-
-            // Create Modal Backdrop
-            const backdrop = document.createElement('div');
-            backdrop.className = 'fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center transition-opacity duration-300 ease-out opacity-0';
-            backdrop.id = 'custom-alert-backdrop';
-
-            // Create Modal Dialog
-            const dialog = document.createElement('div');
-            dialog.className = 'bg-gray-800 p-8 rounded-xl shadow-2xl max-w-sm w-full transform -translate-y-4 opacity-0 transition-all duration-300 ease-out';
-
-            // Message
-            const messageElement = document.createElement('p');
-            messageElement.className = 'text-lg text-white mb-6 text-center';
-            messageElement.textContent = message;
-
-            // Close Button
-            const closeButton = document.createElement('button');
-            closeButton.className = 'w-full bg-primary-accent hover:bg-yellow-600 text-gray-900 font-bold py-3 rounded-lg transition duration-200';
-            closeButton.textContent = 'Got It';
-            
-            const closeModal = () => {
-                dialog.classList.remove('translate-y-0', 'opacity-100');
-                backdrop.classList.remove('opacity-100');
-                setTimeout(() => {
-                    backdrop.remove();
-                }, 300);
-            };
-
-            closeButton.onclick = closeModal;
-            backdrop.onclick = (e) => {
-                if (e.target === backdrop) {
-                    closeModal();
-                }
-            };
-
-            dialog.appendChild(messageElement);
-            dialog.appendChild(closeButton);
-            backdrop.appendChild(dialog);
-            container.appendChild(backdrop);
-
-            // Animate in
-            setTimeout(() => {
-                backdrop.classList.add('opacity-100');
-                dialog.classList.add('translate-y-0', 'opacity-100');
-            }, 10);
-        }
 
         // Email verification loader
         function showEmailVerificationLoader() {
@@ -474,6 +481,99 @@ $recaptchaSiteKey = EnvLoader::get('RECAPTCHA_SITE_KEY', 'your_recaptcha_site_ke
             if (loader) {
                 loader.remove();
             }
+        }
+
+        function ensureNoLoaderRemains() {
+            // Remove all possible loader elements
+            const loaderSelectors = [
+                '#email-verification-loader',
+                '.loader-overlay',
+                '[id*="email-verification"]',
+                '[class*="loader"]'
+            ];
+            
+            loaderSelectors.forEach(selector => {
+                const elements = document.querySelectorAll(selector);
+                elements.forEach(element => {
+                    if (element && element.id !== 'email-verification-loader') {
+                        element.remove();
+                    }
+                });
+            });
+            
+            // Also check for any div with loader classes
+            const allLoaders = document.querySelectorAll('.spinner');
+            allLoaders.forEach(spinner => {
+                const parent = spinner.closest('.fixed, .absolute');
+                if (parent && parent.id !== 'email-verification-loader') {
+                    // Remove the parent container if it looks like a loader overlay
+                    const parentClasses = parent.className;
+                    if (parentClasses.includes('loader-overlay') || parentClasses.includes('flex items-center justify-center')) {
+                        parent.remove();
+                    }
+                }
+            });
+            
+            console.log('Loader cleanup completed');
+        }
+
+        function resetFormToOriginalState() {
+            const waitlistForm = document.getElementById('waitlist-form');
+            const countrySelect = document.getElementById('country-select');
+            
+            // Reset form inputs
+            waitlistForm.querySelector('input[name="name"]').value = '';
+            waitlistForm.querySelector('input[name="email"]').value = '';
+            countrySelect.selectedIndex = 0;
+            
+            // Reset country dropdown to default state
+            const defaultOption = document.createElement('option');
+            defaultOption.value = "";
+            defaultOption.textContent = "Select your Country";
+            defaultOption.disabled = true;
+            defaultOption.selected = true;
+            defaultOption.hidden = true;
+            
+            // Clear existing options and re-add default
+            countrySelect.innerHTML = '';
+            countrySelect.appendChild(defaultOption);
+            
+            // Re-populate countries
+            const countries = [
+                "Afghanistan","Albania","Algeria","Andorra","Angola","Argentina","Armenia","Australia","Austria",
+                "Azerbaijan","Bahamas","Bahrain","Bangladesh","Barbados","Belarus","Belgium","Belize","Benin",
+                "Bhutan","Bolivia","Bosnia and Herzegovina","Botswana","Brazil","Brunei","Bulgaria","Burkina Faso",
+                "Burundi","Cambodia","Cameroon","Canada","Chile","China","Colombia","Comoros","Congo",
+                "Costa Rica","Croatia","Cuba","Cyprus","Czech Republic","Denmark","Dominican Republic",
+                "Ecuador","Egypt","El Salvador","Estonia","Ethiopia","Fiji","Finland","France","Gabon","Gambia",
+                "Georgia","Germany","Ghana","Greece","Guatemala","Honduras","Hong Kong","Hungary","Iceland",
+                "India","Indonesia","Iran","Iraq","Ireland","Israel","Italy","Jamaica","Japan","Jordan","Kazakhstan",
+                "Kenya","Kuwait","Kyrgyzstan","Laos","Latvia","Lebanon","Lesotho","Liberia","Libya","Lithuania",
+                "Luxembourg","Madagascar","Malawi","Malaysia","Maldives","Mali","Malta","Mauritius","Mexico",
+                "Moldova","Monaco","Mongolia","Montenegro","Morocco","Mozambique","Myanmar","Namibia","Nepal",
+                "Netherlands","New Zealand","Nicaragua","Niger","Nigeria","North Korea","Norway","Oman","Pakistan",
+                "Palestine","Panama","Paraguay","Peru","Philippines","Poland","Portugal","Qatar","Romania",
+                "Russia","Rwanda","Saudi Arabia","Senegal","Serbia","Singapore","Slovakia","Slovenia","South Africa",
+                "South Korea","Spain","Sri Lanka","Sudan","Sweden","Switzerland","Syria","Taiwan","Tanzania",
+                "Thailand","Togo","Trinidad and Tobago","Tunisia","Turkey","Uganda","Ukraine","United Arab Emirates",
+                "United Kingdom","United States","Uruguay","Uzbekistan","Venezuela","Vietnam","Yemen","Zambia","Zimbabwe"
+            ];
+            
+            countries.forEach(country => {
+                const option = document.createElement('option');
+                option.value = country;
+                option.textContent = country;
+                countrySelect.appendChild(option);
+            });
+            
+            // Clear any remaining loader elements
+            hideEmailVerificationLoader();
+            
+            // Clear session storage related to the form
+            sessionStorage.removeItem('user_referral_code');
+            sessionStorage.removeItem('referral_link');
+            
+            console.log('Form reset to original state');
         }
     </script>
 
