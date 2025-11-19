@@ -79,7 +79,8 @@ if ($user) {
 
         $sent = EmailVerification::sendReferralDashboardEmail(
             $user['email'],
-            $user['name']
+            $user['name'],
+            $user['referral_code']
         );
 
         if ($sent) {
