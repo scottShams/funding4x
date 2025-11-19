@@ -58,15 +58,28 @@ if (!$user) {
 if (!$user) {
     $showEmailModal = true;
 } else {
-    // Get list of referrals (users who were referred by this user)
+    // Get list of referrals (users who were referred by this user) with email verification status
     $stmt = $pdo->prepare("
-        SELECT name, country, created_at 
+        SELECT name, country, created_at, email_verified
         FROM waitlist_users 
         WHERE parent_user_id = ? 
         ORDER BY created_at DESC
     ");
     $stmt->execute([$user['id']]);
     $referrals = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    // Calculate verified vs pending referrals
+    $totalReferrals = count($referrals);
+    $verifiedReferrals = 0;
+    $pendingReferrals = 0;
+    
+    foreach ($referrals as $referral) {
+        if ($referral['email_verified'] == 1) {
+            $verifiedReferrals++;
+        } else {
+            $pendingReferrals++;
+        }
+    }
 }
 
 // Generate referral link
@@ -94,8 +107,8 @@ if ($user) {
     $host = $_SERVER['HTTP_HOST'];
     $referralLink = $protocol . '://' . $host . '/index.php?ref=' . urlencode($user['referral_code']);
 
-    // Calculate progress
-    $credits = $user['credits'];
+    // Calculate progress based on VERIFIED referrals only
+    $credits = $verifiedReferrals; // Only count verified users for credits
     $goalCredits = 5;
     $progressPercentage = min(($credits / $goalCredits) * 100, 100);
 }
@@ -219,6 +232,31 @@ if ($user) {
 
         }
 
+        .pie-chart {
+            width: 300px;
+            height: 300px;
+            margin: 0 auto;
+        }
+
+        .verification-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .verified-badge {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+
+        .pending-badge {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+
     </style>
 
 </head>
@@ -310,7 +348,7 @@ if ($user) {
                 5 Referrals = <span class="text-trophy-gold">$5,000</span> Funded Account
             </h2>
             <p class="mt-4 text-xl text-gray-200">
-                Share your unique link with other passionate traders. For every successful referral who joins the competition, you earn **1 Credit**. Collect five credits to bypass the competition and get FREE Entry for the Test to get your Funded Account  (usually costs $59)!
+                Share your unique link with other passionate traders. For every successful referral who joins the competition and verifies their email, you earn **1 Credit**. Collect five credits to bypass the competition and get FREE Entry for the Test to get your Funded Account  (usually costs $59)!
                 <br/><br/>
                 <strong>NOTE: You must only Refer people you know who are Forex Traders - everyone will be Tested for their Skill</strong>
             </p>
@@ -351,6 +389,7 @@ if ($user) {
                 <div class="mt-10">
                     <h3 class="text-2xl font-bold text-primary-purple mb-4">
                         Your Credit Progress: <span id="credit-count" class="text-fomo-red"><?php echo $credits; ?> / <?php echo $goalCredits; ?></span>
+                        <span class="text-sm text-gray-600">(Based on Verified Referrals Only)</span>
                     </h3>
                     <div class="w-full bg-gray-200 rounded-full h-8 overflow-hidden shadow-inner">
                         <div id="progress-bar" class="h-8 bg-primary-purple rounded-full transition-all duration-700 ease-out" 
@@ -368,11 +407,49 @@ if ($user) {
                         <?php endif; ?>
                     </p>
                 </div>
+
+                <!-- Pie Chart Section -->
+                <?php if ($totalReferrals > 0): ?>
+                <div class="mt-10">
+                    <h3 class="text-2xl font-bold text-primary-purple mb-6 text-center">Referral Status Overview</h3>
+                    <div class="flex flex-col md:flex-row items-center justify-center space-y-6 md:space-y-0 md:space-x-8">
+                        <!-- Pie Chart -->
+                        <div class="pie-chart">
+                            <canvas id="referralPieChart"></canvas>
+                        </div>
+                        
+                        <!-- Legend -->
+                        <div class="space-y-4">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-4 h-4 bg-green-500 rounded"></div>
+                                <span class="text-lg font-semibold text-gray-700">
+                                    Completed: <?php echo $verifiedReferrals; ?>
+                                </span>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <div class="w-4 h-4 bg-yellow-500 rounded"></div>
+                                <span class="text-lg font-semibold text-gray-700">
+                                    Pending: <?php echo $pendingReferrals; ?>
+                                </span>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <div class="w-4 h-4 bg-primary-purple rounded"></div>
+                                <span class="text-lg font-semibold text-gray-700">
+                                    Total: <?php echo $totalReferrals; ?>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-sm text-gray-500 mt-6 text-center italic">
+                        Only verified referrals count towards your credits. Pending referrals need to verify their email to earn you credits.
+                    </p>
+                </div>
+                <?php endif; ?>
             </div>
 
             <!-- Referral Status Table Box -->
             <div class="bg-white p-8 sm:p-10 rounded-2xl shadow-xl border-t-4 border-primary-purple">
-                <h3 class="text-2xl font-bold text-primary-purple mb-6">Your Referrals (<?php echo count($referrals); ?>)</h3>
+                <h3 class="text-2xl font-bold text-primary-purple mb-6">Your Referrals (<?php echo $totalReferrals; ?>)</h3>
                 
                 <?php if (empty($referrals)): ?>
                     <!-- No referrals yet -->
@@ -401,12 +478,18 @@ if ($user) {
                                         Joined On
                                     </th>
                                     <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-trophy-gold uppercase tracking-wider">
+                                        Status
+                                    </th>
+                                    <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-trophy-gold uppercase tracking-wider">
                                         Credit
                                     </th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
                                 <?php foreach ($referrals as $index => $referral): ?>
+                                    <?php 
+                                        $isVerified = ($referral['email_verified'] == 1);
+                                    ?>
                                     <tr class="hover:bg-gray-50">
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                             <?php echo htmlspecialchars($referral['name']); ?>
@@ -418,7 +501,24 @@ if ($user) {
                                             <?php echo date('M j, Y', strtotime($referral['created_at'])); ?>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
-                                            <span class="text-lg text-trophy-gold font-bold">✓</span>
+                                            <?php if ($isVerified): ?>
+                                                <span class="verification-badge verified-badge">
+                                                    <i class="fas fa-check-circle mr-1"></i>
+                                                    Completed
+                                                </span>
+                                            <?php else: ?>
+                                                <span class="verification-badge pending-badge">
+                                                    <i class="fas fa-clock mr-1"></i>
+                                                    Pending
+                                                </span>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
+                                            <?php if ($isVerified): ?>
+                                                <span class="text-lg text-green-600 font-bold">✓</span>
+                                            <?php else: ?>
+                                                <span class="text-lg text-yellow-600 font-bold">⏳</span>
+                                            <?php endif; ?>
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>
@@ -428,7 +528,7 @@ if ($user) {
                 <?php endif; ?>
 
                 <p class="mt-6 text-sm text-gray-600 italic border-t pt-4">
-                    **Status Definition:** Each successful referral who registers using your link earns you **1 Credit**. Once you reach 5 credits, you'll get a FREE Entry to the Test for a $5,000 Funded Account!
+                    <strong>Status Definition:</strong> Each successful referral who registers using your link and verifies their email earns you **1 Credit**. Once you reach 5 credits, you'll get a FREE Entry to the Test for a $5,000 Funded Account!
                 </p>
             </div>
         </div>
@@ -453,9 +553,9 @@ if ($user) {
                 <!-- Step 2 -->
                 <div class="card-glow p-8 bg-white rounded-xl shadow-xl border-b-4 border-trophy-gold">
                     <div class="text-4xl font-extrabold text-trophy-gold mb-3">2</div>
-                    <h3 class="text-xl font-bold text-gray-800 mb-3">They Join the Cup</h3>
+                    <h3 class="text-xl font-bold text-gray-800 mb-3">They Join & Verify</h3>
                     <p class="text-gray-600">
-                        When a new trader registers for the competition using your link, you instantly earn **1 Credit**.
+                        When a new trader registers and verifies their email using your link, you instantly earn **1 Credit**.
                     </p>
                 </div>
 
@@ -486,21 +586,21 @@ if ($user) {
                 <div class="bg-header-dark p-6 rounded-xl shadow-lg">
                     <h4 class="text-xl font-bold text-trophy-gold mb-2">What qualifies as a successful referral?</h4>
                     <p class="text-gray-300">
-                        A successful referral is a user who clicks your unique link and completes the registration process for the Global Forex Trader Cup.
+                        A successful referral is a user who clicks your unique link, completes registration, and verifies their email address. Only verified referrals earn you credits.
                     </p>
                 </div>
                 <!-- FAQ Item 2 -->
                 <div class="bg-header-dark p-6 rounded-xl shadow-lg">
                     <h4 class="text-xl font-bold text-trophy-gold mb-2">Do my credits expire?</h4>
                     <p class="text-gray-300">
-                        No, your earned credits are yours to keep until you reach the goal of 5.
+                        No, your earned credits are yours to keep until you reach the goal of 5. Credits are only awarded for verified referrals.
                     </p>
                 </div>
                 <!-- FAQ Item 3 -->
                 <div class="bg-header-dark p-6 rounded-xl shadow-lg">
-                    <h4 class="text-xl font-bold text-trophy-gold mb-2">What are the rules for the $5,000 funded account?</h4>
+                    <h4 class="text-xl font-bold text-trophy-gold mb-2">What happens to pending referrals?</h4>
                     <p class="text-gray-300">
-                        The account granted through the referral program follows the same fair rules as the competition winners: 50% profit split and adherence to daily/overall risk limits.
+                        Pending referrals haven't verified their email yet. They can still verify later and will then count towards your credits. We track both completed and pending referrals for your transparency.
                     </p>
                 </div>
             </div>
@@ -516,7 +616,8 @@ if ($user) {
 
     <?php endif; ?>
 
-    <!-- JavaScript for Clipboard Functionality -->
+    <!-- JavaScript for Clipboard Functionality and Pie Chart -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
 
         function nativeShare(elementId) {
@@ -632,6 +733,51 @@ if ($user) {
             }, 1500);
 
         }
+
+        // Initialize Pie Chart
+        <?php if ($user && $totalReferrals > 0): ?>
+        document.addEventListener('DOMContentLoaded', function() {
+            const ctx = document.getElementById('referralPieChart').getContext('2d');
+            const chart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: ['Completed (Verified)', 'Pending'],
+                    datasets: [{
+                        data: [<?php echo $verifiedReferrals; ?>, <?php echo $pendingReferrals; ?>],
+                        backgroundColor: [
+                            '#10b981', // Green for completed
+                            '#f59e0b'  // Yellow for pending
+                        ],
+                        borderColor: [
+                            '#059669',
+                            '#d97706'
+                        ],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.parsed;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = ((value / total) * 100).toFixed(1);
+                                    return `${label}: ${value} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        });
+        <?php endif; ?>
 
         // Update progress bar on page load
         <?php if ($user): ?>
