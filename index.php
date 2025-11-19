@@ -137,9 +137,15 @@ $recaptchaSiteKey = EnvLoader::get('RECAPTCHA_SITE_KEY', 'your_recaptcha_site_ke
     <script>
         const countdownTimer = (function() {
             // Calculate the target date 20 days from now
-            const twentyDays = 20 * 24 * 60 * 60 * 1000;
-            const targetDate = new Date().getTime() + twentyDays;
+            // const twentyDays = 20 * 24 * 60 * 60 * 1000;
+            // const targetDate = new Date().getTime() + twentyDays;
             
+            // FIXED start date for global countdown (set once)
+            const startDate = new Date('2025-11-20T00:00:00').getTime();
+
+            // Add 20 days to it (constant for everyone)
+            const targetDate = startDate + (20 * 24 * 60 * 60 * 1000);
+
             // Get DOM elements
             const $days = document.getElementById('days');
             const $hours = document.getElementById('hours');
