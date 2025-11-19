@@ -31,3 +31,6 @@ ALTER TABLE waitlist_users
 ADD COLUMN verification_token_expires TIMESTAMP NULL AFTER verification_token;
 
 CREATE INDEX idx_verification_token ON waitlist_users(verification_token);
+
+ALTER TABLE waitlist_users 
+ADD COLUMN referral_dashboard_mail_sent TINYINT(1) DEFAULT 0 AFTER verification_token_expires;
