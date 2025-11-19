@@ -182,7 +182,7 @@ class EmailVerification {
      * send referral dashboard email
      */
 
-    public static function sendReferralDashboardEmail($email, $name) {
+    public static function sendReferralDashboardEmail($email, $name, $referral_code) {
         try {
             // Get SMTP config
             $smtpHost = EnvLoader::get('SMTP_HOST', 'localhost');
@@ -197,6 +197,7 @@ class EmailVerification {
 
             // Replace placeholders
             $body = str_replace("FNAME", htmlspecialchars($name), $body);
+            $body = str_replace("REFERRAL_CODE", urlencode($referral_code), $body);
 
             $subject = $name . "You're on the Waiting List — Funding4x";
 
