@@ -179,6 +179,57 @@ class EmailVerification {
     }
     
     /**
+     * send referral dashboard email
+     */
+
+    public static function sendReferralDashboardEmail($email, $name) {
+        try {
+            // Get SMTP config
+            $smtpHost = EnvLoader::get('SMTP_HOST', 'localhost');
+            $smtpUsername = EnvLoader::get('SMTP_USERNAME', '');
+            $smtpPassword = EnvLoader::get('SMTP_PASSWORD', '');
+            $smtpPort = EnvLoader::get('SMTP_PORT', 587);
+            $smtpEncryption = EnvLoader::get('SMTP_ENCRYPTION', 'tls');
+
+            // Load your waiting list confirmed email template (HTML)
+            $templatePath = __DIR__ . "/email_templates/waiting_list_confirmed.html";
+            $body = file_exists($templatePath) ? file_get_contents($templatePath) : "";
+
+            // Replace placeholders
+            $body = str_replace("FNAME", htmlspecialchars($name), $body);
+
+            $subject = $name . "You're on the Waiting List — Funding4x";
+
+            // PHPMailer
+            $mail = new PHPMailer(true);
+
+            $mail->isSMTP();
+            $mail->Host = $smtpHost;
+            $mail->SMTPAuth = !empty($smtpUsername);
+            $mail->Username = $smtpUsername;
+            $mail->Password = $smtpPassword;
+            $mail->SMTPSecure = $smtpEncryption;
+            $mail->Port = (int)$smtpPort;
+
+            $mail->setFrom('noreply@funding4x.com', 'Funding4x');
+            $mail->addAddress($email, $name);
+            $mail->addReplyTo('support@funding4x.com', 'Funding4x Support');
+
+            $mail->isHTML(true);
+            $mail->Subject = $subject;
+            $mail->Body = $body;
+            $mail->AltBody = strip_tags($body);
+
+            return $mail->send();
+
+        } catch (Exception $e) {
+            error_log("Referral Dashboard Email failed for $email: " . $e->getMessage());
+            return false;
+        }
+    }
+
+
+    /**
      * Get email template
      * @param string $name User name
      * @param string $email User email
