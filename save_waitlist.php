@@ -120,8 +120,8 @@ try {
     
     // Insert new user
     $stmt = $pdo->prepare("
-        INSERT INTO waitlist_users (name, email, country, referral_code, parent_user_id) 
-        VALUES (?, ?, ?, ?, ?)
+        INSERT INTO waitlist_users (name, email, country, referral_code, parent_user_id, email_verified)
+        VALUES (?, ?, ?, ?, ?, 0)
     ");
     $stmt->execute([$name, $email, $country, $userReferralCode, $parentUserId]);
     
@@ -148,13 +148,18 @@ try {
         'referral_link' => $referralLink
     ]);
     
-} catch (PDOException $e) {
+} catch (Exception $e) {
     $pdo->rollBack();
     
-    if ($e->getCode() == 23000) { // duplicate email
-        echo json_encode(['status' => 'error', 'message' => 'You\'re already on the waitlist!']);
+    // More specific error messages
+    if ($e instanceof PDOException) {
+        if ($e->getCode() == 23000) { // duplicate email
+            echo json_encode(['status' => 'error', 'message' => 'You\'re already on the waitlist!']);
+        } else {
+            echo json_encode(['status' => 'error', 'message' => 'Database error: ' . $e->getMessage()]);
+        }
     } else {
-        echo json_encode(['status' => 'error', 'message' => 'Something went wrong. Try again later.']);
+        echo json_encode(['status' => 'error', 'message' => 'Error: ' . $e->getMessage()]);
     }
 }
 ?>
