@@ -7,6 +7,7 @@ require_once __DIR__ . '/env_loader.php';
 
 // Include database connection
 require_once 'database.php';
+require_once 'email_verification.php';
 
 // Get database connection
 $pdo = getPDO();
@@ -67,24 +68,34 @@ try {
     $pdo->beginTransaction();
     
     // Check if email already exists
-    $stmt = $pdo->prepare("SELECT id, referral_code FROM waitlist_users WHERE email = ?");
+    $stmt = $pdo->prepare("SELECT id, referral_code, email_verified FROM waitlist_users WHERE email = ?");
     $stmt->execute([$email]);
     $existingUser = $stmt->fetch();
     
     if ($existingUser) {
         $pdo->rollBack();
         
-        // Return existing user's referral code for direct redirect
-        $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http';
-        $host = $_SERVER['HTTP_HOST'];
-        $existingReferralLink = $protocol . '://' . $host . '/referral_dashboard.php?user=' . urlencode($existingUser['referral_code']);
-        
-        echo json_encode([
-            'status' => 'existing_user', 
-            'message' => 'You\'re already on the waitlist!',
-            'referral_code' => $existingUser['referral_code'],
-            'referral_link' => $existingReferralLink
-        ]);
+        // Check if user is already verified
+        if ($existingUser['email_verified']) {
+            // Return existing user's referral code for direct redirect
+            $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http';
+            $host = $_SERVER['HTTP_HOST'];
+            $existingReferralLink = $protocol . '://' . $host . '/referral_dashboard.php?user=' . urlencode($existingUser['referral_code']);
+            
+            echo json_encode([
+                'status' => 'existing_user',
+                'message' => 'You\'re already on the waitlist!',
+                'referral_code' => $existingUser['referral_code'],
+                'referral_link' => $existingReferralLink
+            ]);
+        } else {
+            // User exists but not verified
+            echo json_encode([
+                'status' => 'email_not_verified',
+                'message' => 'Please check your email and verify your account to continue.',
+                'referral_code' => $existingUser['referral_code']
+            ]);
+        }
         exit;
     }
     
@@ -116,6 +127,12 @@ try {
     
     $userId = $pdo->lastInsertId();
     
+    // Create email verification token and send email
+    $verificationToken = EmailVerification::createVerificationToken($userId, $pdo);
+    
+    // Send verification email
+    $emailSent = EmailVerification::sendVerificationEmail($email, $name, $verificationToken);
+    
     // Generate referral dashboard URL
     $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http';
     $host = $_SERVER['HTTP_HOST'];
@@ -124,8 +141,9 @@ try {
     $pdo->commit();
     
     echo json_encode([
-        'status' => 'success', 
-        'message' => 'You have been added to the waitlist!',
+        'status' => 'success',
+        'message' => 'You have been added to the waitlist! Please check your email to verify your account.',
+        'email_sent' => $emailSent,
         'referral_code' => $userReferralCode,
         'referral_link' => $referralLink
     ]);
