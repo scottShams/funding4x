@@ -16,7 +16,7 @@ $data = json_decode(file_get_contents('php://input'), true);
 
 $recaptcha = $data['recaptcha'] ?? '';
 
-$recaptchaSiteKey = EnvLoader::get('RECAPTCHA_SECRET_KEY', 'your_recaptcha_secret_key_here');
+$secretKey = EnvLoader::get('RECAPTCHA_SECRET_KEY', 'your_recaptcha_secret_key_here');
 
 $response = file_get_contents("https://www.google.com/recaptcha/api/siteverify?secret=$secretKey&response=$recaptcha");
 $responseData = json_decode($response, true);
