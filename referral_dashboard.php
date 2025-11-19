@@ -71,6 +71,24 @@ if (!$user) {
 
 // Generate referral link
 if ($user) {
+    // -----------------------------
+    // SEND FIRST-TIME REFERRAL EMAIL
+    // -----------------------------
+    if ($user['referral_dashboard_mail_sent'] == 0) {
+        require_once __DIR__ . "/email_verification.php";
+
+        $sent = EmailVerification::sendReferralDashboardEmail(
+            $user['email'],
+            $user['name']
+        );
+
+        if ($sent) {
+            // Mark email as sent
+            $update = $pdo->prepare("UPDATE waitlist_users SET referral_dashboard_mail_sent = 1 WHERE id = ?");
+            $update->execute([$user['id']]);
+        }
+    }
+
     $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http';
     $host = $_SERVER['HTTP_HOST'];
     $referralLink = $protocol . '://' . $host . '/index.php?ref=' . urlencode($user['referral_code']);
@@ -94,6 +112,13 @@ if ($user) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>Referral Dashboard - Get Funded for Free</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16x16.png">
+    <link rel="manifest" href="assets/site.webmanifest">
 
     <!-- Font Awesome -->
 
@@ -250,7 +275,11 @@ if ($user) {
     <!-- Header & Navigation -->
     <header class="header-bg text-white shadow-2xl sticky top-0 z-10">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-            <h1 class="text-2xl font-extrabold tracking-tight text-trophy-gold">REFERRAL DASHBOARD</h1>
+            <!-- Logo Section -->
+            <div class="flex items-center">
+                <img src="assets/logo.png" alt="Funding4X Logo" class="h-10 w-10 mr-3 rounded-lg">
+                <h1 class="text-2xl font-extrabold tracking-tight text-trophy-gold">REFERRAL DASHBOARD</h1>
+            </div>
             <div class="flex items-center space-x-4">
                 <span class="text-sm text-gray-300">Welcome, <?php echo htmlspecialchars($user['name']); ?></span>
                 <a href="index.php" class="text-sm text-white hover:text-trophy-gold transition duration-300">
