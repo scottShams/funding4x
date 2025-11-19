@@ -11,6 +11,14 @@ $recaptchaSiteKey = EnvLoader::get('RECAPTCHA_SITE_KEY', 'your_recaptcha_site_ke
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Exclusive Access Countdown</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16x16.png">
+    <link rel="manifest" href="assets/site.webmanifest">
+    
     <!-- Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -60,111 +68,150 @@ $recaptchaSiteKey = EnvLoader::get('RECAPTCHA_SITE_KEY', 'your_recaptcha_site_ke
         }
     </script>
 </head>
-<body class="bg-gray-900 text-white min-h-screen flex items-center justify-center p-4 font-sans">
+<body class="bg-gray-900 text-white min-h-screen p-4 font-sans">
 
-    <div class="max-w-4xl w-full bg-gray-800 p-8 md:p-12 rounded-2xl shadow-2xl border-t-8 border-primary-accent transform transition duration-500 hover:scale-[1.01]">
-        <!-- Headline & FOMO Hook -->
-        <header class="text-center mb-10">
-            <h1 class="text-4xl md:text-6xl font-extrabold mb-3 leading-tight text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-primary-accent">
-                LIMITED TIME ACCESS ONLY. DON'T MISS OUT!
-            </h1>
-            <p class="text-xl md:text-2xl text-gray-300 font-light">
-                We need skilled Forex Traders to Trade $5000 accounts for us. <br />We have a total of $200,000 to give to begin with. 
-            </p>
-        </header>
-
-        <!-- NEW: Why Join Today Section (FOMO Points) -->
-        <div class="mb-10 p-5 bg-gray-900 rounded-xl border border-red-700/50 shadow-inner">
-            <h2 class="text-2xl font-bold text-center text-red-400 mb-4 uppercase tracking-widest">
-                Why Join us with your Forex Trading Skills??
-            </h2>
-            <ul class="text-left space-y-3 text-lg md:text-xl font-medium list-none p-0">
-                <li class="flex items-start text-gray-200">
-                    <svg class="w-6 h-6 mr-3 mt-1 text-primary-accent flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                    <span class="font-bold text-yellow-300">Private Prop Fund:</span> You Trade our Money.
-                </li>
-                <li class="flex items-start text-gray-200">
-                    <svg class="w-6 h-6 mr-3 mt-1 text-primary-accent flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                    <span class="font-bold text-yellow-300">50:50 Profit Share:</span> Trade Safely and we will share the Profits end of each month.
-                </li>
-                <li class="flex items-start text-gray-200">
-                    <svg class="w-6 h-6 mr-3 mt-1 text-primary-accent flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                    <span class="font-bold text-yellow-300">Rexlaed Rules:</span>No secret rules or tricks like Prop Firms. Easy process.
-                </li>
-            </ul>
-        </div>
-        <!-- END FOMO POINTS -->
-
-        <!-- Countdown Timer Section -->
-        <div id="countdown-container" class="flex justify-center space-x-3 md:space-x-6 mb-10">
-            <!-- Days Block -->
-            <div class="text-center p-3 md:p-5 bg-gray-700 rounded-xl shadow-lg w-20 md:w-28 transition hover:bg-gray-600">
-                <div id="days" class="countdown-digit text-4xl md:text-6xl text-primary-accent">00</div>
-                <div class="text-xs md:text-sm uppercase text-gray-400 font-medium">Days</div>
+    <!-- Navigation Bar -->
+    <nav class="bg-gray-800 mb-5 shadow-lg border-b-4 border-primary-accent">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-4">
+                <!-- Logo Section -->
+                <div class="flex items-center">
+                    <img src="assets/logo.png" alt="Funding4X Logo" class="h-10 w-10 mr-3 rounded-lg">
+                    <span class="text-xl font-bold text-primary-accent">Funding4X</span>
+                </div>
+                
+                <!-- Navigation Links -->
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-4">
+                        <a href="referral_dashboard.php" class="bg-primary-accent hover:bg-yellow-600 text-gray-900 font-bold px-4 py-2 rounded-lg text-sm transition duration-300">Dashboard</a>
+                    </div>
+                </div>
+                
+                <!-- Mobile menu button -->
+                <div class="md:hidden">
+                    <button type="button" class="text-gray-300 hover:text-white focus:outline-none focus:text-white" onclick="toggleMobileMenu()">
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </button>
+                </div>
             </div>
-
-            <!-- Hours Block -->
-            <div class="text-center p-3 md:p-5 bg-gray-700 rounded-xl shadow-lg w-20 md:w-28 transition hover:bg-gray-600">
-                <div id="hours" class="countdown-digit text-4xl md:text-6xl text-primary-accent">00</div>
-                <div class="text-xs md:text-sm uppercase text-gray-400 font-medium">Hours</div>
-            </div>
-
-            <!-- Minutes Block -->
-            <div class="text-center p-3 md:p-5 bg-gray-700 rounded-xl shadow-lg w-20 md:w-28 transition hover:bg-gray-600">
-                <div id="minutes" class="countdown-digit text-4xl md:text-6xl text-primary-accent">00</div>
-                <div class="text-xs md:text-sm uppercase text-gray-400 font-medium">Minutes</div>
-            </div>
-
-            <!-- Seconds Block -->
-            <div class="text-center p-3 md:p-5 bg-gray-700 rounded-xl shadow-lg w-20 md:w-28 transition hover:bg-gray-600">
-                <div id="seconds" class="countdown-digit text-4xl md:text-6xl text-primary-accent">00</div>
-                <div class="text-xs md:text-sm uppercase text-gray-400 font-medium">Seconds</div>
+            
+            <!-- Mobile menu -->
+            <div class="md:hidden hidden" id="mobile-menu">
+                <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                    <a href="referral_dashboard.php" class="text-primary-accent hover:text-yellow-400 block px-3 py-2 rounded-md text-base font-medium">Dashboard</a>
+                </div>
             </div>
         </div>
-        
-        <!-- Actionable Content and Waitlist Form -->
-        <div class="text-center">
-            <p class="text-lg md:text-xl text-red-400 font-semibold mb-6">
-                Enter your email to be the first to get Notified when we go Live!
-            </p>
+    </nav>
 
-            <form id="waitlist-form" class="space-y-4 max-w-lg mx-auto">
-                <input type="text" id="name-input" name="name" placeholder="Enter your Name" required
-                    class="w-full p-4 text-gray-100 bg-gray-700 border border-gray-600 rounded-lg focus:ring-primary-accent focus:border-primary-accent transition duration-200 placeholder-gray-400 text-lg">
-                <input type="email" id="email-input" name="email" placeholder="Enter your email address" required
-                    class="w-full p-4 text-gray-100 bg-gray-700 border border-gray-600 rounded-lg focus:ring-primary-accent focus:border-primary-accent transition duration-200 placeholder-gray-400 text-lg">
-                
-                <!-- Country selector -->
-                <select name="country" id="country-select" required
-                    class="w-full p-4 text-gray-100 bg-gray-700 border border-gray-600 rounded-lg focus:ring-primary-accent focus:border-primary-accent transition duration-200 text-lg">
-                    <option value="">Select your Country</option>
-                </select>
-                
-                <div class="g-recaptcha" data-sitekey="<?php echo htmlspecialchars($recaptchaSiteKey); ?>"></div>
+    <!-- Main Content Centered -->
+    <div class="flex items-center justify-center min-h-[calc(100vh-80px)]">
+        <div class="max-w-4xl w-full bg-gray-800 p-8 md:p-12 rounded-2xl shadow-2xl border-t-8 border-primary-accent transform transition duration-500 hover:scale-[1.01]">
+            <!-- Headline & FOMO Hook -->
+            <header class="text-center mb-10">
+                <h1 class="text-4xl md:text-6xl font-extrabold mb-3 leading-tight text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-primary-accent">
+                    LIMITED TIME ACCESS ONLY. DON'T MISS OUT!
+                </h1>
+                <p class="text-xl md:text-2xl text-gray-300 font-light">
+                    We need skilled Forex Traders to Trade $5000 accounts for us. <br />We have a total of $200,000 to give to begin with. 
+                </p>
+            </header>
 
-                <button type="submit"
-                    class="w-full bg-primary-accent hover:bg-yellow-600 text-gray-900 font-bold py-4 rounded-lg text-xl md:text-2xl uppercase tracking-wider shadow-2xl shadow-primary-accent/50 transition duration-300 ease-in-out transform hover:scale-105 active:scale-95">
-                    Join Waitlist Now!
-                </button>
-            </form>
+            <!-- NEW: Why Join Today Section (FOMO Points) -->
+            <div class="mb-10 p-5 bg-gray-900 rounded-xl border border-red-700/50 shadow-inner">
+                <h2 class="text-2xl font-bold text-center text-red-400 mb-4 uppercase tracking-widest">
+                    Why Join us with your Forex Trading Skills??
+                </h2>
+                <ul class="text-left space-y-3 text-lg md:text-xl font-medium list-none p-0">
+                    <li class="flex items-start text-gray-200">
+                        <svg class="w-6 h-6 mr-3 mt-1 text-primary-accent flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        <span class="font-bold text-yellow-300">Private Prop Fund:</span> You Trade our Money.
+                    </li>
+                    <li class="flex items-start text-gray-200">
+                        <svg class="w-6 h-6 mr-3 mt-1 text-primary-accent flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        <span class="font-bold text-yellow-300">50:50 Profit Share:</span> Trade Safely and we will share the Profits end of each month.
+                    </li>
+                    <li class="flex items-start text-gray-200">
+                        <svg class="w-6 h-6 mr-3 mt-1 text-primary-accent flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        <span class="font-bold text-yellow-300">Rexlaed Rules:</span>No secret rules or tricks like Prop Firms. Easy process.
+                    </li>
+                </ul>
+            </div>
+            <!-- END FOMO POINTS -->
 
-            <!-- Referral Dashboard Button -->
-            <div class="mt-6 max-w-lg mx-auto">
-                <a href="referral_dashboard.php"
-                   id="dashboard-link"
-                   class="w-full block bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 px-6 rounded-lg text-lg md:text-xl uppercase tracking-wider shadow-lg transition duration-300 ease-in-out transform hover:scale-105 active:scale-95 text-center">
-                    View Referral Dashboard
-                </a>
-                <p class="text-xs text-gray-400 mt-2 text-center">
-                    Already joined? Check your referral status and earnings here
+            <!-- Countdown Timer Section -->
+            <div id="countdown-container" class="flex justify-center space-x-3 md:space-x-6 mb-10">
+                <!-- Days Block -->
+                <div class="text-center p-3 md:p-5 bg-gray-700 rounded-xl shadow-lg w-20 md:w-28 transition hover:bg-gray-600">
+                    <div id="days" class="countdown-digit text-4xl md:text-6xl text-primary-accent">00</div>
+                    <div class="text-xs md:text-sm uppercase text-gray-400 font-medium">Days</div>
+                </div>
+
+                <!-- Hours Block -->
+                <div class="text-center p-3 md:p-5 bg-gray-700 rounded-xl shadow-lg w-20 md:w-28 transition hover:bg-gray-600">
+                    <div id="hours" class="countdown-digit text-4xl md:text-6xl text-primary-accent">00</div>
+                    <div class="text-xs md:text-sm uppercase text-gray-400 font-medium">Hours</div>
+                </div>
+
+                <!-- Minutes Block -->
+                <div class="text-center p-3 md:p-5 bg-gray-700 rounded-xl shadow-lg w-20 md:w-28 transition hover:bg-gray-600">
+                    <div id="minutes" class="countdown-digit text-4xl md:text-6xl text-primary-accent">00</div>
+                    <div class="text-xs md:text-sm uppercase text-gray-400 font-medium">Minutes</div>
+                </div>
+
+                <!-- Seconds Block -->
+                <div class="text-center p-3 md:p-5 bg-gray-700 rounded-xl shadow-lg w-20 md:w-28 transition hover:bg-gray-600">
+                    <div id="seconds" class="countdown-digit text-4xl md:text-6xl text-primary-accent">00</div>
+                    <div class="text-xs md:text-sm uppercase text-gray-400 font-medium">Seconds</div>
+                </div>
+            </div>
+            
+            <!-- Actionable Content and Waitlist Form -->
+            <div class="text-center">
+                <p class="text-lg md:text-xl text-red-400 font-semibold mb-6">
+                    Enter your email to be the first to get Notified when we go Live!
+                </p>
+
+                <form id="waitlist-form" class="space-y-4 max-w-lg mx-auto">
+                    <input type="text" id="name-input" name="name" placeholder="Enter your Name" required
+                        class="w-full p-4 text-gray-100 bg-gray-700 border border-gray-600 rounded-lg focus:ring-primary-accent focus:border-primary-accent transition duration-200 placeholder-gray-400 text-lg">
+                    <input type="email" id="email-input" name="email" placeholder="Enter your email address" required
+                        class="w-full p-4 text-gray-100 bg-gray-700 border border-gray-600 rounded-lg focus:ring-primary-accent focus:border-primary-accent transition duration-200 placeholder-gray-400 text-lg">
+                    
+                    <!-- Country selector -->
+                    <select name="country" id="country-select" required
+                        class="w-full p-4 text-gray-100 bg-gray-700 border border-gray-600 rounded-lg focus:ring-primary-accent focus:border-primary-accent transition duration-200 text-lg">
+                        <option value="">Select your Country</option>
+                    </select>
+                    
+                    <div class="g-recaptcha" data-sitekey="<?php echo htmlspecialchars($recaptchaSiteKey); ?>"></div>
+
+                    <button type="submit"
+                        class="w-full bg-primary-accent hover:bg-yellow-600 text-gray-900 font-bold py-4 rounded-lg text-xl md:text-2xl uppercase tracking-wider shadow-2xl shadow-primary-accent/50 transition duration-300 ease-in-out transform hover:scale-105 active:scale-95">
+                        Join Waitlist Now!
+                    </button>
+                </form>
+
+                <!-- Referral Dashboard Button -->
+                <div class="mt-6 max-w-lg mx-auto">
+                    <a href="referral_dashboard.php"
+                       id="dashboard-link"
+                       class="w-full block bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 px-6 rounded-lg text-lg md:text-xl uppercase tracking-wider shadow-lg transition duration-300 ease-in-out transform hover:scale-105 active:scale-95 text-center">
+                        View Referral Dashboard
+                    </a>
+                    <p class="text-xs text-gray-400 mt-2 text-center">
+                        Already joined? Check your referral status and earnings here
+                    </p>
+                </div>
+
+                <p class="text-sm text-gray-500 mt-4">
+                    *Limited slots remaining. Act before the timer expires.*
                 </p>
             </div>
 
-            <p class="text-sm text-gray-500 mt-4">
-                *Limited slots remaining. Act before the timer expires.*
-            </p>
         </div>
-
     </div>
 
     <script>
@@ -172,7 +219,7 @@ $recaptchaSiteKey = EnvLoader::get('RECAPTCHA_SITE_KEY', 'your_recaptcha_site_ke
             // Calculate the target date 20 days from now
             // const twentyDays = 20 * 24 * 60 * 60 * 1000;
             // const targetDate = new Date().getTime() + twentyDays;
-            
+             
             // FIXED start date for global countdown (set once)
             const startDate = new Date('2025-11-20T00:00:00').getTime();
 
@@ -586,6 +633,12 @@ $recaptchaSiteKey = EnvLoader::get('RECAPTCHA_SITE_KEY', 'your_recaptcha_site_ke
             sessionStorage.removeItem('referral_link');
             
             console.log('Form reset to original state');
+        }
+
+        // Mobile menu toggle function
+        function toggleMobileMenu() {
+            const mobileMenu = document.getElementById('mobile-menu');
+            mobileMenu.classList.toggle('hidden');
         }
     </script>
 
