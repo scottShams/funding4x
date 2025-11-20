@@ -332,7 +332,7 @@ if ($user) {
     <section class="py-16 sm:py-24 bg-primary-purple text-white">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <span class="text-trophy-gold text-sm font-semibold uppercase tracking-widest block mb-4">
-                Thank you <?php echo htmlspecialchars($user['name']); ?>, we added you to the Waiting List for the $5000 Funded Account </br> As soon as everything is ready we will email you so make sure you </br> Whilst you are waiting, you can share your Referral link below to Earn Credits, which will give you unlimited Free Retry for the Trader Programme
+                Thank you <?php echo htmlspecialchars($user['name']); ?>, we added you to the Waiting List for the $5000 Funded Account </br> As soon as everything is ready we will email you so make sure you stay up to date. </br></br> Whilst you are waiting, you can share your Referral link below to Earn Credits, which will give you unlimited Free Retry for the Trader Programme
             </span>
             <!-- Telegram Button -->
             <div class="flex justify-center mt-6">
@@ -586,14 +586,14 @@ if ($user) {
                 <div class="bg-header-dark p-6 rounded-xl shadow-lg">
                     <h4 class="text-xl font-bold text-trophy-gold mb-2">What qualifies as a successful referral?</h4>
                     <p class="text-gray-300">
-                        A successful referral is a user who clicks your unique link, completes registration, and verifies their email address. Only verified referrals earn you credits.
+                        A successful referral is a user who clicks your unique link, completes registration, and verifies their email address. <strong>Only verified referrals earn you credits.</strong>
                     </p>
                 </div>
                 <!-- FAQ Item 2 -->
                 <div class="bg-header-dark p-6 rounded-xl shadow-lg">
                     <h4 class="text-xl font-bold text-trophy-gold mb-2">Do my credits expire?</h4>
                     <p class="text-gray-300">
-                        No, your earned credits are yours to keep until you reach the goal of 5. Credits are only awarded for verified referrals.
+                        No, your earned credits are yours to keep. You can earn as many Credits as you want by Referring as many people as you like. Credits are only awarded for verified referrals.
                     </p>
                 </div>
                 <!-- FAQ Item 3 -->
@@ -610,7 +610,7 @@ if ($user) {
     <!-- Footer -->
     <footer class="bg-header-dark text-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 text-center">
-            <p class="text-sm">&copy; 2024 Global Trader Cup. All rights reserved. | Powered by Referrals.</p>
+            <p class="text-sm">&copy; 2024 Funding4x. All rights reserved. | Powered by Referrals.</p>
         </div>
     </footer>
 
@@ -630,11 +630,9 @@ if ($user) {
 
             const message = "🚀 Want a $5,000 funded trading account?\n\n" +
 
-                "Join the Global Trader Cup and get instant credits when your friends sign up using your referral link.\n\n" +
-
                 "Use my link to get started and claim your funded account:\n\n💸 " + referralURL + "\n\n" +
-
-                "Share now and start earning credits!";
+				
+                "Hurry, they will stop taking people soon. Good luck with your Trading!!";
 
             if (navigator.share) {
 
