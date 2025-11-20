@@ -304,8 +304,8 @@ class EmailVerification {
                 <ul>
                     <li><strong>Verify your email address</strong> (required to activate your account)</li>
                     <li>Wait for our team to review applications</li>
-                    <li>Get notified when we go live and trading begins</li>
-                    <li>Start earning with our 50:50 profit sharing model</li>
+                    <li>Get notified when we go live and trading begins to Test Your Trading Skill</li>
+                    <li>Start Referring other Forex Trader so that you can Enter the Test for FREE.</li>
                 </ul>
                 
                 <p>To complete your registration and ensure you receive important updates, please verify your email address by clicking the button below:</p>
@@ -323,9 +323,10 @@ class EmailVerification {
                 
                 <h3> Why Join Our Program?</h3>
                 <ul>
-                    <li><strong>Private Prop Fund:</strong> Trade our money, keep the profits</li>
+                    <li><strong>Private Prop Fund:</strong> Trade our money, share the profits</li>
                     <li><strong>50:50 Profit Share:</strong> Fair and transparent profit distribution</li>
                     <li><strong>No Hidden Rules:</strong> Unlike other prop firms, we have clear, fair rules</li>
+					<li><strong>Simple Trading Test with clear simple rules to follow to ensure you dont lose too much money</li>
                     <li><strong>$5000 Starting Accounts:</strong> Trade with substantial capital</li>
                 </ul>
                 
