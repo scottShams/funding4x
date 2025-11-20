@@ -105,6 +105,13 @@ try {
                 'referral_link' => $existingReferralLink
             ]);
         } else {
+            if ($existingUser['email_verified'] === false && $existingUser['verification_token'] == null && $existingUser['verification_token_expires'] == null) {
+                // Create email verification token and send email
+                $verificationToken = EmailVerification::createVerificationToken($existingUser['id'], $pdo);
+                
+                // Send verification email
+                $emailSent = EmailVerification::sendVerificationEmail($existingUser['email'], $existingUser['name'],$verificationToken);
+            }
             // User exists but not verified
             echo json_encode([
                 'status' => 'email_not_verified',
