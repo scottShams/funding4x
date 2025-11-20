@@ -466,6 +466,48 @@ if ($user) {
                         Join us on Telegram for Instant Updates & Competitions
                     </a>
                 </div>
+                <!-- Social Buttons Section -->
+                <div class="mt-8 flex flex-col sm:flex-row sm:justify-center sm:space-x-4 space-y-3 sm:space-y-0">
+
+                    <!-- Facebook -->
+                    <a href="https://facebook.com/funding4x" target="_blank"
+                    class="flex items-center bg-white border border-gray-200 rounded-full shadow-sm hover:shadow-md transition px-4 py-2 w-full sm:w-auto">
+                        <div class="flex items-center justify-center bg-blue-600 text-white rounded-full w-8 h-8">
+                            <i class="fab fa-facebook-f text-base"></i>
+                        </div>
+                        <div class="ml-3 leading-tight">
+                            <p class="text-gray-500 text-[10px] tracking-wide">FOLLOW US ON</p>
+                            <p class="text-gray-900 text-sm font-bold">Facebook</p>
+                        </div>
+                    </a>
+
+                    <!-- TikTok -->
+                    <a href="https://tiktok.com/@funding4x" target="_blank"
+                    class="flex items-center bg-white border border-gray-200 rounded-full shadow-sm hover:shadow-md transition px-4 py-2 w-full sm:w-auto">
+                        <div class="flex items-center justify-center bg-black text-white rounded-full w-8 h-8">
+                            <i class="fab fa-tiktok text-base"></i>
+                        </div>
+                        <div class="ml-3 leading-tight">
+                            <p class="text-gray-500 text-[10px] tracking-wide">FOLLOW US ON</p>
+                            <p class="text-gray-900 text-sm font-bold">TikTok</p>
+                        </div>
+                    </a>
+
+                    <!-- Twitter X -->
+                    <a href="https://twitter.com/funding4x" target="_blank"
+                    class="flex items-center bg-white border border-gray-200 rounded-full shadow-sm hover:shadow-md transition px-4 py-2 w-full sm:w-auto">
+                        <div class="flex items-center justify-center bg-black text-white rounded-full w-8 h-8">
+                            <i class="fab fa-x-twitter text-base"></i>
+                        </div>
+                        <div class="ml-3 leading-tight">
+                            <p class="text-gray-500 text-[10px] tracking-wide">FOLLOW US ON</p>
+                            <p class="text-gray-900 text-sm font-bold">Twitter X</p>
+                        </div>
+                    </a>
+
+                </div>
+
+
 
                 <!-- Credit Tracker -->
                 <div class="mt-10">
