@@ -63,10 +63,22 @@ function generateReferralCode($pdo) {
     return $code;
 }
 
+function getUserIP() {
+    if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
+        return $_SERVER['HTTP_CLIENT_IP'];
+    } elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+        // May contain multiple IPs, return first
+        return explode(',', $_SERVER['HTTP_X_FORWARDED_FOR'])[0];
+    } else {
+        return $_SERVER['REMOTE_ADDR'];
+    }
+}
+
+
 // Save to DB with referral tracking
 try {
     $pdo->beginTransaction();
-    
+    $userIP = getUserIP();
     // Check if email already exists
     $stmt = $pdo->prepare("SELECT id, referral_code, email_verified FROM waitlist_users WHERE email = ?");
     $stmt->execute([$email]);
@@ -74,7 +86,11 @@ try {
     
     if ($existingUser) {
         $pdo->rollBack();
-        
+
+        // NEW: update IP for existing user
+        $updateIP = $pdo->prepare("UPDATE waitlist_users SET user_ip = ? WHERE id = ?");
+        $updateIP->execute([$userIP, $existingUser['id']]);
+
         // Check if user is already verified
         if ($existingUser['email_verified']) {
             // Return existing user's referral code for direct redirect
@@ -96,13 +112,14 @@ try {
                 'referral_code' => $existingUser['referral_code']
             ]);
         }
+
         exit;
     }
+
     
     // Insert new user with referral code
     $userReferralCode = generateReferralCode($pdo);
     $parentUserId = null;
-    
     // If referral code provided, find parent user and assign credits
     if (!empty($referral_code)) {
         $stmt = $pdo->prepare("SELECT id, credits FROM waitlist_users WHERE referral_code = ?");
@@ -120,10 +137,10 @@ try {
     
     // Insert new user
     $stmt = $pdo->prepare("
-        INSERT INTO waitlist_users (name, email, country, referral_code, parent_user_id, email_verified)
-        VALUES (?, ?, ?, ?, ?, 0)
+        INSERT INTO waitlist_users (name, email, country, user_ip, referral_code, parent_user_id, email_verified)
+        VALUES (?, ?, ?, ?, ?, ?, 0)
     ");
-    $stmt->execute([$name, $email, $country, $userReferralCode, $parentUserId]);
+    $stmt->execute([$name, $email, $country, $userIP, $userReferralCode, $parentUserId]);
     
     $userId = $pdo->lastInsertId();
     
