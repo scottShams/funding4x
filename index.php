@@ -10,7 +10,7 @@ $recaptchaSiteKey = EnvLoader::get('RECAPTCHA_SITE_KEY', 'your_recaptcha_site_ke
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Exclusive Access Countdown</title>
+    <title>Funding4x - Exclusive Access Countdown</title>
     
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
@@ -74,16 +74,16 @@ $recaptchaSiteKey = EnvLoader::get('RECAPTCHA_SITE_KEY', 'your_recaptcha_site_ke
     <nav class="bg-gray-800 mb-5 shadow-lg border-b-4 border-primary-accent">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center py-4">
-                <!-- Logo Section -->
+                <!-- Logo Section
                 <div class="flex items-center">
                     <img src="assets/logo.png" alt="Funding4X Logo" class="h-10 w-10 mr-3 rounded-lg">
                     <span class="text-xl font-bold text-primary-accent">Funding4X</span>
                 </div>
-                
+               --> 
                 <!-- Navigation Links -->
                 <div class="hidden md:block">
                     <div class="ml-10 flex items-baseline space-x-4">
-                        <a href="referral_dashboard.php" class="bg-primary-accent hover:bg-yellow-600 text-gray-900 font-bold px-4 py-2 rounded-lg text-sm transition duration-300">Dashboard</a>
+                        <a href="referral_dashboard.php" class="bg-primary-accent hover:bg-yellow-600 text-gray-900 font-bold px-4 py-2 rounded-lg text-sm transition duration-300">My Referral Dashboard</a>
                     </div>
                 </div>
                 
@@ -100,7 +100,7 @@ $recaptchaSiteKey = EnvLoader::get('RECAPTCHA_SITE_KEY', 'your_recaptcha_site_ke
             <!-- Mobile menu -->
             <div class="md:hidden hidden" id="mobile-menu">
                 <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-                    <a href="referral_dashboard.php" class="text-primary-accent hover:text-yellow-400 block px-3 py-2 rounded-md text-base font-medium">Dashboard</a>
+                    <a href="referral_dashboard.php" class="text-primary-accent hover:text-yellow-400 block px-3 py-2 rounded-md text-base font-medium">My Referral Dashboard</a>
                 </div>
             </div>
         </div>
@@ -111,7 +111,12 @@ $recaptchaSiteKey = EnvLoader::get('RECAPTCHA_SITE_KEY', 'your_recaptcha_site_ke
         <div class="max-w-4xl w-full bg-gray-800 p-8 md:p-12 rounded-2xl shadow-2xl border-t-8 border-primary-accent transform transition duration-500 hover:scale-[1.01]">
             <!-- Headline & FOMO Hook -->
             <header class="text-center mb-10">
+            
+            
+            
+            
                 <h1 class="text-4xl md:text-6xl font-extrabold mb-3 leading-tight text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-primary-accent">
+                <img src="assets/logo.png" alt="Funding4X Logo" >
                     LIMITED TIME ACCESS ONLY. DON'T MISS OUT!
                 </h1>
                 <p class="text-xl md:text-2xl text-gray-300 font-light">
@@ -135,7 +140,11 @@ $recaptchaSiteKey = EnvLoader::get('RECAPTCHA_SITE_KEY', 'your_recaptcha_site_ke
                     </li>
                     <li class="flex items-start text-gray-200">
                         <svg class="w-6 h-6 mr-3 mt-1 text-primary-accent flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                        <span class="font-bold text-yellow-300">Rexlaed Rules:</span>No secret rules or tricks like Prop Firms. Easy process.
+                        <span class="font-bold text-yellow-300">Relaxed Rules:</span>No secret rules or tricks like Prop Firms. Easy process.
+                    </li>
+                    <li class="flex items-start text-gray-200">
+                        <svg class="w-6 h-6 mr-3 mt-1 text-primary-accent flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        <span class="font-bold text-yellow-300">Simple Trading Test:</span>Show us your Forex Trading Skills by passing the Tests with easy to follow rules which are Fair and Clear.
                     </li>
                 </ul>
             </div>
