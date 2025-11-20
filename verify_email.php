@@ -107,7 +107,7 @@ if (empty($token)) {
             <ul class="text-left space-y-2 text-green-100">
                 <li class="flex items-start">
                     <span class="mr-2">🎯</span>
-                    <span>Your account is now active and verified</span>
+                    <span>Your account is now verified</span>
                 </li>
                 <li class="flex items-start">
                     <span class="mr-2">📧</span>
@@ -117,16 +117,13 @@ if (empty($token)) {
                     <span class="mr-2">💰</span>
                     <span>Get ready to start trading with our $5000 accounts</span>
                 </li>
-                <li class="flex items-start">
-                    <span class="mr-2">🚀</span>
-                    <span>Start earning with our 50:50 profit sharing</span>
-                </li>
+               
             </ul>
         </div>
         
         <button id="redirect-btn" 
             class="w-full bg-white text-green-600 hover:bg-green-50 font-bold py-4 rounded-lg text-xl md:text-2xl uppercase tracking-wider shadow-2xl transition duration-300 ease-in-out transform hover:scale-105 active:scale-95">
-            Go to Your Dashboard
+            Go to My Dashboard
         </button>
         
         <p class="text-sm text-green-200 mt-4">
@@ -142,7 +139,7 @@ if (empty($token)) {
         // Auto-redirect after 5 seconds
         setTimeout(function() {
             window.location.href = 'referral_dashboard.php?user=<?php echo urlencode($referralCode); ?>';
-        }, 5000);
+        }, 10000);
     </script>
 
 <?php else: ?>
