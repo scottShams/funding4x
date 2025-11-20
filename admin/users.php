@@ -152,10 +152,10 @@ ob_start();
                                 <div class="avatar-sm bg-light rounded-circle me-2 d-flex align-items-center justify-content-center">
                                     <i class="bi bi-person text-primary"></i>
                                 </div>
-                                <span><a href="../referral_dashboard.php" target="_blank"><?php echo htmlspecialchars($user['name']); ?></a></span>
+                                <span><a href="user_referral_dashboard.php?id=<?php echo $user['id']; ?>" target="_blank"><?php echo htmlspecialchars($user['name']); ?></a></span>
                             </div>
                         </td>
-                        <td><a href="../referral_dashboard.php" target="_blank"><?php echo htmlspecialchars($user['email']); ?></a></td>
+                        <td><a href="user_referral_dashboard.php?id=<?php echo $user['id']; ?>" target="_blank"><?php echo htmlspecialchars($user['email']); ?></a></td>
                         <td><?php echo htmlspecialchars($user['country'] ?? 'N/A'); ?></td>
                         <td><?php echo htmlspecialchars($user['user_ip'] ?? 'N/A'); ?></td>
                         <td>
