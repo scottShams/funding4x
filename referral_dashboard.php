@@ -361,7 +361,12 @@ if ($user) {
             <!-- Referral Link and Credit Tracker Box -->
             <div class="bg-white p-8 sm:p-12 rounded-2xl shadow-xl border-t-4 border-trophy-gold mb-8">
                 <!-- Referral Link -->
-                <h3 class="text-2xl font-bold text-primary-purple mb-4">Your Unique Referral Link</h3>
+                <h3 class="text-2xl font-bold text-primary-purple mb-2">Your Unique Referral Link</h3>
+                <p class="text-gray-700 font-mono text-sm mb-2">
+                    Refer 5 other Forex Traders and get FREE ENTRY to The Trader Programme 
+                    (<del class="text-red-600">normally $59</del>),
+                    FREE with 5 real Referrals
+                </p>
                 <div class="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3 mb-8">
                     <input type="text" id="referral-link" value="<?php echo htmlspecialchars($referralLink); ?>" readonly 
                            class="flex-grow p-3 border-2 border-gray-300 rounded-lg bg-gray-50 text-gray-700 font-mono text-sm">
