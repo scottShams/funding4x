@@ -82,15 +82,15 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
     fprintf($output, chr(0xEF) . chr(0xBB) . chr(0xBF));
 
     // CSV headers
-    fputcsv($output, ['ID', 'Name', 'Email', 'Country', 'Email Verified', 'Referrals', 'Created At']);
+    fputcsv($output, ['Name', 'Email', 'Country', 'Ip Address', 'Email Verified', 'Referrals', 'Created At']);
 
     // Loop through users and write rows
     foreach ($export_users as $user) {
         fputcsv($output, [
-            $user['id'] ?? 'N/A',
             $user['name'] ?? 'N/A',
             $user['email'] ?? 'N/A',
             !empty($user['country']) ? $user['country'] : 'N/A',
+            !empty($user['user_ip']) ? $user['user_ip'] : 'N/A',
             ($user['email_verified'] == 1) ? 'Yes' : 'No',
             $user['referral_count'] ?? 0,
             !empty($user['created_at']) 
@@ -128,6 +128,7 @@ ob_start();
                         <th>Name</th>
                         <th>Email</th>
                         <th>Country</th>
+                        <th>IP Address</th>
                         <th>Email Verified</th>
                         <th>Referrals</th>
                         <th>Created</th>
@@ -156,6 +157,7 @@ ob_start();
                         </td>
                         <td><?php echo htmlspecialchars($user['email']); ?></td>
                         <td><?php echo htmlspecialchars($user['country'] ?? 'N/A'); ?></td>
+                        <td><?php echo htmlspecialchars($user['user_ip'] ?? 'N/A'); ?></td>
                         <td>
                             <?php if ($user['email_verified'] == 1): ?>
                                 <span class="verification-badge verified-badge">
