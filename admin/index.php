@@ -20,17 +20,8 @@ if (isset($_GET['delete']) && is_numeric($_GET['delete'])) {
         $deleteStmt = $pdo->prepare("DELETE FROM waitlist_users WHERE id = ?");
         $deleteStmt->execute([$userId]);
         
-        // Build redirect URL with preserved search parameters
-        $redirectUrl = 'users.php?deleted=1';
-        if (isset($_GET['search']) && !empty($_GET['search'])) {
-            $redirectUrl .= '&search=' . urlencode($_GET['search']);
-        }
-        if (isset($_GET['page']) && is_numeric($_GET['page'])) {
-            $redirectUrl .= '&page=' . (int)$_GET['page'];
-        }
-        
         // Redirect back to avoid resubmission
-        header('Location: ' . $redirectUrl);
+        header('Location: index.php?deleted=1');
         exit;
     }
 }
@@ -379,22 +370,8 @@ function deleteUser(userId, userName) {
         }
     }).then((result) => {
         if (result.isConfirmed) {
-            // Get current search parameters to preserve them after deletion
-            const urlParams = new URLSearchParams(window.location.search);
-            let deleteUrl = `users.php?delete=${userId}`;
-            
-            // Preserve search parameter if exists
-            if (urlParams.has('search')) {
-                deleteUrl += `&search=${encodeURIComponent(urlParams.get('search'))}`;
-            }
-            
-            // Preserve page parameter if exists
-            if (urlParams.has('page')) {
-                deleteUrl += `&page=${urlParams.get('page')}`;
-            }
-            
-            // Redirect to delete URL with preserved parameters
-            window.location.href = deleteUrl;
+            // Redirect to delete URL
+            window.location.href = `index.php?delete=${userId}`;
         }
     });
 }

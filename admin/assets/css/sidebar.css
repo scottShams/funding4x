@@ -1,0 +1,74 @@
+/* Simple Sidebar Styles */
+#sidebar {
+    height: 100vh;
+    background-color: #ffffff;
+    box-shadow: 1px 0 10px rgba(0, 0, 0, 0.05);
+}
+
+.sidebar-sticky {
+    position: sticky;
+    top: 0;
+    height: calc(100vh - 48px);
+}
+
+.nav-link {
+    color: #666 !important;
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.nav-link:hover {
+    color: #333 !important;
+    background-color: #f8f9fa;
+}
+
+.nav-link.active {
+    color: #0d6efd !important;
+    background-color: #e7f1ff;
+}
+
+.nav-link.active i {
+    color: #0d6efd;
+}
+
+.nav-link i {
+    color: #888;
+    font-size: 1.1rem;
+    transition: color 0.2s ease;
+}
+
+.nav-link:hover i {
+    color: #333;
+}
+
+/* Logout link styles */
+.nav-link.text-danger {
+    color: #dc3545 !important;
+}
+
+.nav-link.text-danger:hover {
+    background-color: #fff5f5;
+}
+
+.nav-link.text-danger i {
+    color: #dc3545;
+}
+
+/* Custom scrollbar */
+.sidebar-sticky::-webkit-scrollbar {
+    width: 4px;
+}
+
+.sidebar-sticky::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.sidebar-sticky::-webkit-scrollbar-thumb {
+    background: #ddd;
+    border-radius: 4px;
+}
+
+.sidebar-sticky::-webkit-scrollbar-thumb:hover {
+    background: #ccc;
+}
