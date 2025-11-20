@@ -67,6 +67,15 @@ $recaptchaSiteKey = EnvLoader::get('RECAPTCHA_SITE_KEY', 'your_recaptcha_site_ke
             }
         }
     </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-4F50HDQBDE"></script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-4F50HDQBDE');
+    </script>
+
 </head>
 <body class="bg-gray-900 text-white min-h-screen p-4 font-sans">
 
