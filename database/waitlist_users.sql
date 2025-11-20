@@ -10,9 +10,12 @@ ADD COLUMN country VARCHAR(100) NULL DEFAULT NULL
 AFTER email;
 ALTER TABLE waitlist_users ADD COLUMN password VARCHAR(255) NULL AFTER country;
 
+ALTER TABLE waitlist_users 
+ADD COLUMN user_ip VARCHAR(50) NULL AFTER password;
+
 -- Add referral system columns
 ALTER TABLE waitlist_users
-ADD COLUMN referral_code VARCHAR(20) UNIQUE AFTER password;
+ADD COLUMN referral_code VARCHAR(20) UNIQUE AFTER user_ip;
 ALTER TABLE waitlist_users
 ADD COLUMN parent_user_id INT NULL AFTER referral_code;
 ALTER TABLE waitlist_users
