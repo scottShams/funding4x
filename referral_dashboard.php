@@ -303,9 +303,10 @@ if ($user) {
 
 <body>
 
-    <!-- Email Modal -->
+    <!-- Email Modal - NON-CLOSABLE when email verification is needed -->
     <?php if ($showEmailModal): ?>
-    <div id="email-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+    <div id="email-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4" 
+         style="display: flex; <?php echo (isset($emailVerificationNeeded) && $emailVerificationNeeded) ? 'pointer-events: auto;' : ''; ?>">
         <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full">
             <div class="text-center mb-6">
                 <h2 class="text-2xl font-bold text-primary-purple mb-2">
@@ -346,15 +347,10 @@ if ($user) {
                 </div>
                 
                 <div class="flex space-x-3">
-                    <a href="index.php" 
-                       class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-3 px-4 rounded-lg transition duration-300 text-center">
-                        Back to Home
-                    </a>
-                    <button type="button" 
-                            onclick="resendVerificationEmail()"
-                            class="flex-1 bg-primary-purple hover:bg-purple-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-300">
-                        Resend Email
-                    </button>
+                    <!-- No buttons - just waiting state -->
+                    <div class="flex-1 bg-gray-100 text-gray-500 font-semibold py-3 px-4 rounded-lg text-center">
+                        Waiting for Email Verification...
+                    </div>
                 </div>
             <?php else: ?>
                 <!-- Normal email lookup form -->
@@ -705,96 +701,139 @@ if ($user) {
     <!-- JavaScript for Clipboard Functionality and Pie Chart -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        // Add SweetAlert2 for modal handling
+        // Simple loader - NO SWEETALERT, JUST HTML LOADER
         <?php if (isset($emailVerificationNeeded) && $emailVerificationNeeded): ?>
         document.addEventListener('DOMContentLoaded', function() {
-            // Show verification modal similar to index.php
-            Swal.fire({
-                icon: 'warning',
-                title: 'Email Verification Required',
-                html: `
-                    <div class="text-left">
-                        <p class="mb-3">You're already registered, but need to verify your email address first.</p>
-                        <div class="bg-orange-100 border border-orange-300 rounded-lg p-3 mb-3">
-                            <h4 class="font-bold text-orange-800 mb-2">📧 Check Your Email</h4>
-                            <p class="text-orange-700 text-sm">
-                                Please check your email inbox (and spam folder) for a verification link.
-                                Click the link to activate your account and access the referral dashboard.
-                            </p>
-                        </div>
-                        <p class="text-sm text-gray-600">
-                            Didn't receive an email? Contact our support team.
-                        </p>
+            // Add loading spinner to the modal
+            const modalContent = document.querySelector('#email-modal .bg-white');
+            if (modalContent) {
+                const loader = document.createElement('div');
+                loader.innerHTML = `
+                    <div style="text-align: center; margin-top: 20px;">
+                        <div class="spinner" style="border: 4px solid #f3f3f3; border-top: 4px solid #4f009d; border-radius: 50%; width: 40px; height: 40px; margin: 0 auto; animation: spin 1s linear infinite;"></div>
+                        <p style="margin-top: 10px; color: #6b7280;">Waiting for email verification...</p>
                     </div>
-                `,
-                confirmButtonColor: '#f97316',
-                confirmButtonText: 'Check Email',
-                width: '500px',
-                showConfirmButton: true,
-                allowOutsideClick: false,
-                didClose: () => {
-                    // Reset form completely and ensure clean state
-                    resetFormToOriginalState();
-                    
-                    // Additional cleanup to ensure no lingering elements
-                    setTimeout(() => {
-                        // Remove any SweetAlert elements that might persist
-                        const swalElements = document.querySelectorAll('.swal2-container');
-                        swalElements.forEach(el => el.remove());
-                        
-                        // Remove any custom modal backdrops
-                        const customBackdrop = document.getElementById('custom-alert-backdrop');
-                        if (customBackdrop) {
-                            customBackdrop.remove();
-                        }
-                        
-                        // Ensure no loader overlay remains
-                        ensureNoLoaderRemains();
-                    }, 100);
+                `;
+                modalContent.appendChild(loader);
+                
+                // Add CSS animation
+                const style = document.createElement('style');
+                style.textContent = `
+                    @keyframes spin {
+                        0% { transform: rotate(0deg); }
+                        100% { transform: rotate(360deg); }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+            
+            // Also ensure the HTML modal cannot be closed
+            const emailModal = document.getElementById('email-modal');
+            if (emailModal) {
+                // Prevent closing by clicking outside
+                emailModal.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                });
+                
+                // Block escape key globally
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape') {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        return false;
+                    }
+                });
+                
+                // Prevent right-click context menu
+                document.addEventListener('contextmenu', function(e) {
+                    e.preventDefault();
+                    return false;
+                });
+                
+                // Block F5, Ctrl+R, Ctrl+F5 refresh attempts
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'F5' || (e.ctrlKey && e.key === 'r') || (e.ctrlKey && e.shiftKey && e.key === 'R')) {
+                        e.preventDefault();
+                        return false;
+                    }
+                });
+                
+                // Silent prevention - remove event listener to prevent browser dialog
+                window.onbeforeunload = function() {
+                    // Completely silent - no browser dialog
+                    return undefined;
+                };
+                
+                // Override all links to prevent navigation
+                const links = document.querySelectorAll('a[href]');
+                links.forEach(link => {
+                    if (link.getAttribute('href') !== '#' && link.getAttribute('href') !== 'javascript:void(0)') {
+                        link.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            return false;
+                        });
+                    }
+                });
+            }
+            
+            // Periodic email verification check - just show loader, no alerts
+            let checkCount = 0;
+            setInterval(function() {
+                checkCount++;
+                
+                // Show simple loading indicator only
+                const existingLoader = document.querySelector('.verification-loader');
+                if (existingLoader) {
+                    existingLoader.remove();
                 }
-            });
+                
+                const loader = document.createElement('div');
+                loader.className = 'verification-loader';
+                loader.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: #f97316;
+                    color: white;
+                    padding: 10px 20px;
+                    border-radius: 5px;
+                    font-size: 14px;
+                    z-index: 10000;
+                    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+                `;
+                loader.innerHTML = `Checking verification status... (Attempt ${checkCount})`;
+                document.body.appendChild(loader);
+                
+                // Remove loader after 2 seconds and refresh
+                setTimeout(() => {
+                    if (loader.parentNode) {
+                        loader.parentNode.removeChild(loader);
+                    }
+                    window.location.reload();
+                }, 2000);
+            }, 5000); // Check every 5 seconds
         });
         <?php endif; ?>
 
+        // Functions disabled to prevent modal closing
         function resendVerificationEmail() {
-            // Implement resend email functionality
-            Swal.fire({
-                icon: 'info',
-                title: 'Resend Verification Email',
-                text: 'Please check your email again. If you still don\'t see it, please contact support.',
-                confirmButtonColor: '#f97316',
-                confirmButtonText: 'OK'
-            });
+            // No function - modal must remain open
+            return false;
         }
 
         function resetFormToOriginalState() {
-            // Reset email modal to original state
-            const emailModal = document.getElementById('email-modal');
-            if (emailModal) {
-                emailModal.style.display = 'none';
-            }
+            // Do NOT reset form - keep modal open
+            console.log('Form reset disabled - modal must remain open');
         }
 
         function ensureNoLoaderRemains() {
-            // Remove all possible loader elements
-            const loaderSelectors = [
-                '#email-verification-loader',
-                '.loader-overlay',
-                '[id*="email-verification"]',
-                '[class*="loader"]'
-            ];
-            
-            loaderSelectors.forEach(selector => {
-                const elements = document.querySelectorAll(selector);
-                elements.forEach(element => {
-                    if (element && element.id !== 'email-verification-loader') {
-                        element.remove();
-                    }
-                });
-            });
-            
-            console.log('Loader cleanup completed');
+            // Minimal cleanup function
+            console.log('Minimal loader cleanup completed');
         }
+
+        // Email verification status checking is handled by page reload
 
         function nativeShare(elementId) {
 
