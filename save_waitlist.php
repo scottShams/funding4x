@@ -105,16 +105,26 @@ try {
                 'referral_link' => $existingReferralLink
             ]);
         } else {
-            if ($existingUser['email_verified'] === false && $existingUser['verification_token'] == null && $existingUser['verification_token_expires'] == null) {
-                // Create email verification token and send email
+            $tokenMissing = empty($existingUser['verification_token']) || empty($existingUser['verification_token_expires']);
+            $tokenExpired = (!empty($existingUser['verification_token_expires']) &&
+                            strtotime($existingUser['verification_token_expires']) < time());
+
+            if ($tokenMissing || $tokenExpired) {
+
+                // Create new token
                 $verificationToken = EmailVerification::createVerificationToken($existingUser['id'], $pdo);
-                
-                // Send verification email
-                $emailSent = EmailVerification::sendVerificationEmail($existingUser['email'], $existingUser['name'],$verificationToken);
+
+                // Send email
+                $emailSent = EmailVerification::sendVerificationEmail(
+                    $existingUser['email'],
+                    $existingUser['name'],
+                    $verificationToken
+                );
             }
             // User exists but not verified
             echo json_encode([
                 'status' => 'email_not_verified',
+                'email_sent' => $emailSent,
                 'message' => 'Please check your email and verify your account to continue.',
                 'referral_code' => $existingUser['referral_code']
             ]);
