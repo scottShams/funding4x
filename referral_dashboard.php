@@ -27,8 +27,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['lookup_email'])) {
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
         
         if ($user) {
-            // Store referral code in session
-            $_SESSION['user_referral_code'] = $user['referral_code'];
+            // Check if user is already verified
+            if ($user['email_verified'] == 1) {
+                // Store referral code in session
+                $_SESSION['user_referral_code'] = $user['referral_code'];
+                // Set flag to hide modal since user is verified
+                $showEmailModal = false;
+            } else {
+                // User exists but not verified - check verification tokens
+                $tokenMissing = empty($user['verification_token']) || empty($user['verification_token_expires']);
+                $tokenExpired = (!empty($user['verification_token_expires']) &&
+                                strtotime($user['verification_token_expires']) < time());
+
+                if ($tokenMissing || $tokenExpired) {
+                    // Need to create new verification token and send email
+                    require_once __DIR__ . "/email_verification.php";
+                    
+                    // Create new token
+                    $verificationToken = EmailVerification::createVerificationToken($user['id'], $pdo);
+
+                    // Send email
+                    $emailSent = EmailVerification::sendVerificationEmail(
+                        $user['email'],
+                        $user['name'],
+                        $verificationToken
+                    );
+                }
+                
+                // Set flag to show verification modal
+                $showEmailModal = true;
+                $emailVerificationNeeded = true;
+                $userEmail = $user['email'];
+                $userName = $user['name'];
+            }
         } else {
             $emailError = 'Email not found. Please check your email address or sign up first.';
         }
@@ -259,6 +290,15 @@ if ($user) {
 
     </style>
 
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-4F50HDQBDE"></script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-4F50HDQBDE');
+    </script>
+
 </head>
 
 <body>
@@ -268,8 +308,20 @@ if ($user) {
     <div id="email-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
         <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full">
             <div class="text-center mb-6">
-                <h2 class="text-2xl font-bold text-primary-purple mb-2">Access Your Dashboard</h2>
-                <p class="text-gray-600">Enter your email address to view your referral dashboard</p>
+                <h2 class="text-2xl font-bold text-primary-purple mb-2">
+                    <?php if (isset($emailVerificationNeeded) && $emailVerificationNeeded): ?>
+                        Email Verification Required
+                    <?php else: ?>
+                        Access Your Dashboard
+                    <?php endif; ?>
+                </h2>
+                <p class="text-gray-600">
+                    <?php if (isset($emailVerificationNeeded) && $emailVerificationNeeded): ?>
+                        You're already registered, but need to verify your email address first.
+                    <?php else: ?>
+                        Enter your email address to view your referral dashboard
+                    <?php endif; ?>
+                </p>
             </div>
             
             <?php if (!empty($emailError)): ?>
@@ -278,15 +330,19 @@ if ($user) {
             </div>
             <?php endif; ?>
             
-            <form method="POST" class="space-y-4">
-                <div>
-                    <label for="lookup_email" class="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
-                    <input type="email" 
-                           id="lookup_email" 
-                           name="lookup_email" 
-                           required
-                           class="w-full p-3 border-2 border-gray-300 rounded-lg focus:ring-primary-purple focus:border-primary-purple transition duration-200"
-                           placeholder="Enter your email address">
+            <?php if (isset($emailVerificationNeeded) && $emailVerificationNeeded): ?>
+                <!-- Email verification message -->
+                <div class="bg-orange-100 border border-orange-300 rounded-lg p-4 mb-4">
+                    <div class="text-center">
+                        <h4 class="font-bold text-orange-800 mb-2">📧 Check Your Email</h4>
+                        <p class="text-orange-700 text-sm mb-3">
+                            Please check your email inbox (and spam folder) for a verification link.
+                            Click the link to activate your account and access the referral dashboard.
+                        </p>
+                        <p class="text-sm text-gray-600">
+                            Didn't receive an email? Contact our support team.
+                        </p>
+                    </div>
                 </div>
                 
                 <div class="flex space-x-3">
@@ -294,16 +350,41 @@ if ($user) {
                        class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-3 px-4 rounded-lg transition duration-300 text-center">
                         Back to Home
                     </a>
-                    <button type="submit" 
+                    <button type="button" 
+                            onclick="resendVerificationEmail()"
                             class="flex-1 bg-primary-purple hover:bg-purple-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-300">
-                        Access Dashboard
+                        Resend Email
                     </button>
                 </div>
-            </form>
-            
-            <p class="text-xs text-gray-500 mt-4 text-center">
-                Don't have an account yet? <a href="index.php" class="text-primary-purple hover:underline">Join our waitlist here</a>
-            </p>
+            <?php else: ?>
+                <!-- Normal email lookup form -->
+                <form method="POST" class="space-y-4">
+                    <div>
+                        <label for="lookup_email" class="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+                        <input type="email" 
+                               id="lookup_email" 
+                               name="lookup_email" 
+                               required
+                               class="w-full p-3 border-2 border-gray-300 rounded-lg focus:ring-primary-purple focus:border-primary-purple transition duration-200"
+                               placeholder="Enter your email address">
+                    </div>
+                    
+                    <div class="flex space-x-3">
+                        <a href="index.php" 
+                           class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-3 px-4 rounded-lg transition duration-300 text-center">
+                            Back to Home
+                        </a>
+                        <button type="submit" 
+                                class="flex-1 bg-primary-purple hover:bg-purple-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-300">
+                            Access Dashboard
+                        </button>
+                    </div>
+                </form>
+                
+                <p class="text-xs text-gray-500 mt-4 text-center">
+                    Don't have an account yet? <a href="index.php" class="text-primary-purple hover:underline">Join our waitlist here</a>
+                </p>
+            <?php endif; ?>
         </div>
     </div>
     <?php endif; ?>
@@ -624,6 +705,96 @@ if ($user) {
     <!-- JavaScript for Clipboard Functionality and Pie Chart -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
+        // Add SweetAlert2 for modal handling
+        <?php if (isset($emailVerificationNeeded) && $emailVerificationNeeded): ?>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Show verification modal similar to index.php
+            Swal.fire({
+                icon: 'warning',
+                title: 'Email Verification Required',
+                html: `
+                    <div class="text-left">
+                        <p class="mb-3">You're already registered, but need to verify your email address first.</p>
+                        <div class="bg-orange-100 border border-orange-300 rounded-lg p-3 mb-3">
+                            <h4 class="font-bold text-orange-800 mb-2">📧 Check Your Email</h4>
+                            <p class="text-orange-700 text-sm">
+                                Please check your email inbox (and spam folder) for a verification link.
+                                Click the link to activate your account and access the referral dashboard.
+                            </p>
+                        </div>
+                        <p class="text-sm text-gray-600">
+                            Didn't receive an email? Contact our support team.
+                        </p>
+                    </div>
+                `,
+                confirmButtonColor: '#f97316',
+                confirmButtonText: 'Check Email',
+                width: '500px',
+                showConfirmButton: true,
+                allowOutsideClick: false,
+                didClose: () => {
+                    // Reset form completely and ensure clean state
+                    resetFormToOriginalState();
+                    
+                    // Additional cleanup to ensure no lingering elements
+                    setTimeout(() => {
+                        // Remove any SweetAlert elements that might persist
+                        const swalElements = document.querySelectorAll('.swal2-container');
+                        swalElements.forEach(el => el.remove());
+                        
+                        // Remove any custom modal backdrops
+                        const customBackdrop = document.getElementById('custom-alert-backdrop');
+                        if (customBackdrop) {
+                            customBackdrop.remove();
+                        }
+                        
+                        // Ensure no loader overlay remains
+                        ensureNoLoaderRemains();
+                    }, 100);
+                }
+            });
+        });
+        <?php endif; ?>
+
+        function resendVerificationEmail() {
+            // Implement resend email functionality
+            Swal.fire({
+                icon: 'info',
+                title: 'Resend Verification Email',
+                text: 'Please check your email again. If you still don\'t see it, please contact support.',
+                confirmButtonColor: '#f97316',
+                confirmButtonText: 'OK'
+            });
+        }
+
+        function resetFormToOriginalState() {
+            // Reset email modal to original state
+            const emailModal = document.getElementById('email-modal');
+            if (emailModal) {
+                emailModal.style.display = 'none';
+            }
+        }
+
+        function ensureNoLoaderRemains() {
+            // Remove all possible loader elements
+            const loaderSelectors = [
+                '#email-verification-loader',
+                '.loader-overlay',
+                '[id*="email-verification"]',
+                '[class*="loader"]'
+            ];
+            
+            loaderSelectors.forEach(selector => {
+                const elements = document.querySelectorAll(selector);
+                elements.forEach(element => {
+                    if (element && element.id !== 'email-verification-loader') {
+                        element.remove();
+                    }
+                });
+            });
+            
+            console.log('Loader cleanup completed');
+        }
 
         function nativeShare(elementId) {
 
