@@ -398,8 +398,8 @@ if ($user) {
             </div>
             <div class="flex items-center space-x-4">
                 <span class="text-sm text-gray-300">Welcome, <?php echo htmlspecialchars($user['name']); ?></span>
-                <a href="index.php" class="text-sm text-white hover:text-trophy-gold transition duration-300">
-                    ← Back to Main Page
+                <a href="logout.php" class="text-sm text-white hover:text-trophy-gold transition duration-300">
+                    ← Logout
                 </a>
             </div>
         </div>
