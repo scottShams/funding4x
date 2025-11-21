@@ -6,6 +6,41 @@ require_once '../database.php';
 // Get database connection
 $pdo = getPDO();
 
+// Handle AJAX status update
+if (isset($_POST['action']) && $_POST['action'] === 'update_status') {
+    header('Content-Type: application/json');
+    
+    $userId = (int)$_POST['user_id'];
+    $newStatus = $_POST['status'];
+    
+    // Validate status
+    if (!in_array($newStatus, ['active', 'inactive'])) {
+        echo json_encode(['success' => false, 'message' => 'Invalid status']);
+        exit;
+    }
+    
+    // Prevent changing admin status
+    $stmt = $pdo->prepare("SELECT email FROM waitlist_users WHERE id = ?");
+    $stmt->execute([$userId]);
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+    if ($user && $user['email'] === 'admin@gmail.com') {
+        echo json_encode(['success' => false, 'message' => 'Cannot change admin status']);
+        exit;
+    }
+    
+    // Update status
+    $updateStmt = $pdo->prepare("UPDATE waitlist_users SET status = ? WHERE id = ?");
+    $success = $updateStmt->execute([$newStatus, $userId]);
+    
+    if ($success) {
+        echo json_encode(['success' => true, 'message' => 'Status updated successfully']);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Failed to update status']);
+    }
+    exit;
+}
+
 // Handle delete action
 if (isset($_GET['delete']) && is_numeric($_GET['delete'])) {
     $userId = (int) $_GET['delete'];
@@ -176,14 +211,16 @@ ob_start();
                             </span>
                         </td>
                         <td>
-                            <?php if ($user['status'] === 'active'): ?>
-                                <span class="badge bg-success">Active</span>
-                            <?php else: ?>
-                                <span class="badge bg-danger">Inactive</span>
-                            <?php endif; ?>
+                            <select class="form-select form-select-sm status-dropdown" 
+                                    data-user-id="<?php echo $user['id']; ?>" 
+                                    data-user-name="<?php echo htmlspecialchars($user['name']); ?>"
+                                    onchange="changeUserStatus(this)">
+                                <option value="active" <?php echo ($user['status'] === 'active') ? 'selected' : ''; ?>>Active</option>
+                                <option value="inactive" <?php echo ($user['status'] === 'inactive') ? 'selected' : ''; ?>>Inactive</option>
+                            </select>
                         </td>
 
-                        <td><?php echo date('M d, Y H:i', strtotime($user['created_at'])); ?>Inactive</td>
+                        <td><?php echo date('M d, Y H:i', strtotime($user['created_at'])); ?></td>
                         <td>
                             <div class="action-buttons">
                                 <button class="btn btn-danger btn-action" onclick="deleteUser(<?php echo $user['id']; ?>, '<?php echo htmlspecialchars($user['name']); ?>')" title="Delete User">
@@ -305,6 +342,19 @@ include 'layout/app.php';
     font-size: 0.75rem;
     border-radius: 0.25rem;
 }
+
+.status-dropdown {
+    min-width: 100px;
+    cursor: pointer;
+}
+
+.status-dropdown option[value="active"] {
+    color: #198754;
+}
+
+.status-dropdown option[value="inactive"] {
+    color: #dc3545;
+}
 </style>
 
 <script>
@@ -422,4 +472,91 @@ $(document).ready(function() {
     });
 });
 <?php endif; ?>
+
+// Change user status function with SweetAlert confirmation
+function changeUserStatus(selectElement) {
+    const userId = selectElement.getAttribute('data-user-id');
+    const userName = selectElement.getAttribute('data-user-name');
+    const newStatus = selectElement.value;
+    const oldStatus = newStatus === 'active' ? 'inactive' : 'active';
+    
+    // Store the old value in case user cancels
+    const previousValue = oldStatus;
+    
+    Swal.fire({
+        title: 'Confirm Status Change',
+        html: `Are you sure you want to change <strong>${userName}</strong>'s status to <strong>${newStatus.toUpperCase()}</strong>?`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: newStatus === 'active' ? '#198754' : '#dc3545',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Yes, change it!',
+        cancelButtonText: 'Cancel',
+        customClass: {
+            confirmButton: 'btn btn-primary',
+            cancelButton: 'btn btn-secondary'
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Show loading
+            Swal.fire({
+                title: 'Updating...',
+                text: 'Please wait while we update the status',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+            
+            // Send AJAX request to update status
+            $.ajax({
+                url: 'users.php',
+                type: 'POST',
+                data: {
+                    action: 'update_status',
+                    user_id: userId,
+                    status: newStatus
+                },
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        Swal.fire({
+                            title: 'Updated!',
+                            text: 'User status has been updated successfully.',
+                            icon: 'success',
+                            timer: 2000,
+                            showConfirmButton: false
+                        }).then(() => {
+                            // Reload the page to reflect changes
+                            location.reload();
+                        });
+                    } else {
+                        Swal.fire({
+                            title: 'Error!',
+                            text: response.message || 'Failed to update status.',
+                            icon: 'error',
+                            confirmButtonText: 'OK'
+                        });
+                        // Revert the dropdown to previous value
+                        selectElement.value = previousValue;
+                    }
+                },
+                error: function() {
+                    Swal.fire({
+                        title: 'Error!',
+                        text: 'An error occurred while updating the status.',
+                        icon: 'error',
+                        confirmButtonText: 'OK'
+                    });
+                    // Revert the dropdown to previous value
+                    selectElement.value = previousValue;
+                }
+            });
+        } else {
+            // User cancelled, revert the dropdown to previous value
+            selectElement.value = previousValue;
+        }
+    });
+}
 </script>
