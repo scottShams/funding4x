@@ -11,6 +11,23 @@ $userCount = $pdo->query("SELECT COUNT(*) FROM waitlist_users WHERE email != 'ad
 $verifiedCount = $pdo->query("SELECT COUNT(*) FROM waitlist_users WHERE email_verified = 1 AND email != 'admin@gmail.com'")->fetchColumn();
 $referralCount = $pdo->query("SELECT COUNT(*) FROM waitlist_users WHERE parent_user_id IS NOT NULL")->fetchColumn();
 
+// Fetch counts in a single query
+$stmt = $pdo->query("
+    SELECT
+        SUM(CASE WHEN status != 'active' THEN 1 ELSE 0 END) AS fail_count,
+        SUM(CASE WHEN status = 'active' AND quiz_result IS NOT NULL THEN 1 ELSE 0 END) AS pass_count,
+        SUM(CASE WHEN status = 'active' AND (quiz_result IS NULL OR quiz_result = '') THEN 1 ELSE 0 END) AS not_attempt_count
+    FROM waitlist_users
+    WHERE email != 'admin@gmail.com'
+");
+
+$quizStats = $stmt->fetch(PDO::FETCH_ASSOC);
+
+// Extract counts
+$failCount = $quizStats['fail_count'];
+$passCount = $quizStats['pass_count'];
+$notAttemptCount = $quizStats['not_attempt_count'];
+
 // Get last 10 users
 $stmt = $pdo->prepare("SELECT id, name, email, email_verified, created_at FROM waitlist_users WHERE email != 'admin@gmail.com' ORDER BY created_at DESC LIMIT 10");
 $stmt->execute();
@@ -33,7 +50,7 @@ ob_start();
 
 <!-- Stats Cards -->
 <div class="row">
-    <div class="col-md-4">
+    <div class="col-md-2">
         <div class="card text-white bg-primary mb-3">
             <div class="card-body">
                 <h5 class="card-title">Total Users</h5>
@@ -41,7 +58,7 @@ ob_start();
             </div>
         </div>
     </div>
-    <div class="col-md-4">
+    <div class="col-md-2">
         <div class="card text-white bg-success mb-3">
             <div class="card-body">
                 <h5 class="card-title">Verified Users</h5>
@@ -49,7 +66,7 @@ ob_start();
             </div>
         </div>
     </div>
-    <div class="col-md-4">
+    <div class="col-md-2">
         <div class="card text-white bg-info mb-3">
             <div class="card-body">
                 <h5 class="card-title">Total Referrals</h5>
@@ -57,7 +74,24 @@ ob_start();
             </div>
         </div>
     </div>
-    
+    <div class="col-md-2">
+        <div class="card text-white bg-success mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Quiz Pass</h5>
+                <p class="mb-1">Pass: <?php echo $passCount; ?></p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card text-white bg-danger mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Quiz Fail</h5>
+                <p class="mb-1">Fail: <?php echo $failCount; ?></p>
+                <p class="mb-0">Not Attempted: <?php echo $notAttemptCount; ?></p>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 <!-- Recent Users -->
