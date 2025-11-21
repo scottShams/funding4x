@@ -1,9 +1,20 @@
 <?php
     session_start();
+    // Include database connection
+    require_once 'database.php';
 
+    // Get database connection
+    $pdo = getPDO();
     $email = $_SESSION['user_email'];
     if(empty($email)){
         header("Location: index.php");
+        exit;
+    }
+    $stmt = $pdo->prepare("SELECT * FROM waitlist_users WHERE email = ?");
+    $stmt->execute([$email]);
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+    if(!empty($user['quiz_result'])){
+        header("Location: referral_dashboard.php");
         exit;
     }
 ?>
@@ -283,8 +294,6 @@
 
 
         function showSummary() {
-
-            // --- FAIL CONDITION ---
             const q1 = selectedAnswers["q1_experience"];
             const q2 = selectedAnswers["q2_trades"];
 
@@ -292,16 +301,40 @@
                 showFailModal();
                 return;
             }
-            
+
+            // --- Count correct answers for last 3 questions ---
+            let correctCount = 0;
+            ["q3_leverage","q4_stoploss","q5_margin"].forEach(q => {
+                if(selectedAnswers[q] === "correct") correctCount++;
+            });
+
+            // --- Prepare result object ---
+            const quizResult = {
+                q1: q1,
+                q2: q2,
+                correct_last_three: correctCount
+            };
+
+            // --- Send AJAX to store in DB ---
+            fetch("store_quiz_result.php", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ quiz_result: quizResult })
+            })
+            .then(res => res.json())
+            .then(data => {
+                console.log("Quiz result saved:", data);
+            })
+            .catch(err => console.error("Error saving quiz result:", err));
+
             quizContent.classList.add('hidden');
             quizHeader.classList.add('hidden');
             quizNavigation.classList.add('hidden');
             quizSummary.classList.remove('hidden');
 
-            // Log answers to console for verification/future processing
             console.log("Quiz Completed. Answers:", selectedAnswers);
-            // Here you would typically send the data to a server for scoring
         }
+
 
         // Initialize quiz
         renderQuestion();
