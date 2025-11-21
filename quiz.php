@@ -84,13 +84,18 @@
 
     <!-- Header & Navigation -->
     <header class="header-bg text-white shadow-2xl sticky top-0 z-10">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4 flex flex-col sm:flex-row justify-between items-center gap-2 sm:gap-0">
-            <h1 class="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight text-trophy-gold text-center sm:text-left">
-                KNOWLEDGE <span class="text-white">ASSESSMENT</span>
-            </h1>
-            <a href="index.php" class="text-xs sm:text-sm text-white hover:text-trophy-gold transition duration-300 whitespace-nowrap">
-                ← Back to Home
-            </a>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+            <!-- Logo Section -->
+            <div class="flex items-center">
+                <img src="assets/logo.png" alt="Funding4X Logo" class="h-10 w-10 mr-3 rounded-lg">
+                <h1 class="text-2xl font-extrabold tracking-tight text-trophy-gold">REFERRAL DASHBOARD</h1>
+            </div>
+            <div class="flex items-center space-x-4">
+                <span class="text-sm text-gray-300"><?php echo htmlspecialchars($user['name']); ?></span>
+                <a href="index.php" class="text-sm text-white hover:text-trophy-gold transition duration-300">
+                    ← Back to Home
+                </a>
+            </div>
         </div>
     </header>
 
