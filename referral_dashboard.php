@@ -401,7 +401,12 @@ if ($user) {
     <!-- Knowledge Quiz Modal (Green) -->
     <?php if ($user && !$showEmailModal): ?>
     <div id="quiz-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4" style="display: none;">
-        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full border-t-4 border-green-500">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full border-t-4 border-green-500 relative">
+            <!-- Close Button -->
+            <button onclick="closeQuizModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition duration-200">
+                <i class="fas fa-times text-2xl"></i>
+            </button>
+            
             <div class="text-center mb-6">
                 <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                     <i class="fas fa-graduation-cap text-3xl text-green-600"></i>
@@ -1151,6 +1156,18 @@ if ($user) {
                 }
             }, 20000); // 20 seconds
         });
+        
+        // Function to close quiz modal
+        function closeQuizModal() {
+            const quizModal = document.getElementById('quiz-modal');
+            if (quizModal) {
+                // Add fade-out animation
+                quizModal.style.opacity = '0';
+                setTimeout(() => {
+                    quizModal.style.display = 'none';
+                }, 500); // Wait for fade-out animation to complete
+            }
+        }
         <?php endif; ?>
 
     </script>
