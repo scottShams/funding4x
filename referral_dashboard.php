@@ -27,10 +27,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['lookup_email'])) {
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
         
         if ($user) {
+            // Check if user status is inactive
+            if (isset($user['status']) && $user['status'] === 'inactive') {
+                $emailError = 'Your account is currently inactive. Please contact support for assistance.';
+                $user = null; // Reset user to show modal with error
+            }
             // Check if user is already verified
-            if ($user['email_verified'] == 1) {
+            elseif ($user['email_verified'] == 1) {
                 // Store referral code in session
                 $_SESSION['user_referral_code'] = $user['referral_code'];
+                $_SESSION['user_email'] = $user['email'];
                 // Set flag to hide modal since user is verified
                 $showEmailModal = false;
             } else {
@@ -79,8 +85,15 @@ if (!$user) {
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
         
         if ($user) {
-            // Store in session for future visits
-            $_SESSION['user_referral_code'] = $referralCode;
+            // Check if user status is inactive
+            if (isset($user['status']) && $user['status'] === 'inactive') {
+                $emailError = 'Your account is currently inactive. Please contact support for assistance.';
+                $user = null; // Reset user to show modal with error
+            } else {
+                // Store in session for future visits
+                $_SESSION['user_referral_code'] = $referralCode;
+                $_SESSION['user_email'] = $user['email'];
+            }
         }
     }
 }
@@ -381,6 +394,35 @@ if ($user) {
                     Don't have an account yet? <a href="index.php" class="text-primary-purple hover:underline">Join our waitlist here</a>
                 </p>
             <?php endif; ?>
+        </div>
+    </div>
+    <?php endif; ?>
+
+    <!-- Knowledge Quiz Modal (Green) -->
+    <?php if ($user && !$showEmailModal): ?>
+    <div id="quiz-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4" style="display: none;">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full border-t-4 border-green-500">
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-graduation-cap text-3xl text-green-600"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-green-600 mb-4">Knowledge Quiz</h2>
+                <p class="text-gray-700 text-lg leading-relaxed">
+                    <strong><?php echo htmlspecialchars($user['name']); ?></strong>, We want to make sure you are a Real Forex Trader. You <span class="text-red-600 font-bold">NEED</span> to do a quick Knowledge Quiz. It will only take 2 minutes.
+                </p>
+            </div>
+            
+            <div class="flex justify-center">
+                <a href="quiz.php" 
+                   class="bg-green-500 hover:bg-green-600 text-white font-bold py-4 px-8 rounded-lg transition duration-300 shadow-lg text-lg flex items-center space-x-2">
+                    <i class="fas fa-play-circle"></i>
+                    <span>Go to Quiz</span>
+                </a>
+            </div>
+            
+            <p class="text-xs text-gray-500 mt-6 text-center">
+                This helps us verify you're a genuine forex trader
+            </p>
         </div>
     </div>
     <?php endif; ?>
@@ -1088,6 +1130,26 @@ if ($user) {
 
             }
 
+        });
+        <?php endif; ?>
+
+        // Knowledge Quiz Modal - Show after 20 seconds
+        <?php if ($user && !$showEmailModal): ?>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Show quiz modal after 20 seconds
+            setTimeout(function() {
+                const quizModal = document.getElementById('quiz-modal');
+                if (quizModal) {
+                    quizModal.style.display = 'flex';
+                    
+                    // Add fade-in animation
+                    quizModal.style.opacity = '0';
+                    quizModal.style.transition = 'opacity 0.5s ease-in-out';
+                    setTimeout(() => {
+                        quizModal.style.opacity = '1';
+                    }, 10);
+                }
+            }, 20000); // 20 seconds
         });
         <?php endif; ?>
 
