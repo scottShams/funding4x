@@ -135,9 +135,9 @@
     </main>
 
     <!-- Footer -->
-    <footer class="bg-header-dark text-white mt-auto">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4 text-center">
-            <p class="text-xs sm:text-sm">&copy; 2024 Global Trader Cup. All rights reserved.</p>
+    <footer class="bg-header-dark text-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 text-center">
+            <p class="text-sm">&copy; 2024 Funding4x. All rights reserved. | Powered by Referrals.</p>
         </div>
     </footer>
 
