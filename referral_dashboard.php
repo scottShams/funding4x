@@ -439,7 +439,8 @@ if ($user) {
             <div class="bg-white p-8 sm:p-12 rounded-2xl shadow-xl border-t-4 border-trophy-gold mb-8">
                 <!-- Referral Link -->
                 <h3 class="text-2xl font-bold text-primary-purple mb-2">Your Unique Referral Link</h3>
-                <p class="text-gray-700 font-mono text-sm mb-2">
+                <p class="text-gray-600 text-sm mb-2">
+                
                     Refer 5 other Forex Traders and get FREE ENTRY to The Trader Programme 
                     (<del class="text-red-600">normally $59</del>),
                     FREE with 5 real Referrals
@@ -511,10 +512,23 @@ if ($user) {
 
                 <!-- Credit Tracker -->
                 <div class="mt-10">
+                
+                   <p class="text-sm text-gray-600 mt-3 text-center">
+                   Get Unlimited FREE Entry for Trading Test. (<del class="text-red-600">no need $59 payment per Entry</del>) <br />
+                    5/5 referrals  = ONE FREE Entry for Trading Test <br />
+                    10/5 referrals  = TWO FREE Entry for Trading Test <br />
+                    
+                    Only Refer other Real Forex Traders.
+                    <br /> <br />
+                   </p>
+                                        
+                                        
                     <h3 class="text-2xl font-bold text-primary-purple mb-4">
                         Your Credit Progress: <span id="credit-count" class="text-fomo-red"><?php echo $credits; ?> / <?php echo $goalCredits; ?></span>
                         <span class="text-sm text-gray-600">(Based on Verified Referrals Only)</span>
                     </h3>
+                    
+                 
                     <div class="w-full bg-gray-200 rounded-full h-8 overflow-hidden shadow-inner">
                         <div id="progress-bar" class="h-8 bg-primary-purple rounded-full transition-all duration-700 ease-out" 
                              style="width: <?php echo $progressPercentage; ?>%;">
@@ -727,6 +741,20 @@ if ($user) {
                         Pending referrals haven't verified their email yet. They can still verify later and will then count towards your credits. We track both completed and pending referrals for your transparency.
                     </p>
                 </div>
+                <!-- FAQ Item 4 -->
+                <div class="bg-header-dark p-6 rounded-xl shadow-lg">
+                    <h4 class="text-xl font-bold text-trophy-gold mb-2">Is there any Benefit to Accumulate More than 5 Referral Credits?</h4>
+                    <p class="text-gray-300">
+                                        
+                    Yes there is actually... you will get more chances to Pass the Trading Test... for FREE.<br />
+                    if you have 5/5 referrals means you can get 1 Free Entry for the Trading Test (no need $59 payment)<br />
+                    if you have 10/5 means you get 2 Free Entries for the Trading Test so you saved ($118)... and so on....<br />
+                    You can have unlimited Free Entry for Trading Tests.<br />
+                    
+                    So you can collect as many credits as you like by doing referrals of real people who are also forex traders, to give you more chances for passing the trading test. 
+                    </p>
+                </div>
+                
             </div>
         </div>
     </section>
