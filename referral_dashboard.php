@@ -399,7 +399,7 @@ if ($user) {
     <?php endif; ?>
 
     <!-- Knowledge Quiz Modal (Green) -->
-    <?php if ($user && !$showEmailModal): ?>
+    <?php if ($user && empty($user['quiz_result']) && !$showEmailModal): ?>
     <div id="quiz-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4" style="display: none;">
         <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full border-t-4 border-green-500 relative">
             <!-- Close Button -->
@@ -1139,7 +1139,7 @@ if ($user) {
         <?php endif; ?>
 
         // Knowledge Quiz Modal - Show after 20 seconds
-        <?php if ($user && !$showEmailModal): ?>
+        <?php if ($user && empty($user['quiz_result']) && !$showEmailModal): ?>
         document.addEventListener('DOMContentLoaded', function() {
             // Show quiz modal after 20 seconds
             setTimeout(function() {
