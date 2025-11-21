@@ -177,12 +177,13 @@ ob_start();
                         </td>
                         <td>
                             <?php if ($user['status'] === 'active'): ?>
-                                <span class="badg bg-green-500 w-3 h-3 inline-block rounded-full"></span>
+                                <span class="badge bg-success">Active</span>
                             <?php else: ?>
-                                <span class="badg bg-red-500 w-3 h-3 inline-block rounded-full"></span>
+                                <span class="badge bg-danger">Inactive</span>
                             <?php endif; ?>
                         </td>
-                        <td><?php echo date('M d, Y H:i', strtotime($user['created_at'])); ?></td>
+
+                        <td><?php echo date('M d, Y H:i', strtotime($user['created_at'])); ?>Inactive</td>
                         <td>
                             <div class="action-buttons">
                                 <button class="btn btn-danger btn-action" onclick="deleteUser(<?php echo $user['id']; ?>, '<?php echo htmlspecialchars($user['name']); ?>')" title="Delete User">
