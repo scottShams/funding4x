@@ -80,12 +80,26 @@ try {
     $pdo->beginTransaction();
     $userIP = getUserIP();
     // Check if email already exists
-    $stmt = $pdo->prepare("SELECT id, name, email, referral_code, email_verified, verification_token, verification_token_expires FROM waitlist_users WHERE email = ?");
+    $stmt = $pdo->prepare("SELECT id, name, email, referral_code, email_verified, verification_token, verification_token_expires, status FROM waitlist_users WHERE email = ?");
     $stmt->execute([$email]);
     $existingUser = $stmt->fetch();
     
     if ($existingUser) {
         $pdo->rollBack();
+
+        // Check if user status is inactive
+        if (isset($existingUser['status']) && $existingUser['status'] === 'inactive') {
+            $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http';
+            $host = $_SERVER['HTTP_HOST'];
+            $redirectUrl = $protocol . '://' . $host . '/index.php?error=inactive';
+            
+            echo json_encode([
+                'status' => 'inactive_user',
+                'message' => 'Your account is currently inactive. Please contact support for assistance.',
+                'redirect_url' => $redirectUrl
+            ]);
+            exit;
+        }
 
         // NEW: update IP for existing user
         $updateIP = $pdo->prepare("UPDATE waitlist_users SET user_ip = ? WHERE id = ?");
