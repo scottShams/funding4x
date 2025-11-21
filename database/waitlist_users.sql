@@ -41,3 +41,6 @@ ADD COLUMN referral_dashboard_mail_sent TINYINT(1) DEFAULT 0 AFTER verification_
 ALTER TABLE waitlist_users
 ADD COLUMN status ENUM('active', 'inactive') DEFAULT 'active'
 AFTER referral_dashboard_mail_sent;
+
+ALTER TABLE waitlist_users
+ADD COLUMN quiz_result JSON NULL AFTER status;
