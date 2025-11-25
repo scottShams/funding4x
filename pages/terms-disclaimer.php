@@ -107,7 +107,7 @@
                         <li>No real funds are used or traded in the trial phase.</li>
                         <li>Performance results during the trial do not guarantee future funding or profits.</li>
                     </ul>
-                    <a href="terms-conditions.php" class="text-sm link-text">Read full Terms and Conditions &rarr;</a>
+                    <a href="term-conditions.php" class="text-sm link-text">Read full Terms and Conditions &rarr;</a>
                 </div>
 
                 <!-- 2. Risk Acknowledgment -->
