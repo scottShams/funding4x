@@ -440,10 +440,9 @@
                         <input type="checkbox" id="agreeTerms" name="agreeTerms" required class="mr-2 h-4 w-4 text-amber-500 bg-gray-700 border-gray-600 rounded focus:ring-amber-500 focus:ring-2 mt-0.5">
                         <span class="text-gray-900">
                             I agree to the
-                            <a href="terms.php" target="_blank" class="text-amber-400 hover:text-amber-300 underline">Terms and Conditions</a>
+                            <a href="pages/terms_disclaimer.php" target="_blank" class="text-amber-400 hover:text-amber-300 underline">Terms and Conditions</a>
                             and
-                            <a href="privacy.php" target="_blank" class="text-amber-400 hover:text-amber-300 underline">Privacy Policy</a>,
-                            and consent to the AI analysis of my bank statement data.
+                            <a href="pages/privacy-policy.html" target="_blank" class="text-amber-400 hover:text-amber-300 underline">Privacy Policy</a>.
                         </span>
                     </label>
                 </div>
