@@ -185,7 +185,7 @@ $recaptchaSiteKey = EnvLoader::get('RECAPTCHA_SITE_KEY', 'your_recaptcha_site_ke
                     <div class="mb-4">
                         <label class="flex items-start text-sm text-gray-300">
                             <input type="checkbox" id="agreeTerms" name="agreeTerms" required class="mr-2 h-4 w-4 text-amber-500 bg-gray-700 border-gray-600 rounded focus:ring-amber-500 focus:ring-2 mt-0.5">
-                            <span class="text-gray-900">
+                            <span>
                                 I agree to the
                                 <a href="pages/terms-disclaimer.php" target="_blank" class="text-amber-400 hover:text-amber-300 underline">Terms and Conditions</a>
                                 and
