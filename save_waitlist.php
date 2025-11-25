@@ -79,6 +79,19 @@ function getUserIP() {
 try {
     $pdo->beginTransaction();
     $userIP = getUserIP();
+
+    // Check if this IP is blocked
+    $checkBlocked = $pdo->prepare("SELECT id FROM blocked_ips WHERE ip_address = ?");
+    $checkBlocked->execute([$userIP]);
+
+    if ($checkBlocked->fetch()) {
+        echo json_encode([
+            'status' => 'ip_blocked',
+            'message' => 'it seems you have already tried to sign up. You cannot create a new account',
+        ]);
+        exit;
+    }
+
     // Check if email already exists
     $stmt = $pdo->prepare("SELECT id, name, email, referral_code, email_verified, verification_token, verification_token_expires, status FROM waitlist_users WHERE email = ?");
     $stmt->execute([$email]);
