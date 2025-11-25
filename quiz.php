@@ -186,8 +186,21 @@
                 ]
             },
             {
-                question: "3. What do you understand about leverage in FOREX trading?",
-                name: "q3_leverage",
+                question: "3. What account size is your Personal Forex Trading Account?",
+                name: "q3_trades",
+                options: [
+                    { label: "A. $50 or less", value: "$50 or less" },
+                    { label: "B. $50 - $100", value: "$50 - $100" },
+                    { label: "C. $100 - $500", value: "$50 - $100" },
+                    { label: "D. $500 - $1000", value: "$500 - $1000" },
+                    { label: "E. $1000 - $5000", value: "$1000 - $5000" },
+                    { label: "F. $5000 - $10,000", value: "$5000 - $10,000" },
+                    { label: "G. $10,000+", value: "$10,000+" },
+                ]
+            },
+            {
+                question: "4. What do you understand about leverage in FOREX trading?",
+                name: "q4_leverage",
                 options: [
                     { label: "A. It allows me to control a larger position with a smaller deposit", value: "correct" },
                     { label: "B. It guarantees higher profits", value: "incorrect_1" },
@@ -196,8 +209,8 @@
                 ]
             },
             {
-                question: "4. What is the purpose of a stop-loss?",
-                name: "q4_stoploss",
+                question: "5. What is the purpose of a stop-loss?",
+                name: "q5_stoploss",
                 options: [
                     { label: "A. To guarantee profits at a certain price", value: "incorrect_1" },
                     { label: "B. To limit potential losses on a trade", value: "correct" },
@@ -206,26 +219,35 @@
                 ]
             },
             {
-                question: "5. What is margin?",
-                name: "q5_margin",
+                question: "6. What is margin?",
+                name: "q6_margin",
                 options: [
                     { label: "A. A fee paid for each trade", value: "incorrect_1" },
                     { label: "B. A deposit required to open and maintain a leveraged position", value: "correct" },
                     { label: "C. The broker’s commission", value: "incorrect_2" },
                     { label: "D. Guaranteed minimum return", value: "incorrect_3" }
                 ]
+            }, 
+            {
+                question: "7. Which statement is correct:",
+                name: "q7_statement",
+                options: [
+                    { label: "A. Funded4x will send $5000 to my personal account", value: "incorrect_1" },
+                    { label: "B. Funding4x will give us some Trading Test to see our Forex Trading capability. If we Pass the Test, we will get a real funded account for $5000", value: "correct" },
+                    { label: "C. With the 5 Referrals, Funded4x will give me instantly give me $5000 for trading without Testing my skills", value: "incorrect_2" }
+                ]
             }
         ];
 
-        // --- RANDOMIZE ONLY LAST 3 QUESTIONS ---
-        const firstTwo = questions.slice(0, 2);      // Q1 & Q2 fixed
-        let lastThree = questions.slice(2);          // Q3–Q5
+        // --- RANDOMIZE ONLY LAST 4 QUESTIONS (Q4–Q7) ---
+        const firstThree = questions.slice(0, 3);  // Q1, Q2, Q3 fixed
+        let lastQuestions = questions.slice(3);    // Q4, Q5, Q6, Q7 shuffled
 
-        // Shuffle last three
-        lastThree = lastThree.sort(() => Math.random() - 0.5);
+        // Shuffle last 4 questions
+        lastQuestions = lastQuestions.sort(() => Math.random() - 0.5);
 
         // Merge final order
-        questions = [...firstTwo, ...lastThree];
+        questions = [...firstThree, ...lastQuestions];
 
 
         let currentQuestionIndex = 0;
@@ -301,23 +323,25 @@
         function showSummary() {
             const q1 = selectedAnswers["q1_experience"];
             const q2 = selectedAnswers["q2_trades"];
+            const q3 = selectedAnswers["q3_trades"];
 
             if (q1 === "0" && q2 === "0") {
                 showFailModal();
                 return;
             }
 
-            // --- Count correct answers for last 3 questions ---
+            // --- Count correct answers for last 4 questions ---
             let correctCount = 0;
-            ["q3_leverage","q4_stoploss","q5_margin"].forEach(q => {
-                if(selectedAnswers[q] === "correct") correctCount++;
+            ["q4_leverage", "q5_stoploss", "q6_margin", "q7_statement"].forEach(q => {
+                if (selectedAnswers[q] === "correct") correctCount++;
             });
 
             // --- Prepare result object ---
             const quizResult = {
                 q1: q1,
                 q2: q2,
-                correct_last_three: correctCount
+                q3 : q3,
+                correct_last_four: correctCount
             };
 
             // --- Send AJAX to store in DB ---
