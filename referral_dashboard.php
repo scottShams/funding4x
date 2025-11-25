@@ -120,7 +120,7 @@ if (!$user) {
 } else {
     // Get list of referrals (users who were referred by this user) with email verification status
     $stmt = $pdo->prepare("
-        SELECT name, country, created_at, email_verified
+        SELECT name, country, user_ip, quiz_result, created_at, email_verified
         FROM waitlist_users 
         WHERE parent_user_id = ? 
         ORDER BY created_at DESC
@@ -134,7 +134,7 @@ if (!$user) {
     $pendingReferrals = 0;
     
     foreach ($referrals as $referral) {
-        if ($referral['email_verified'] == 1) {
+        if ($referral['email_verified'] == 1 && $referral['quiz_result'] != null && $referral['user_ip'] !== $user['user_ip']) {
             $verifiedReferrals++;
         } else {
             $pendingReferrals++;
@@ -699,7 +699,7 @@ if ($user) {
                             <tbody class="bg-white divide-y divide-gray-200">
                                 <?php foreach ($referrals as $index => $referral): ?>
                                     <?php 
-                                        $isVerified = ($referral['email_verified'] == 1);
+                                        $isVerified = ($referral['email_verified'] == 1 && $referral['quiz_result'] != null && $referral['user_ip'] !== $user['user_ip']);
                                     ?>
                                     <tr class="hover:bg-gray-50">
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
