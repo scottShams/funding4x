@@ -1,103 +1,10 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Privacy Policy – Funding4x</title>
-    <!-- Load Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        // Theme configuration reused for consistency
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                    },
-                    colors: {
-                        'primary-purple': '#4f009d',
-                        'secondary-purple': '#7b2cbf',
-                        'trophy-gold': '#b49852',
-                        'header-dark': '#240046',
-                        'bg-light': '#f3f4f6',
-                        'cta-hover': '#9d7c49',
-                        'card-white': '#ffffff',
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6;
-            color: #240046;
-        }
-        .header-bg {
-            background-color: #240046;
-        }
-        .term-section {
-            padding: 1.5rem;
-            margin-bottom: 1rem;
-            background-color: #ffffff;
-            border-radius: 0.75rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
-        }
-        .term-section h2 {
-            font-weight: 700;
-            color: #4f009d; /* primary-purple */
-            margin-bottom: 0.75rem;
-            border-bottom: 2px solid #f3f4f6;
-            padding-bottom: 0.5rem;
-        }
-        .term-section ul {
-            list-style-type: none;
-            padding-left: 0;
-        }
-        .term-section li {
-            margin-bottom: 0.5rem;
-            padding-left: 1.5rem;
-            position: relative;
-            color: #4b5563; /* gray-600 */
-        }
-        .term-section li::before {
-            content: "•";
-            color: #b49852; /* trophy-gold */
-            font-weight: bold;
-            display: inline-block;
-            width: 1em;
-            margin-left: -1em;
-        }
-        .sublist {
-            margin-top: 0.5rem;
-            margin-left: 1rem;
-        }
-        .sublist li::before {
-             content: "—";
-        }
-    </style>
-</head>
-
-<body class="min-h-screen flex flex-col">
-
-    <!-- Header -->
-    <header class="header-bg text-white shadow-2xl">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-            <h1 class="text-2xl font-extrabold tracking-tight text-trophy-gold">Funding4x</h1>
-        </div>
-    </header>
-
-    <!-- Main Content: Privacy Policy -->
-    <main class="flex-grow flex justify-center p-4 sm:p-8">
-        <div class="w-full max-w-4xl">
-            <div class="bg-card-white p-8 rounded-2xl shadow-2xl border-t-8 border-secondary-purple">
-                <h1 class="text-4xl font-extrabold text-header-dark mb-2">Privacy Policy</h1>
-                <p class="text-sm text-gray-500 mb-6">Last Updated: 24-11-2025</p>
-                
-                <p class="mb-8 text-lg text-gray-700 leading-relaxed border-b pb-4">
-                    Funding4x (“we”, “us”, “our”) respects your privacy and is committed to protecting your personal data. This Privacy Policy explains how we collect, use, store, and protect your information when you use our website and services. By using our website and creating an account, you agree to the collection and use of your data as described in this policy.
-                </p>
-
+<?php
+$title = "Privacy Policy";
+$border_color = "secondary-purple";
+$page_title = "Privacy Policy";
+$last_updated = "Last Updated: 24-11-2025";
+$intro = "Funding4x (\"we\", \"us\", \"our\") respects your privacy and is committed to protecting your personal data. This Privacy Policy explains how we collect, use, store, and protect your information when you use our website and services. By using our website and creating an account, you agree to the collection and use of your data as described in this policy.";
+$content = '
                 <!-- 1. Information We Collect -->
                 <div class="term-section">
                     <h2 class="text-xl">1. Information We Collect</h2>
@@ -111,7 +18,7 @@
                         <li>Password (encrypted)</li>
                         <li>Any information submitted via forms or support requests</li>
                     </ul>
-                    
+
                     <h3 class="font-semibold text-gray-700 mt-4 mb-2">1.2 Automatically Collected Information</h3>
                     <ul class="sublist">
                         <li>IP address</li>
@@ -175,7 +82,7 @@
                     </ul>
                     <p class="text-sm text-gray-600 mt-4">You can control or disable cookies through your browser settings. Disabling cookies may affect website functionality.</p>
                 </div>
-                
+
                 <!-- 5. How We Share Your Data -->
                 <div class="term-section bg-primary-purple/5 border-l-4 border-secondary-purple">
                     <h2 class="text-xl text-primary-purple">5. How We Share Your Data</h2>
@@ -236,8 +143,6 @@
                     <p class="font-semibold text-primary-purple text-lg mt-3">Email: <a href="mailto:support@funding4x.com" class="hover:underline">support@funding4x.com</a></p>
                 </div>
 
-            </div>
-        </div>
-    </main>
-</body>
-</html>
+            ';
+include 'layout.php';
+?>

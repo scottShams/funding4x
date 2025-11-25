@@ -1,103 +1,15 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Terms and Conditions – Funding4x</title>
-    <!-- Load Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        // Theme configuration reused for consistency
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                    },
-                    colors: {
-                        'primary-purple': '#4f009d',
-                        'secondary-purple': '#7b2cbf',
-                        'trophy-gold': '#b49852',
-                        'header-dark': '#240046',
-                        'bg-light': '#f3f4f6',
-                        'cta-hover': '#9d7c49',
-                        'card-white': '#ffffff',
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6;
-            color: #240046;
-        }
-        .header-bg {
-            background-color: #240046;
-        }
-        .term-section {
-            padding: 1.5rem;
-            margin-bottom: 1rem;
-            background-color: #ffffff;
-            border-radius: 0.75rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
-        }
-        .term-section h2 {
-            font-weight: 700;
-            color: #4f009d; /* primary-purple */
-            margin-bottom: 0.75rem;
-            border-bottom: 2px solid #f3f4f6;
-            padding-bottom: 0.5rem;
-        }
-        .term-section p, .term-section li {
-             color: #4b5563; /* gray-600 */
-        }
-        .term-section ul {
-            list-style-type: none;
-            padding-left: 0;
-        }
-        .term-section li {
-            margin-bottom: 0.5rem;
-            padding-left: 1.5rem;
-            position: relative;
-        }
-        .term-section li::before {
-            content: "•";
-            color: #b49852; /* trophy-gold */
-            font-weight: bold;
-            display: inline-block;
-            width: 1em;
-            margin-left: -1em;
-        }
-    </style>
-</head>
-
-<body class="min-h-screen flex flex-col">
-
-    <!-- Header -->
-    <header class="header-bg text-white shadow-2xl">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-            <h1 class="text-2xl font-extrabold tracking-tight text-trophy-gold">Funding4x</h1>
-        </div>
-    </header>
-
-    <!-- Main Content: Terms and Conditions -->
-    <main class="flex-grow flex justify-center p-4 sm:p-8">
-        <div class="w-full max-w-4xl">
-            <div class="bg-card-white p-8 rounded-2xl shadow-2xl border-t-8 border-primary-purple">
-                <h1 class="text-4xl font-extrabold text-header-dark mb-2">Terms and Conditions</h1>
-                <p class="text-sm text-gray-500 mb-6">Last Updated: 21-11-2025</p>
-                
-                <p class="mb-8 text-lg text-gray-700 leading-relaxed border-b pb-4">
-                    These Terms and Conditions (“Terms”) govern your use of the Funding4x website and services (“Services”). By accessing our website, creating an account, and ticking the Terms and Conditions checkbox, you agree to be legally bound by these Terms. If you do not agree to these Terms, you must not use the website or Services.
-                </p>
-
+<?php
+$title = "Terms and Conditions";
+$border_color = "primary-purple";
+$page_title = "Terms and Conditions";
+$last_updated = "Last Updated: 21-11-2025";
+$intro = "These Terms and Conditions (\"Terms\") govern your use of the Funding4x website and services (\"Services\"). By accessing our website, creating an account, and ticking the Terms and Conditions checkbox, you agree to be legally bound by these Terms. If you do not agree to these Terms, you must not use the website or Services.";
+$content = '
                 <!-- 1. About Funding4x -->
                 <div class="term-section">
                     <h2 class="text-xl">1. About Funding4x</h2>
                     <ul>
-                        <li>Funding4x (“we”, “us”, “our”) provides simulated trading environments, evaluation-style trial accounts, and educational trading tools.</li>
+                        <li>Funding4x (\"we\", \"us\", \"our\") provides simulated trading environments, evaluation-style trial accounts, and educational trading tools.</li>
                         <li>We are not a broker, not a financial institution, and do not provide regulated investment services.</li>
                         <li>All trading accounts offered during the trial phase are demo (simulated) accounts only.</li>
                     </ul>
@@ -251,8 +163,6 @@
                     <p class="font-semibold text-primary-purple text-lg">Email: <a href="mailto:support@funding4x.com" class="hover:underline">support@funding4x.com</a></p>
                 </div>
 
-            </div>
-        </div>
-    </main>
-</body>
-</html>
+            ';
+include 'layout.php';
+?>

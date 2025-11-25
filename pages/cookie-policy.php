@@ -1,104 +1,10 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cookie Policy – Funding4x</title>
-    <!-- Load Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        // Theme configuration reused for consistency
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                    },
-                    colors: {
-                        'primary-purple': '#4f009d',
-                        'secondary-purple': '#7b2cbf',
-                        'trophy-gold': '#b49852',
-                        'header-dark': '#240046',
-                        'bg-light': '#f3f4f6',
-                        'cta-hover': '#9d7c49',
-                        'card-white': '#ffffff',
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6;
-            color: #240046;
-        }
-        .header-bg {
-            background-color: #240046;
-        }
-        .term-section {
-            padding: 1.5rem;
-            margin-bottom: 1rem;
-            background-color: #ffffff;
-            border-radius: 0.75rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
-        }
-        .term-section h2 {
-            font-weight: 700;
-            color: #4f009d; /* primary-purple */
-            margin-bottom: 0.75rem;
-            border-bottom: 2px solid #f3f4f6;
-            padding-bottom: 0.5rem;
-        }
-        .term-section p, .term-section li {
-             color: #4b5563; /* gray-600 */
-        }
-        .term-section ul {
-            list-style-type: none;
-            padding-left: 0;
-        }
-        .term-section li {
-            margin-bottom: 0.5rem;
-            padding-left: 1.5rem;
-            position: relative;
-        }
-        .term-section li::before {
-            content: "•";
-            color: #b49852; /* trophy-gold */
-            font-weight: bold;
-            display: inline-block;
-            width: 1em;
-            margin-left: -1em;
-        }
-        .sub-heading {
-            font-weight: 600;
-            color: #240046;
-            margin-top: 1rem;
-            margin-bottom: 0.5rem;
-        }
-    </style>
-</head>
-
-<body class="min-h-screen flex flex-col">
-
-    <!-- Header -->
-    <header class="header-bg text-white shadow-2xl">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-            <h1 class="text-2xl font-extrabold tracking-tight text-trophy-gold">Funding4x</h1>
-        </div>
-    </header>
-
-    <!-- Main Content: Cookie Policy -->
-    <main class="flex-grow flex justify-center p-4 sm:p-8">
-        <div class="w-full max-w-4xl">
-            <div class="bg-card-white p-8 rounded-2xl shadow-2xl border-t-8 border-secondary-purple">
-                <h1 class="text-4xl font-extrabold text-header-dark mb-2">Cookie Policy</h1>
-                <p class="text-sm text-gray-500 mb-6">Last Updated: 24-11-2025</p>
-                
-                <p class="mb-8 text-lg text-gray-700 leading-relaxed border-b pb-4">
-                    This Cookie Policy explains how Funding4x (“we”, “us”, “our”) uses cookies and similar technologies when you visit our website. By using our website, you consent to the use of cookies as described in this policy.
-                </p>
-
+<?php
+$title = "Cookie Policy";
+$border_color = "secondary-purple";
+$page_title = "Cookie Policy";
+$last_updated = "Last Updated: 24-11-2025";
+$intro = "This Cookie Policy explains how Funding4x (\"we\", \"us\", \"our\") uses cookies and similar technologies when you visit our website. By using our website, you consent to the use of cookies as described in this policy.";
+$content = '
                 <!-- 1. What Are Cookies? -->
                 <div class="term-section">
                     <h2 class="text-xl">1. What Are Cookies?</h2>
@@ -135,7 +41,7 @@
                         <li>Navigation paths</li>
                     </ul>
                     <p class="text-sm mt-2">This information is used to improve website performance and user experience.</p>
-                    
+
                     <h3 class="sub-heading">2.3 Functional Cookies</h3>
                     <p class="mb-2 text-sm">These cookies remember your preferences, such as:</p>
                     <ul>
@@ -202,8 +108,6 @@
                     <p class="font-semibold text-primary-purple text-lg">Email: <a href="mailto:support@funding4x.com" class="hover:underline">support@funding4x.com</a></p>
                 </div>
 
-            </div>
-        </div>
-    </main>
-</body>
-</html>
+            ';
+include 'layout.php';
+?>
