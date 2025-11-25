@@ -11,6 +11,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Funded Trader Challenge - Claim Your FREE Spot Now!</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16x16.png">
+    <link rel="manifest" href="assets/site.webmanifest">
+
     <!-- Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -80,14 +88,17 @@
     <header class="sticky top-0 z-20 bg-header-dark shadow-xl">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-16">
-                <!-- Logo/Title -->
-                <div class="flex-shrink-0">
-                    <a href="home.php" class="text-xl font-bold text-trophy-gold tracking-wider">GLOBAL FOREX CUP</a>
+                <!-- Logo Section -->
+                <div class="flex items-center">
+                    <img src="assets/logo.png" alt="Funding4X Logo" class="h-10 w-10 mr-3 rounded-lg">
+                    <h1 class="text-2xl font-extrabold tracking-tight text-trophy-gold">Funding4x</h1>
                 </div>
                 <!-- Desktop Nav -->
                 <nav class="hidden md:flex space-x-8">
-                    <a href="home.php" class="text-gray-300 hover:text-trophy-gold transition duration-150 font-medium">Home</a>
-                    <a href="rule.php" class="text-trophy-gold font-bold transition duration-150 border-b-2 border-trophy-gold">Rules</a>
+                    <a href="home.php" class="text-trophy-gold font-bold transition duration-150 border-b-2 border-trophy-gold">Home</a>
+
+                    <a href="rule.php" class="text-gray-300 hover:text-trophy-gold transition duration-150 font-medium">Rules</a>
+                    
                     <a href="#" class="bg-primary-purple text-white px-4 py-1 rounded-full hover:bg-secondary-purple transition duration-150 font-semibold shadow-md" onclick="alertMessage('Registration Info', 'This would navigate to the registration form.')">Register Now</a>
                 </nav>
                 <!-- Mobile Menu Button (Hamburger) -->
@@ -99,7 +110,7 @@
         <!-- Mobile Menu -->
         <div id="mobile-menu" class="hidden md:hidden bg-header-dark pb-3 px-2 pt-2 space-y-1 sm:px-3">
             <a href="home.php" class="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:bg-secondary-purple">Home</a>
-            <a href="#" class="block px-3 py-2 rounded-md text-base font-medium text-trophy-gold hover:bg-secondary-purple">Rules</a>
+            <a href="rule.php" class="block px-3 py-2 rounded-md text-base font-medium text-trophy-gold hover:bg-secondary-purple">Rules</a>
             <a href="#" class="block px-3 py-2 rounded-md text-base font-medium bg-primary-purple text-white mt-2" onclick="alertMessage('Registration Info', 'This would navigate to the registration form.')">Register Now</a>
         </div>
     </header>
