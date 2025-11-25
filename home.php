@@ -99,7 +99,9 @@
 
                     <a href="rule.php" class="text-gray-300 hover:text-trophy-gold transition duration-150 font-medium">Rules</a>
                     
-                    <a href="#" class="bg-primary-purple text-white px-4 py-1 rounded-full hover:bg-secondary-purple transition duration-150 font-semibold shadow-md" onclick="alertMessage('Registration Info', 'This would navigate to the registration form.')">Register Now</a>
+                    <button onclick="document.getElementById('modal').classList.remove('hidden')" class="bg-primary-indigo hover:bg-indigo-700 text-white font-semibold py-1 px-3 text-sm rounded transition duration-300 shadow-md">
+                        Start Trading
+                    </button>
                 </nav>
                 <!-- Mobile Menu Button (Hamburger) -->
                 <button id="menu-button" class="md:hidden text-gray-300 hover:text-trophy-gold focus:outline-none">
