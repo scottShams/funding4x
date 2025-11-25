@@ -312,6 +312,10 @@ if ($user) {
     gtag('config', 'G-4F50HDQBDE');
     </script>
 
+    <!-- adsense code-->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8844859089842671"
+         crossorigin="anonymous"></script>
+     
 </head>
 
 <body>
@@ -456,17 +460,30 @@ if ($user) {
     <section class="py-16 sm:py-24 bg-primary-purple text-white">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <span class="text-trophy-gold text-sm font-semibold uppercase tracking-widest block mb-4">
-                Thank you <?php echo htmlspecialchars($user['name']); ?>, we added you to the Waiting List for the $5000 Funded Account </br> As soon as everything is ready we will email you so make sure you stay up to date. </br></br> Whilst you are waiting, you can share your Referral link below to Earn Credits, which will give you unlimited Free Retry for the Trader Programme
+                Thank you <?php echo htmlspecialchars($user['name']); ?>, we added you to the Waiting List for the $5000 Funded Account. 
             </span>
             <!-- Telegram Button -->
             <div class="flex justify-center mt-6">
                 <a href="https://t.me/funding4x" target="_blank" rel="noopener noreferrer"
                     class="inline-flex items-center px-6 py-3 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 transition duration-300 shadow-md">
                     <i class="fab fa-telegram-plane text-xl mr-2"></i>
-                    Join us on Telegram for Instant Updates & Competitions
+                    Join us on Telegram for Live Updates
                 </a>
+                
+                
+                    
             </div>
-            <br>
+            
+            
+            <br />
+            <p>Join us on YouTube for Forex Trading Ideas, Forex Trading Strategies, Forex Lessons, Forex Market Updates and more...</p>
+            <br />
+            <script src="https://apis.google.com/js/platform.js"></script>
+
+            <div class="g-ytsubscribe" data-channelid="UCkosETo_p1wOaAx2g2B0jLA" data-layout="full" data-count="hidden"></div>
+
+
+            <br /><br />
             <span class="text-trophy-gold text-sm font-semibold uppercase tracking-widest block mb-4">The Ultimate Partner Program</span>
             <h2 class="text-4xl sm:text-6xl font-extrabold tracking-tighter leading-tight mb-4">
                 5 Referrals = <span class="text-trophy-gold">$5,000</span> Funded Account
@@ -506,42 +523,23 @@ if ($user) {
                     </button>
                 </div>
 
-                <!-- Telegram Button -->
-                <div class="flex justify-center mt-6">
-                    <a href="https://t.me/funding4x" target="_blank" rel="noopener noreferrer"
-                       class="inline-flex items-center px-6 py-3 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 transition duration-300 shadow-md">
-                        <i class="fab fa-telegram-plane text-xl mr-2"></i>
-                        Join us on Telegram for Instant Updates & Competitions
-                    </a>
-                </div>
-                <!-- Social Buttons Section -->
-                <div class="mt-8 flex flex-col sm:flex-row sm:justify-center sm:space-x-4 space-y-3 sm:space-y-0">
-
-                    <!-- Facebook -->
-                    <a href="https://www.facebook.com/naaz.miah" target="_blank"
-                    class="flex items-center bg-white border border-gray-200 rounded-full shadow-sm hover:shadow-md transition px-4 py-2 w-full sm:w-auto">
-                        <div class="flex items-center justify-center bg-blue-600 text-white rounded-full w-8 h-8">
-                            <i class="fab fa-facebook-f text-base"></i>
+                
+                
+               
+               <div class="mt-10 p-6 bg-white border-2 border-fomo-red rounded-xl shadow-2xl max-w-lg mx-auto fomo-glow">
+                  
+                  <!-- Telegram Button -->
+                        <div class="flex justify-center mt-6">
+                            <a href="https://t.me/funding4x" target="_blank" rel="noopener noreferrer"
+                               class="inline-flex items-center px-6 py-3 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 transition duration-300 shadow-md">
+                                <i class="fab fa-telegram-plane text-xl mr-2"></i>
+                                Live Updates on Telegram
+                            </a>
                         </div>
-                        <div class="ml-3 leading-tight">
-                            <p class="text-gray-500 text-[10px] tracking-wide">FOLLOW US ON</p>
-                            <p class="text-gray-900 text-sm font-bold">Facebook</p>
-                        </div>
-                    </a>
-
-                    <!-- TikTok -->
-                    <a href="http://tiktok.com/@agent47.money" target="_blank"
-                    class="flex items-center bg-white border border-gray-200 rounded-full shadow-sm hover:shadow-md transition px-4 py-2 w-full sm:w-auto">
-                        <div class="flex items-center justify-center bg-black text-white rounded-full w-8 h-8">
-                            <i class="fab fa-tiktok text-base"></i>
-                        </div>
-                        <div class="ml-3 leading-tight">
-                            <p class="text-gray-500 text-[10px] tracking-wide">FOLLOW US ON</p>
-                            <p class="text-gray-900 text-sm font-bold">TikTok</p>
-                        </div>
-                    </a>
-
-                    <!-- Twitter X -->
+                        
+                        <br /><br />
+                        
+                        <!-- Twitter X --> 
                     <a href="https://x.com/NasirFXTrader" target="_blank"
                     class="flex items-center bg-white border border-gray-200 rounded-full shadow-sm hover:shadow-md transition px-4 py-2 w-full sm:w-auto">
                         <div class="flex items-center justify-center bg-black text-white rounded-full w-8 h-8">
@@ -552,14 +550,25 @@ if ($user) {
                             <p class="text-gray-900 text-sm font-bold">Twitter X</p>
                         </div>
                     </a>
+                    
+                    <br /><br />
+                        
+                        <p>Join us on YouTube for Forex Trading Ideas, Forex Trading Strategies, Forex Lessons, Forex Market Updates and more...</p>
+                        <br />
+                        <script src="https://apis.google.com/js/platform.js"></script>
+    
+                        <div class="g-ytsubscribe" data-channelid="UCkosETo_p1wOaAx2g2B0jLA" data-layout="full" data-count="hidden"></div>
+                        
+                    <br />
+                    
+                    
 
-                </div>
-
-
+				</div> 
 
                 <!-- Credit Tracker -->
                 <div class="mt-10">
                 
+                <!--
                    <p class="text-sm text-gray-600 mt-3 text-center">
                    Get Unlimited FREE Entry for Trading Test. (<del class="text-red-600">no need $59 payment per Entry</del>) <br />
                     5/5 referrals  = ONE FREE Entry for Trading Test <br />
@@ -568,6 +577,7 @@ if ($user) {
                     Only Refer other Real Forex Traders.
                     <br /> <br />
                    </p>
+                   -->
                                         
                                         
                     <h3 class="text-2xl font-bold text-primary-purple mb-4">
@@ -586,7 +596,7 @@ if ($user) {
                     </div>
                     <p class="text-sm text-gray-600 mt-3 text-center">
                         <?php if ($credits >= $goalCredits): ?>
-                            <span class="text-green-600 font-bold">🎉 Congratulations! You've earned a $5,000 Funded Account!</span>
+                            <span class="text-green-600 font-bold">🎉 Congratulations! You've earned a Free Trading Test for the $5,000 Funded Account! (<del class="text-red-600">no need to pay $59</del>),</span>
                         <?php else: ?>
                             You are <strong><?php echo ($goalCredits - $credits); ?></strong> successful referral(s) away from a $5,000 Funded Account!
                         <?php endif; ?>
@@ -789,6 +799,23 @@ if ($user) {
                     </p>
                 </div>
                 <!-- FAQ Item 4 -->
+                <div class="bg-header-dark p-6 rounded-xl shadow-lg">
+                    <h4 class="text-xl font-bold text-trophy-gold mb-2">If I have 10 referral credits, will I have 2 trials accounts at once?</h4>
+                    <p class="text-gray-300">
+                                        
+                    With 10 verified referrals you get 2 tests for Free. Normally that would cost $118, which you don’t need to pay.<br />
+
+                    You will get ONE account first, which you must use for your Trading Test. <br />
+                    If you fail the test you can use your credits to do it again for Free. <br />
+                    
+                    If you Pass, in that case you can use the credits for a New Second Account.<br />
+                    
+                    We won’t be giving multiple accounts unless they are Passed accounts, because we need to ensure it is always capable traders that are getting the Account, afterall we don’t want to lose our Real Money.
+                    
+                    </p>
+                </div>
+                
+                <!-- FAQ Item 5 -->
                 <div class="bg-header-dark p-6 rounded-xl shadow-lg">
                     <h4 class="text-xl font-bold text-trophy-gold mb-2">Is there any Benefit to Accumulate More than 5 Referral Credits?</h4>
                     <p class="text-gray-300">
@@ -1154,7 +1181,7 @@ if ($user) {
                         quizModal.style.opacity = '1';
                     }, 10);
                 }
-            }, 20000); // 20 seconds
+            }, 10000); // 20 seconds
         });
         
         // Function to close quiz modal

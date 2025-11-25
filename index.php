@@ -76,6 +76,12 @@ $recaptchaSiteKey = EnvLoader::get('RECAPTCHA_SITE_KEY', 'your_recaptcha_site_ke
     gtag('config', 'G-4F50HDQBDE');
     </script>
 
+    <!-- adsense code-->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8844859089842671"
+         crossorigin="anonymous"></script>
+
+     
+     
 </head>
 <body class="bg-gray-900 text-white min-h-screen p-4 font-sans">
 
