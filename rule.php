@@ -325,10 +325,10 @@
     <!-- Footer -->
     <footer class="bg-header-dark text-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col sm:flex-row justify-between items-center text-center sm:text-left">
-            <p class="text-sm">Global Forex Trader Cup &copy; 2024</p>
+            <p class="text-sm">Funding4x &copy; 2024</p>
             <div class="flex space-x-4 mt-4 sm:mt-0">
-                <a href="#" class="text-gray-400 hover:text-trophy-gold transition duration-150">Privacy Policy</a>
-                <a href="#" class="text-gray-400 hover:text-trophy-gold transition duration-150">Terms of Service</a>
+                <a href="pages/privacy-policy.php" class="text-gray-400 hover:text-trophy-gold transition duration-150">Privacy Policy</a>
+                <a href="pages/term-conditions.php" class="text-gray-400 hover:text-trophy-gold transition duration-150">Terms of Service</a>
             </div>
         </div>
     </footer>
