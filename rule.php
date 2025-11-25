@@ -316,7 +316,7 @@
 
     <!-- Footer -->
     <footer class="bg-gray-800 text-white">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col sm:flex-row justify-between items-center text-center sm:text-left">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 text-center">
             <p class="text-sm">&copy; 2024 PROP FUND Trading. All rights reserved. | <a href="#" class="hover:text-success-green transition">Terms of Service</a> | <a href="#" class="hover:text-success-green transition">Risk Disclosure</a></p>
             <p class="mt-2 text-xs text-gray-500">Trading involves significant risk. Past performance is not indicative of future results.</p>
         </div>
