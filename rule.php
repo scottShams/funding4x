@@ -75,12 +75,12 @@
             <div class="flex justify-between items-center h-16">
                 <!-- Logo/Title -->
                 <div class="flex-shrink-0">
-                    <a href="index.html" class="text-xl font-bold text-trophy-gold tracking-wider">GLOBAL FOREX CUP</a>
+                    <a href="home.php" class="text-xl font-bold text-trophy-gold tracking-wider">GLOBAL FOREX CUP</a>
                 </div>
                 <!-- Desktop Nav -->
                 <nav class="hidden md:flex space-x-8">
-                    <a href="index.html" class="text-gray-300 hover:text-trophy-gold transition duration-150 font-medium">Home</a>
-                    <a href="#" class="text-trophy-gold font-bold transition duration-150 border-b-2 border-trophy-gold">Rules</a>
+                    <a href="home.php" class="text-gray-300 hover:text-trophy-gold transition duration-150 font-medium">Home</a>
+                    <a href="rule.php" class="text-trophy-gold font-bold transition duration-150 border-b-2 border-trophy-gold">Rules</a>
                     <a href="#" class="bg-primary-purple text-white px-4 py-1 rounded-full hover:bg-secondary-purple transition duration-150 font-semibold shadow-md" onclick="alertMessage('Registration Info', 'This would navigate to the registration form.')">Register Now</a>
                 </nav>
                 <!-- Mobile Menu Button (Hamburger) -->
@@ -91,7 +91,7 @@
         </div>
         <!-- Mobile Menu -->
         <div id="mobile-menu" class="hidden md:hidden bg-header-dark pb-3 px-2 pt-2 space-y-1 sm:px-3">
-            <a href="index.html" class="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:bg-secondary-purple">Home</a>
+            <a href="home.php" class="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:bg-secondary-purple">Home</a>
             <a href="#" class="block px-3 py-2 rounded-md text-base font-medium text-trophy-gold hover:bg-secondary-purple">Rules</a>
             <a href="#" class="block px-3 py-2 rounded-md text-base font-medium bg-primary-purple text-white mt-2" onclick="alertMessage('Registration Info', 'This would navigate to the registration form.')">Register Now</a>
         </div>
