@@ -16,15 +16,31 @@ $referrals = [];
 $showEmailModal = false;
 $emailError = '';
 
+function getUserIP() {
+    if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
+        return $_SERVER['HTTP_CLIENT_IP'];
+    } elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+        // May contain multiple IPs, return first
+        return explode(',', $_SERVER['HTTP_X_FORWARDED_FOR'])[0];
+    } else {
+        return $_SERVER['REMOTE_ADDR'];
+    }
+}
+
 // Check if email is provided via POST request
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['lookup_email'])) {
     $lookupEmail = trim($_POST['lookup_email']);
     
     if (!empty($lookupEmail)) {
+        $userIP = getUserIP();
         // Look up user by email
         $stmt = $pdo->prepare("SELECT * FROM waitlist_users WHERE email = ?");
         $stmt->execute([$lookupEmail]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        // NEW: update IP for existing user
+        $updateIP = $pdo->prepare("UPDATE waitlist_users SET user_ip = ? WHERE id = ?");
+        $updateIP->execute([$userIP, $user['id']]);
         
         if ($user) {
             // Check if user status is inactive
