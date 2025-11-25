@@ -108,7 +108,7 @@
                     Trader Skills Check
                 </h2>
                 <p class="text-sm sm:text-base text-gray-600">
-                    Question <span id="current-q-number">1</span> of 5
+                    Question <span id="current-q-number">1</span> of 7
                 </p>
             </div>
 
@@ -163,7 +163,7 @@
     </div>
 
     <script>
-        // Array of questions and answers
+        // Array of questions and answers (SEQUENTIAL — NO SHUFFLE)
         let questions = [
             {
                 question: "1. How many years of experience do you have in Forex trading?",
@@ -239,17 +239,6 @@
             }
         ];
 
-        // --- RANDOMIZE ONLY LAST 4 QUESTIONS (Q4–Q7) ---
-        const firstThree = questions.slice(0, 3);  // Q1, Q2, Q3 fixed
-        let lastQuestions = questions.slice(3);    // Q4, Q5, Q6, Q7 shuffled
-
-        // Shuffle last 4 questions
-        lastQuestions = lastQuestions.sort(() => Math.random() - 0.5);
-
-        // Merge final order
-        questions = [...firstThree, ...lastQuestions];
-
-
         let currentQuestionIndex = 0;
         const quizContent = document.getElementById('quiz-content');
         const nextButton = document.getElementById('next-button');
@@ -267,7 +256,7 @@
 
             const qData = questions[currentQuestionIndex];
             currentQNumber.textContent = currentQuestionIndex + 1;
-            nextButton.disabled = !selectedAnswers[qData.name]; // Disable button if no answer selected
+            nextButton.disabled = !selectedAnswers[qData.name];
 
             let html = `<h4 class="text-base sm:text-lg md:text-xl font-semibold text-gray-800 mb-4 sm:mb-6">${qData.question}</h4>`;
             html += `<div class="space-y-3 sm:space-y-4">`;
@@ -276,8 +265,11 @@
                 const isChecked = selectedAnswers[qData.name] === option.value;
                 html += `
                     <div>
-                        <input type="radio" id="${qData.name}-${option.value}" name="${qData.name}" value="${option.value}" class="answer-option" ${isChecked ? 'checked' : ''}>
-                        <label for="${qData.name}-${option.value}" class="flex items-center p-3 sm:p-4 border-2 border-primary-purple rounded-lg cursor-pointer transition duration-200 hover:bg-primary-purple hover:text-white hover:border-trophy-gold text-sm sm:text-base">
+                        <input type="radio" id="${qData.name}-${option.value}" 
+                            name="${qData.name}" value="${option.value}" 
+                            class="answer-option" ${isChecked ? 'checked' : ''}>
+                        <label for="${qData.name}-${option.value}" 
+                            class="flex items-center p-3 sm:p-4 border-2 border-primary-purple rounded-lg cursor-pointer transition duration-200 hover:bg-primary-purple hover:text-white hover:border-trophy-gold text-sm sm:text-base">
                             <span class="font-medium">${option.label}</span>
                         </label>
                     </div>
@@ -287,7 +279,6 @@
             html += `</div>`;
             quizContent.innerHTML = html;
 
-            // Add event listeners to radio buttons to enable the next button and store the answer
             document.querySelectorAll(`input[name="${qData.name}"]`).forEach(input => {
                 input.addEventListener('change', (e) => {
                     selectedAnswers[qData.name] = e.target.value;
@@ -305,20 +296,19 @@
             selectedAnswers[qData.name] = selected.value;
 
             // CHECK FAIL RIGHT AFTER QUESTION 2
-            if (currentQuestionIndex === 1) { 
+            if (currentQuestionIndex === 1) {
                 const q1 = selectedAnswers["q1_experience"];
                 const q2 = selectedAnswers["q2_trades"];
 
                 if (q1 === "0" && q2 === "0") {
                     showFailModal();
-                    return; // STOP here — DO NOT show next questions
+                    return;
                 }
             }
 
             currentQuestionIndex++;
             renderQuestion();
         }
-
 
         function showSummary() {
             const q1 = selectedAnswers["q1_experience"];
@@ -330,30 +320,25 @@
                 return;
             }
 
-            // --- Count correct answers for last 4 questions ---
             let correctCount = 0;
             ["q4_leverage", "q5_stoploss", "q6_margin", "q7_statement"].forEach(q => {
                 if (selectedAnswers[q] === "correct") correctCount++;
             });
 
-            // --- Prepare result object ---
             const quizResult = {
                 q1: q1,
                 q2: q2,
-                q3 : q3,
+                q3: q3,
                 correct_last_four: correctCount
             };
 
-            // --- Send AJAX to store in DB ---
             fetch("store_quiz_result.php", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ quiz_result: quizResult })
             })
             .then(res => res.json())
-            .then(data => {
-                console.log("Quiz result saved:", data);
-            })
+            .then(data => console.log("Quiz result saved:", data))
             .catch(err => console.error("Error saving quiz result:", err));
 
             quizContent.classList.add('hidden');
@@ -364,8 +349,6 @@
             console.log("Quiz Completed. Answers:", selectedAnswers);
         }
 
-
-        // Initialize quiz
         renderQuestion();
         nextButton.addEventListener('click', nextQuestion);
 
@@ -373,12 +356,12 @@
             const modal = document.getElementById('fail-modal');
             modal.classList.remove('hidden');
 
-            // After 5 seconds redirect AND block user
             setTimeout(() => {
                 window.location.href = "block_user.php";
             }, 5000);
         }
 
     </script>
+
 </body>
 </html>
