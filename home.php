@@ -29,6 +29,12 @@
                         'fomo-red': '#ef4444', // A striking red for urgency
                         'bg-light': '#f9fafb', // Very light background
                         'primary-accent': '#f97316', // Tailwind orange-500 for consistency
+                        'primary-purple': '#4f009d', // Deep Royal Purple
+                        'secondary-purple': '#7b2cbf', // Lighter accent purple
+                        'trophy-gold': '#b49852', // Classic, muted Gold
+                        'header-dark': '#240046', // Dark background
+                        'bg-light': '#f3f4f6',
+                        'cta-hover': '#9d7c49',
                     }
                 }
             }
@@ -71,26 +77,30 @@
 <body>
 
     <!-- Header & Navigation -->
-    <header class="header-bg text-white shadow-xl">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-            <h1 class="text-2xl font-extrabold tracking-tight text-success-green">PROP<span class="text-white">FUND</span></h1>
-            <nav class="hidden sm:flex items-center space-x-4">
-                <a href="rule.php" class="text-white hover:text-success-green font-semibold py-2 px-4 rounded-lg transition duration-300">
-                    Rule
-                </a>
-                <button onclick="document.getElementById('modal').classList.remove('hidden')" class="bg-primary-indigo hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-300 shadow-md">
-                    Start Trading
-                </button>
-            </nav>
-            <!-- Mobile Menu -->
-            <div class="sm:hidden flex items-center space-x-2">
-                <a href="rule.php" class="text-white hover:text-success-green font-semibold py-1 px-2 text-sm rounded transition duration-300">
-                    Rule
-                </a>
-                <button onclick="document.getElementById('modal').classList.remove('hidden')" class="bg-primary-indigo hover:bg-indigo-700 text-white font-semibold py-1 px-3 text-sm rounded transition duration-300 shadow-md">
-                    Start Trading
+    <header class="sticky top-0 z-20 bg-header-dark shadow-xl">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo/Title -->
+                <div class="flex-shrink-0">
+                    <a href="home.php" class="text-xl font-bold text-trophy-gold tracking-wider">GLOBAL FOREX CUP</a>
+                </div>
+                <!-- Desktop Nav -->
+                <nav class="hidden md:flex space-x-8">
+                    <a href="home.php" class="text-gray-300 hover:text-trophy-gold transition duration-150 font-medium">Home</a>
+                    <a href="rule.php" class="text-trophy-gold font-bold transition duration-150 border-b-2 border-trophy-gold">Rules</a>
+                    <a href="#" class="bg-primary-purple text-white px-4 py-1 rounded-full hover:bg-secondary-purple transition duration-150 font-semibold shadow-md" onclick="alertMessage('Registration Info', 'This would navigate to the registration form.')">Register Now</a>
+                </nav>
+                <!-- Mobile Menu Button (Hamburger) -->
+                <button id="menu-button" class="md:hidden text-gray-300 hover:text-trophy-gold focus:outline-none">
+                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
                 </button>
             </div>
+        </div>
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden bg-header-dark pb-3 px-2 pt-2 space-y-1 sm:px-3">
+            <a href="home.php" class="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:bg-secondary-purple">Home</a>
+            <a href="#" class="block px-3 py-2 rounded-md text-base font-medium text-trophy-gold hover:bg-secondary-purple">Rules</a>
+            <a href="#" class="block px-3 py-2 rounded-md text-base font-medium bg-primary-purple text-white mt-2" onclick="alertMessage('Registration Info', 'This would navigate to the registration form.')">Register Now</a>
         </div>
     </header>
 
@@ -377,10 +387,13 @@
     </section>
 
     <!-- Footer -->
-    <footer class="bg-gray-800 text-white">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 text-center">
-            <p class="text-sm">&copy; 2024 PROP FUND Trading. All rights reserved. | <a href="#" class="hover:text-success-green transition">Terms of Service</a> | <a href="#" class="hover:text-success-green transition">Risk Disclosure</a></p>
-            <p class="mt-2 text-xs text-gray-500">Trading involves significant risk. Past performance is not indicative of future results.</p>
+    <footer class="bg-header-dark text-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col sm:flex-row justify-between items-center text-center sm:text-left">
+            <p class="text-sm">Global Forex Trader Cup &copy; 2024</p>
+            <div class="flex space-x-4 mt-4 sm:mt-0">
+                <a href="#" class="text-gray-400 hover:text-trophy-gold transition duration-150">Privacy Policy</a>
+                <a href="#" class="text-gray-400 hover:text-trophy-gold transition duration-150">Terms of Service</a>
+            </div>
         </div>
     </footer>
 
