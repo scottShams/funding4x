@@ -181,7 +181,19 @@ $recaptchaSiteKey = EnvLoader::get('RECAPTCHA_SITE_KEY', 'your_recaptcha_site_ke
                     </select>
                     
                     <div class="g-recaptcha" data-sitekey="<?php echo htmlspecialchars($recaptchaSiteKey); ?>"></div>
-
+                    <!-- Agreement Checkbox -->
+                    <div class="mb-4">
+                        <label class="flex items-start text-sm text-gray-300">
+                            <input type="checkbox" id="agreeTerms" name="agreeTerms" required class="mr-2 h-4 w-4 text-amber-500 bg-gray-700 border-gray-600 rounded focus:ring-amber-500 focus:ring-2 mt-0.5">
+                            <span>
+                                I agree to the
+                                <a href="terms.php" target="_blank" class="text-amber-400 hover:text-amber-300 underline">Terms and Conditions</a>
+                                and
+                                <a href="privacy.php" target="_blank" class="text-amber-400 hover:text-amber-300 underline">Privacy Policy</a>,
+                                and consent to the AI analysis of my bank statement data.
+                            </span>
+                        </label>
+                    </div>
                     <button type="submit"
                         class="w-full bg-primary-accent hover:bg-yellow-600 text-gray-900 font-bold py-4 rounded-lg text-xl md:text-2xl uppercase tracking-wider shadow-2xl shadow-primary-accent/50 transition duration-300 ease-in-out transform hover:scale-105 active:scale-95">
                         Join Waitlist Now!

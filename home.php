@@ -434,6 +434,20 @@
                 <!-- reCAPTCHA -->
                 <div class="g-recaptcha" data-sitekey="<?php echo htmlspecialchars($recaptchaSiteKey); ?>"></div>
 
+                <!-- Agreement Checkbox -->
+                <div class="mb-4 mt-2">
+                    <label class="flex items-start text-sm text-gray-300">
+                        <input type="checkbox" id="agreeTerms" name="agreeTerms" required class="mr-2 h-4 w-4 text-amber-500 bg-gray-700 border-gray-600 rounded focus:ring-amber-500 focus:ring-2 mt-0.5">
+                        <span class="text-gray-900">
+                            I agree to the
+                            <a href="terms.php" target="_blank" class="text-amber-400 hover:text-amber-300 underline">Terms and Conditions</a>
+                            and
+                            <a href="privacy.php" target="_blank" class="text-amber-400 hover:text-amber-300 underline">Privacy Policy</a>,
+                            and consent to the AI analysis of my bank statement data.
+                        </span>
+                    </label>
+                </div>
+
                 <div class="flex justify-end space-x-3 mt-6">
                     <button type="button" onclick="document.getElementById('modal').classList.add('hidden')" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">Cancel</button>
                     <button type="submit" class="px-4 py-2 bg-primary-indigo text-white rounded-lg hover:bg-indigo-700 transition">Join Waitlist Now!</button>
