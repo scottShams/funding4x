@@ -179,6 +179,17 @@ try {
         }
     }
     
+    // Check if this IP already exists in user_ip column
+    $checkExistingIP = $pdo->prepare("SELECT id FROM waitlist_users WHERE user_ip = ?");
+    $checkExistingIP->execute([$userIP]);
+
+    if ($checkExistingIP->fetch()) {
+        echo json_encode([
+            'status' => 'duplicate_ip',
+            'message' => 'It looks like you`re creating fake referrals. Please invite real people before you get blocked.',
+        ]);
+        exit;
+    }
     // Insert new user
     $stmt = $pdo->prepare("
         INSERT INTO waitlist_users (name, email, country, user_ip, referral_code, parent_user_id, email_verified)
