@@ -107,7 +107,7 @@
                         <li>No real funds are used or traded in the trial phase.</li>
                         <li>Performance results during the trial do not guarantee future funding or profits.</li>
                     </ul>
-                    <a href="#" class="text-sm link-text">Read full Terms and Conditions &rarr;</a>
+                    <a href="terms-conditions.php" class="text-sm link-text">Read full Terms and Conditions &rarr;</a>
                 </div>
 
                 <!-- 2. Risk Acknowledgment -->
@@ -118,7 +118,7 @@
                         <li>You are responsible for managing your trading, psychological, and emotional risk.</li>
                         <li>Funding4x does not guarantee profits or funding based on trial results.</li>
                     </ul>
-                    <a href="#" class="text-sm link-text">Read full Risk Disclosure &rarr;</a>
+                    <a href="risk-disclosure.php" class="text-sm link-text">Read full Risk Disclosure &rarr;</a>
                 </div>
 
                 <!-- 3. Privacy and Data Use -->
@@ -129,7 +129,7 @@
                         <li>Your data may be used for platform management, marketing, and analytics.</li>
                         <li>You consent to receive service and marketing emails from Funding4x.</li>
                     </ul>
-                    <a href="#" class="text-sm link-text">Read full Privacy Policy &rarr;</a>
+                    <a href="privacy-policy.php" class="text-sm link-text">Read full Privacy Policy &rarr;</a>
                 </div>
 
                 <!-- 6. No Investment Advice -->
@@ -178,10 +178,10 @@
                         </label>
                     </div>
                 </div>
-                
+<!--                 
                 <p class="mt-8 text-center text-sm text-gray-500">
-                    <a href="#" class="link-text">Review Full Policies (PDF)</a>
-                </p>
+                    <a href="" class="link-text">Review Full Policies (PDF)</a>
+                </p> -->
                 
             </div>
         </div>
