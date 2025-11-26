@@ -13,6 +13,11 @@
     $stmt = $pdo->prepare("SELECT * FROM waitlist_users WHERE email = ?");
     $stmt->execute([$email]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if($user['email_verified'] !== 1){
+        header("Location: index.php");
+        exit;
+    }  
     // Check if user has completed the first quiz
     if(empty($user['quiz_result'])){
         header("Location: quiz.php");
@@ -123,8 +128,8 @@
                 <svg class="w-16 h-16 text-trophy-gold mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                 <h3 class="text-2xl font-bold text-primary-purple mb-3">Final Assessment Complete!</h3>
                 <p class="text-lg text-gray-700 mb-6">You've completed the advanced knowledge assessment. Please click below to access your referral dashboard.</p>
-                <a href="referral_dashboard.php" class="px-8 py-3 bg-primary-purple text-white font-bold rounded-lg hover:bg-trophy-gold hover:text-header-dark transition duration-300 shadow-lg">
-                    Continue to Dashboard
+                <a href="choose-broker.php" class="px-8 py-3 bg-primary-purple text-white font-bold rounded-lg hover:bg-trophy-gold hover:text-header-dark transition duration-300 shadow-lg">
+                    Continue to Broker Choose
                 </a>
             </div>
 
@@ -331,6 +336,9 @@
                 quizHeader.classList.add('hidden');
                 quizNavigation.classList.add('hidden');
                 quizSummary.classList.remove('hidden');
+
+                // AUTO REDIRECT after 5 seconds
+                startAutoRedirectTimer();
             })
             .catch(err => {
                 console.error("Error saving knowledge test result:", err);
@@ -342,6 +350,21 @@
             });
 
             console.log("Knowledge Test Completed. Answers:", selectedAnswers);
+        }
+
+        function startAutoRedirectTimer() {
+            let redirectTimer = setTimeout(() => {
+                window.location.href = "choose-broker.php";
+            }, 5000);
+
+            // If user interacts with the modal, cancel auto redirect
+            const modal = document.getElementById('modal');
+
+            if (modal) {
+                modal.addEventListener('click', () => {
+                    clearTimeout(redirectTimer);
+                });
+            }
         }
 
         // Initialize quiz
