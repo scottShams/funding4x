@@ -326,9 +326,9 @@
 
                         <div class="mb-4">
                             <label for="password" class="block text-sm font-semibold text-gray-700 mb-1">Trader Password</label>
-                            <input type="password" id="password" name="password" required 
+                            <input type="text" id="password" name="password" required 
                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-primary-purple focus:border-primary-purple transition duration-150 ease-in-out bg-gray-50"
-                                   placeholder="********">
+                                   placeholder="password">
                         </div>
 
                         <div class="mb-6">
