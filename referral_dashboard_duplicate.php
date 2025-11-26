@@ -512,60 +512,43 @@ if ($user) {
         </div>
     </section>
     
-    <!-- Main Content -->
-    <section class="flex-grow flex flex-col items-center p-4 sm:p-8">
-        <div class="w-full max-w-3xl">
-
-            <!-- Title Block -->
-            <div class="mb-8 p-4 bg-white rounded-xl shadow-lg border-l-4 border-primary-purple">
-                <h2 class="text-3xl font-extrabold text-primary-purple mb-2">
-                    Next Steps...
-                </h2>
-                <p class="text-gray-600">
-                    Please follow these steps 1 by 1 and complete each step in the correct order to reach the $5000 Funded Account. 
-                </p>
-                <!-- Progress Bar -->
-                <div class="mt-4">
-                    <div class="text-sm font-medium text-gray-700 mb-1 flex justify-between">
-                        <span>Progress</span>
-                        <span id="progress-text">0/10 Topics Completed</span>
-                    </div>
-                    <div class="w-full bg-border-light rounded-full h-3">
-                        <div id="progress-bar" class="h-3 rounded-full bg-success-green transition-all duration-500" style="width: 0%"></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Checklist Grid -->
-            <div id="topic-checklist" class="grid grid-cols-1 gap-4">
-                
-                <!-- Topic Item Template -->
-                <!-- The JS will populate this with data from the 'topics' array -->
-
-            </div>
-
-			<br />
-			<div class="mb-10 p-8 sm:p-12 rounded-2xl bg-primary-purple text-white shadow-2xl transform hover:scale-[1.01] transition duration-300">
-                <div class="max-w-4xl mx-auto text-center">
-                    <h2 class="text-4xl sm:text-5xl font-extrabold tracking-tight mb-4 text-white">
-                        Get Your Funded Account Now
+    <!-- Checklist and Referral Link Layout -->
+    <section class="flex-grow p-4 sm:p-8">
+        <div class="max-w-7xl mx-auto grid grid-cols-12 gap-8">
+            <!-- Left Column - Checklist (col-4) -->
+            <div class="col-span-4">
+                <!-- Title Block -->
+                <div class="mb-8 p-4 bg-white rounded-xl shadow-lg border-l-4 border-primary-purple">
+                    <h2 class="text-3xl font-extrabold text-primary-purple mb-2">
+                        Next Steps...
                     </h2>
-                    <!-- Benefit 1 -->
-                    <button onclick="document.getElementById('modal').classList.remove('hidden')" class="bg-trophy-gold p-4 rounded-xl shadow-lg border-b-4 border-yellow-700 cursor-pointer">
-                        <p class="font-bold text-lg mb-1">Buy Now - 38% Off</p>
-                        <p class="text-sm"><del>Normally $59</del>, now only $36 for First Comers</p>
-                    </button>
+                    <p class="text-gray-600">
+                        Please follow these steps 1 by 1 and complete each step in the correct order to reach the $5000 Funded Account.
+                    </p>
+                    <!-- Progress Bar -->
+                    <div class="mt-4">
+                        <div class="text-sm font-medium text-gray-700 mb-1 flex justify-between">
+                            <span>Progress</span>
+                            <span id="progress-text">0/10 Topics Completed</span>
+                        </div>
+                        <div class="w-full bg-border-light rounded-full h-3">
+                            <div id="progress-bar" class="h-3 rounded-full bg-success-green transition-all duration-500" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Checklist Grid -->
+                <div id="topic-checklist" class="grid grid-cols-1 gap-4">
+                    <!-- Topic Item Template -->
+                    <!-- The JS will populate this with data from the 'topics' array -->
                 </div>
             </div>
-            
-            
-           
-        </div>
-    </section>
 
-    <!-- Referral Link, Tracker, and Status Table Section -->
-    <section class="py-16 bg-bg-light">
-        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <!-- Right Column - Referral Link (col-8) -->
+            <div class="col-span-8">
+                <!-- Referral Link, Tracker, and Status Table Section -->
+                <section class="py-16 bg-bg-light">
+                    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <!-- Referral Link and Credit Tracker Box -->
             <div class="bg-white p-8 sm:p-12 rounded-2xl shadow-xl border-t-4 border-trophy-gold mb-8">
                 <!-- Referral Link -->
@@ -811,6 +794,26 @@ if ($user) {
                 <p class="mt-6 text-sm text-gray-600 italic border-t pt-4">
                     <strong>Status Definition:</strong> Each successful referral who registers using your link and verifies their email earns you **1 Credit**. Once you reach 5 credits, you'll get a FREE Entry to the Test for a $5,000 Funded Account!
                 </p>
+            </div>
+        </div>
+    </section>
+    </div>
+    </section>
+
+    <!-- Buy Now Section -->
+    <section class="py-16 bg-primary-purple">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <div class="mb-10 p-8 sm:p-12 rounded-2xl bg-primary-purple text-white shadow-2xl transform hover:scale-[1.01] transition duration-300">
+                <div class="max-w-4xl mx-auto text-center">
+                    <h2 class="text-4xl sm:text-5xl font-extrabold tracking-tight mb-4 text-white">
+                        Get Your Funded Account Now
+                    </h2>
+                    <!-- Benefit 1 -->
+                    <button onclick="document.getElementById('modal').classList.remove('hidden')" class="bg-trophy-gold p-4 rounded-xl shadow-lg border-b-4 border-yellow-700 cursor-pointer">
+                        <p class="font-bold text-lg mb-1">Buy Now - 38% Off</p>
+                        <p class="text-sm"><del>Normally $59</del>, now only $36 for First Comers</p>
+                    </button>
+                </div>
             </div>
         </div>
     </section>
