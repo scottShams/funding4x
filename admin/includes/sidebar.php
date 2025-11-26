@@ -30,6 +30,18 @@
                     <span>Referrals</span>
                 </a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link d-flex align-items-center <?php echo basename($_SERVER['PHP_SELF']) == 'mt5_details.php' ? 'active' : ''; ?>" href="mt5_details.php">
+                    <i class="bi bi-briefcase me-2"></i>
+                    <span>MT5 Details</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link d-flex align-items-center <?php echo basename($_SERVER['PHP_SELF']) == 'knowledge_tests.php' ? 'active' : ''; ?>" href="knowledge_tests.php">
+                    <i class="bi bi-book me-2"></i>
+                    <span>Knowledge Tests</span>
+                </a>
+            </li>
 
             <!-- Logout Link -->
             <li class="nav-item mt-4">
