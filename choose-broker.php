@@ -97,6 +97,25 @@
             margin-right: 16px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
+
+        /* Modal Animations */
+        @keyframes fade-in {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes modal-appear {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .animate-fade-in {
+            animation: fade-in 0.3s ease-out;
+        }
+
+        .animate-modal-appear {
+            animation: modal-appear 0.4s ease-out;
+        }
     </style>
 </head>
 
@@ -346,11 +365,27 @@
     </main>
 
     <!-- Success Modal -->
-    <div id="success-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-        <div class="bg-white p-8 rounded-2xl shadow-2xl max-w-md mx-4">
-            <h2 class="text-2xl font-bold text-primary-purple mb-4">Thank You!</h2>
-            <p class="text-gray-700 mb-6">We got your details. Please wait for us to setup your account on our Servers. We will update you by Email within few hours.</p>
-            <a href="referral_dashboard.php" class="px-6 py-3 bg-primary-purple text-white font-bold rounded-lg hover:bg-header-dark transition duration-300">OK</a>
+    <div id="success-modal" class="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-50 hidden animate-fade-in">
+        <div class="bg-white p-10 rounded-3xl shadow-2xl max-w-lg mx-4 border-t-4 border-trophy-gold transform scale-95 animate-modal-appear">
+            <div class="text-center">
+                <!-- Success Icon -->
+                <div class="mx-auto w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-6">
+                    <svg class="w-12 h-12 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+
+                <h2 class="text-3xl font-extrabold text-primary-purple mb-4">Thank You!</h2>
+                <p class="text-gray-700 mb-8 leading-relaxed text-lg">
+                    We got your details. Please wait for us to setup your account on our Servers. We will update you by Email within few hours.
+                </p>
+
+                <div class="flex justify-center space-x-4">
+                    <a href="referral_dashboard.php" class="px-8 py-4 bg-primary-purple text-white font-bold rounded-xl shadow-lg hover:bg-header-dark transition-all duration-300 transform hover:scale-105">
+                        Continue to Dashboard
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -386,9 +421,9 @@
                     document.getElementById('success-modal').classList.remove('hidden');
                     form.reset();
 
-                    setTimeout(() => {
-                        window.location.href = "referral_dashboard.php";
-                    }, 5000);
+                    // setTimeout(() => {
+                    //     window.location.href = "referral_dashboard.php";
+                    // }, 5000);
                 } else {
                     // Show error
                     messageBox.innerHTML = `<span class="text-red-600">Error: ${data.error}</span>`;
