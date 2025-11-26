@@ -106,7 +106,7 @@
         </div>
     </header>
 
-    <!-- 1. HERO SECTION: Pricing-Style Spec Sheet (The Table) -->
+     <!-- 1. HERO SECTION: Pricing-Style Spec Sheet (The Table) -->
     <section class="bg-header-dark py-16 md:py-24 relative overflow-hidden">
         <!-- Background decorative elements -->
         <div class="absolute top-0 left-0 w-full h-full overflow-hidden opacity-10 pointer-events-none">
@@ -116,8 +116,9 @@
 
         <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             <div class="text-center mb-10">
-                <h1 class="text-4xl sm:text-5xl font-extrabold mb-4 text-trophy-gold">Competition Specs</h1>
-                <p class="text-xl text-gray-300">Review the account configuration and strict limits before you begin.</p>
+                <h1 class="text-4xl sm:text-5xl font-extrabold mb-4 text-trophy-gold">Official Trading Rules</h1>
+                <p class="text-xl text-gray-300"><span class="text-xl text-gray-300 mb-12">No more painful rules, hidden surprises, and tricks to make you fail. <br>
+We have clear transparent and easy to follow rules to help you be profitable and Pass the Trading Test</span></p>
             </div>
 
             <!-- The "Pricing Table" Style Card -->
@@ -134,28 +135,19 @@
                         <!-- Account Size -->
                         <tr>
                             <td class="font-medium text-gray-600">Starting Balance</td>
-                            <td class="font-bold text-gray-900 text-right text-lg">$100,000</td>
+                            <td class="font-bold text-gray-900 text-right text-lg">$5,000</td>
                         </tr>
                         <!-- Leverage -->
                         <tr>
                             <td class="font-medium text-gray-600">Leverage</td>
                             <td class="font-bold text-gray-900 text-right">1:100</td>
                         </tr>
-                        <!-- Duration -->
-                        <tr>
-                            <td class="font-medium text-gray-600">Competition Duration</td>
-                            <td class="font-bold text-gray-900 text-right">6 Weeks</td>
-                        </tr>
-                        <!-- Profit Target -->
+                        <!-- Duration -->                        <!-- Profit Target -->
                         <tr>
                             <td class="font-medium text-gray-600">Profit Target</td>
                             <td class="font-bold text-success-green text-right">10%</td>
                         </tr>
                         <!-- Drawdown Limits -->
-                        <tr>
-                            <td class="font-medium text-gray-600">Max Daily Drawdown</td>
-                            <td class="font-bold text-red-600 text-right">5%</td>
-                        </tr>
                         <tr>
                             <td class="font-medium text-gray-600">Max Total Drawdown</td>
                             <td class="font-bold text-red-600 text-right">10%</td>
@@ -163,7 +155,7 @@
                         <!-- Trading Days -->
                         <tr>
                             <td class="font-medium text-gray-600">Minimum Trading Days</td>
-                            <td class="font-bold text-gray-900 text-right">10 Days</td>
+                            <td class="font-bold text-gray-900 text-right">5 Days</td>
                         </tr>
                         <!-- Restrictions -->
                         <tr>
@@ -176,19 +168,19 @@
                         </tr>
                         <tr>
                             <td class="font-medium text-gray-600">News Trading</td>
-                            <td class="font-bold text-yellow-600 text-right text-sm">⚠️ Restricted (±2 min)</td>
+                             <td class="font-bold text-red-600 text-right text-sm">❌ Prohibited</td>
                         </tr>
                          <tr>
                             <td class="font-medium text-gray-600">Instruments</td>
-                            <td class="font-bold text-gray-900 text-right text-sm">FX Majors & Minors Only</td>
+                            <td class="font-bold text-gray-900 text-right text-sm">FX &amp; Commodities Only</td>
                         </tr>
                     </tbody>
                 </table>
 
-                <!-- Bottom CTA in Table -->
+                 
                 <div class="p-6 bg-gray-50 text-center border-t border-gray-200">
                     <button class="w-full bg-trophy-gold text-header-dark font-bold py-4 rounded-xl shadow-lg hover:bg-cta-hover transition uppercase tracking-wide text-lg" onclick="alertMessage('Registration', 'Proceeding to account setup...')">
-                        Accept Rules & Register
+                        Read Detailed Explanations of Rules
                     </button>
                     <p class="text-xs text-gray-400 mt-3">By registering, you agree to all terms listed above.</p>
                 </div>
@@ -200,6 +192,42 @@
     <section class="py-16 md:py-24 bg-white detail-section">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
 
+
+ <!-- NEW SECTION: The Fairness Commitment (What We DON'T Include) -->
+            <div class="mb-12 pt-6">
+                <h2 class="text-3xl font-extrabold mb-8 text-success-green">The Fairness Commitment: What We Don't Do</h2>
+                <p class="text-gray-600 mb-6">We are committed to providing a transparent and trader-friendly environment. Our rules are designed for clear risk management, not for trapping traders.</p>
+
+                <div class="grid md:grid-cols-2 gap-6">
+                    <!-- Point 1: Drawdown Clarity -->
+                    <div class="bg-success-green/10 p-5 rounded-xl border border-success-green shadow-lg">
+                        <p class="font-extrabold text-xl text-success-green mb-2">1. No Confusing Loss Rules</p>
+                        <p class="text-gray-700">We do **not** use complicated or dual-calculated daily loss rules. Our 5% Max Daily Drawdown is simple: it is based on your previous day's balance. No misleading 'secret' calculations. This means your account can fluctuate during the day without worrying. </p>
+                    </div>
+
+                    <!-- Point 2: Consistency -->
+                    <div class="bg-success-green/10 p-5 rounded-xl border border-success-green shadow-lg">
+                        <p class="font-extrabold text-xl text-success-green mb-2">2. No Consistency Rules or Tricks</p>
+                        <p class="text-gray-700">You are **not** required to maintain a daily profit average, minimum lot size, or 'consistent' trading volume. Trade your strategy as you see fit, as long as you respect the core risk limits. Just don't do sudden huge Trades - that shows you are careless which we won't like. </p>
+                    </div>
+
+                    <!-- Point 3: Hidden Rules -->
+                    <div class="bg-success-green/10 p-5 rounded-xl border border-success-green shadow-lg">
+                        <p class="font-extrabold text-xl text-success-green mb-2">3. No Hidden Rules</p>
+                        <p class="text-gray-700">Every single rule and restriction is explicitly listed within this document, including the News Trading limitation. There are **no hidden clauses** designed to fail participants unexpectedly.</p>
+                    </div>
+
+                    <!-- Point 4: Fake Promises -->
+                    <div class="bg-success-green/10 p-5 rounded-xl border border-success-green shadow-lg">
+                        <p class="font-extrabold text-xl text-success-green mb-2">4. No Fake Refund Promises</p>
+                        <p class="text-gray-700">We offer a transparent competition structure without hidden costs, meaning there is **no refund to promise or deny**.</p>
+                    </div>
+                </div>
+            </div>
+            
+            
+             <div class="mb-12 border-t-4 border-success-green pt-6"></div>
+             
             <h2 class="text-3xl font-extrabold mb-10 text-header-dark border-b pb-3 border-trophy-gold">Comprehensive Trading Guidelines</h2>
 
             <!-- SECTION: Eligibility and Registration -->
@@ -208,7 +236,7 @@
                 <div class="space-y-4">
                     <div class="bg-bg-light p-4 rounded-lg">
                         <p class="font-semibold text-primary-purple">1.1 Age Requirement</p>
-                        <p class="text-gray-700">Participants must be 18 years of age or older at the time of registration. Identity verification will be required prior to prize disbursement.</p>
+                        <p class="text-gray-700">Participants must be 18 years of age or older at the time of registration. Identity verification will be required prior to payout disbursement.</p>
                     </div>
                     <div class="bg-bg-light p-4 rounded-lg">
                         <p class="font-semibold text-primary-purple">1.2 Account Limits</p>
@@ -227,11 +255,11 @@
                     </div>
                     <div class="bg-bg-light p-4 rounded-lg">
                         <p class="font-semibold text-primary-purple">2.2 Tradable Instruments</p>
-                        <p class="text-gray-700">The competition is limited to Forex Major (e.g., EUR/USD, GBP/JPY) and Minor pairs. Exotics, Cryptocurrencies, Stocks, and Commodities are strictly prohibited.</p>
+                        <p class="text-gray-700">The competition is limited to Forex pairs (e.g., EUR/USD, GBP/JPY) and Commodities such as Oil and Metals only.  Exotics, Cryptocurrencies, and Stocks are strictly prohibited.</p>
                     </div>
                     <div class="bg-bg-light p-4 rounded-lg">
                         <p class="font-semibold text-primary-purple">2.3 Minimum Trading Days</p>
-                        <p class="text-gray-700">Participants must execute trades on a **minimum of 10 separate days** during the 6-week period to qualify for prizes. A trading day is defined as any 24-hour period (00:00 to 23:59 GMT) in which at least one trade is opened and closed.</p>
+                        <p class="text-gray-700">Participants must execute trades on a **minimum of 5 separate days** to qualify. A trading day is defined as any 24-hour period (00:00 to 23:59 GMT) in which at least one trade is opened and closed.</p>
                     </div>
                     <div class="bg-yellow-50 p-4 rounded-lg border-l-4 border-yellow-500">
                         <p class="font-semibold text-yellow-800">2.4 Closing Positions End of Day (No Overnight Holding)</p>
@@ -247,19 +275,19 @@
                 <div class="space-y-4">
                     <div class="bg-red-50 p-4 rounded-lg border-l-4 border-red-500">
                         <p class="font-semibold text-red-600">3.1 Maximum Daily Drawdown (5%)</p>
-                        <p class="text-gray-700">Your account equity, calculated at any point during a trading day, must not fall below 95% of the starting balance ($100,000) or the previous day's closing balance, whichever is higher.</p>
+                        <p class="text-gray-700">Your account equity, calculated at any point during a trading day, must not fall below 95% of the starting balance ($5,000) or the previous day's closing balance, whichever is higher. Just don't drop by 5% in one day!</p>
                     </div>
                     <div class="bg-red-50 p-4 rounded-lg border-l-4 border-red-500">
                         <p class="font-semibold text-red-600">3.2 Maximum Total Drawdown (10%)</p>
-                        <p class="text-gray-700">Your account equity must never fall below **$90,000** (10% of the initial $100,000 balance) at any point throughout the competition. Violation results in automatic termination.</p>
+                        <p class="text-gray-700">Your account equity must never fall below **$4,500** (10% of the initial $5,000 balance) at any point throughout the competition.If it does reach 10% draw down you will be closed out, and the Test will be Failed.</p>
                     </div>
                     <div class="bg-red-50 p-4 rounded-lg border-l-4 border-red-500">
                         <p class="font-semibold text-red-600">3.3 Copy Trading</p>
-                        <p class="text-gray-700">**The use of any external copy trading service, signal provider, or automated replication of trades from another account is strictly prohibited.** All trades must be generated solely by the participant's strategy.</p>
+                        <p class="text-gray-700">**The use of any external copy trading service, signal provider, or automated replication of trades from another account is strictly prohibited.** All trades must be generated solely by the participant's strategy. The trades cannot be copied from another participant in Funding4x either.</p>
                     </div>
                     <div class="bg-yellow-50 p-4 rounded-lg border-l-4 border-yellow-500">
                         <p class="font-semibold text-yellow-800">3.4 News Trading</p>
-                        <p class="text-gray-700">Trading within a 2-minute window (1 minute before to 1 minute after) any high-impact economic news release (marked as Red on major economic calendars) is **prohibited**. Trades must be placed outside of this volatility window.</p>
+                        <p class="text-gray-700">Trading within a 1 hour window (30 min before to 30 min after) any high-impact economic news release (marked as Red on major economic calendars) is **prohibited**. Trades must be placed outside of this volatility window.</p>
                     </div>
                 </div>
             </div>
@@ -270,47 +298,16 @@
                 <div class="space-y-4">
                     <div class="bg-bg-light p-4 rounded-lg">
                         <p class="font-semibold text-primary-purple">4.1 Qualification for Payout</p>
-                        <p class="text-gray-700">To qualify for a prize payout, the participant must meet the Minimum Trading Days (10 days) requirement, achieve a minimum 10% profit target, and maintain zero violations of drawdown or strategy compliance rules.</p>
+                        <p class="text-gray-700">To qualify for a profit payout, the participant must meet the Minimum Trading Days (5 days) requirement, achieve a minimum 10% profit target, and maintain zero violations of drawdown or strategy compliance rules.</p>
                     </div>
                     <div class="bg-bg-light p-4 rounded-lg">
                         <p class="font-semibold text-primary-purple">4.2 Payout Process</p>
-                        <p class="text-gray-700">Prizes will be verified and disbursed within 14 business days following the end of the competition. Winners must provide valid ID and a verified bank account for transfer. All applicable taxes are the sole responsibility of the winner.</p>
+                        <p class="text-gray-700">Payouts will be verified and disbursed as soon as reasonably possible, subject to manual checks, and banking transaction times.  Winners must provide valid ID and a verified bank account for transfer. All Transactions costs and applicable taxes are the sole responsibility of the winner.</p>
                     </div>
                 </div>
             </div>
             
-            <!-- NEW SECTION: The Fairness Commitment (What We DON'T Include) -->
-            <div class="mb-12 border-t-4 border-success-green pt-6">
-                <h2 class="text-3xl font-extrabold mb-8 text-success-green">5. The Fairness Commitment: What We Don't Do</h2>
-                <p class="text-gray-600 mb-6">We are committed to providing a transparent and trader-friendly environment. Our rules are designed for clear risk management, not for trapping traders.</p>
-
-                <div class="grid md:grid-cols-2 gap-6">
-                    <!-- Point 1: Drawdown Clarity -->
-                    <div class="bg-success-green/10 p-5 rounded-xl border border-success-green shadow-lg">
-                        <p class="font-extrabold text-xl text-success-green mb-2">1. No Confusing Loss Rules</p>
-                        <p class="text-gray-700">We do **not** use complicated or dual-calculated daily loss rules. Our 5% Max Daily Drawdown is simple: it is based on your highest point of the day or the previous day's balance. No misleading 'secret' calculations.</p>
-                    </div>
-
-                    <!-- Point 2: Consistency -->
-                    <div class="bg-success-green/10 p-5 rounded-xl border border-success-green shadow-lg">
-                        <p class="font-extrabold text-xl text-success-green mb-2">2. No Consistency Rules or Tricks</p>
-                        <p class="text-gray-700">You are **not** required to maintain a daily profit average, minimum lot size, or 'consistent' trading volume. Trade your strategy as you see fit, as long as you respect the core risk limits.</p>
-                    </div>
-
-                    <!-- Point 3: Hidden Rules -->
-                    <div class="bg-success-green/10 p-5 rounded-xl border border-success-green shadow-lg">
-                        <p class="font-extrabold text-xl text-success-green mb-2">3. No Hidden Rules</p>
-                        <p class="text-gray-700">Every single rule and restriction is explicitly listed within this document, including the News Trading limitation. There are **no hidden clauses** designed to fail participants unexpectedly.</p>
-                    </div>
-
-                    <!-- Point 4: Fake Promises -->
-                    <div class="bg-success-green/10 p-5 rounded-xl border border-success-green shadow-lg">
-                        <p class="font-extrabold text-xl text-success-green mb-2">4. No Fake Refund Promises</p>
-                        <p class="text-gray-700">We offer a transparent competition structure without entry fees or hidden costs, meaning there is **no refund to promise or deny**. The cost of participation is your trading skill.</p>
-                    </div>
-                </div>
-            </div>
-            
+           
             <!-- CTA -->
             <div class="mt-12 text-center">
                 <p class="text-xl font-semibold text-primary-purple mb-4">Ready to Compete Fairly?</p>

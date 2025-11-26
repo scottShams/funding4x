@@ -612,7 +612,26 @@ if ($user) {
                     </div>
                     <p class="text-sm text-gray-600 mt-3 text-center">
                         <?php if ($credits >= $goalCredits): ?>
-                            <span class="text-green-600 font-bold">🎉 Congratulations! You've earned a Free Trading Test for the $5,000 Funded Account! (<del class="text-red-600">no need to pay $59</del>),</span>
+                            <div class="bg-white p-8 rounded-2xl shadow-2xl border-2 border-primary-purple h-fit lg:sticky lg:top-24">
+                                <h2 class="text-2xl font-bold text-primary-purple mb-2">Congratulations! 1 Free Trading Test Unlocked<del class="text-red-600"> (no need to pay $59)</del></h2>
+                                <p class="text-sm text-gray-600 mb-6">
+                                    You've earned a Free Trading Test for the $5,000 Funded Account!
+                                
+                                <br /><br />
+                               Thank for referring other Forex Traders. To stay up to date with the Next Steps, go ahead and join the telegram group where we will give live updates.
+                                
+                                <br /><br />                    
+                                <strong>You can also keep inviting more people to get more Credits.
+                                More credits = More free Trading Tests for you.</strong>
+                                 <br />                    
+                                 Thank you for being patient with us.</p>
+            
+                                <!-- Success/Error Message Box -->
+                                <div id="message-box" class="mt-4 p-4 rounded-lg text-sm text-center hidden font-medium"></div>
+            
+                            </div>
+                            
+                            
                         <?php else: ?>
                             You are <strong><?php echo ($goalCredits - $credits); ?></strong> successful referral(s) away from a $5,000 Funded Account!
                         <?php endif; ?>
