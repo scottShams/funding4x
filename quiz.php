@@ -24,6 +24,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trader Knowledge Assessment</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16x16.png">
+    <link rel="manifest" href="assets/site.webmanifest">
+
     <!-- Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Configure Tailwind for Inter font and prestigious purple colors (Royal Purple/Gold Theme) -->
@@ -88,7 +96,7 @@
             <!-- Logo Section -->
             <div class="flex items-center">
                 <img src="assets/logo.png" alt="Funding4X Logo" class="h-10 w-10 mr-3 rounded-lg">
-                <h1 class="text-2xl font-extrabold tracking-tight text-trophy-gold">REFERRAL DASHBOARD</h1>
+                <h1 class="text-2xl font-extrabold tracking-tight text-trophy-gold">Funding4x</h1>
             </div>
             <div class="flex items-center space-x-4">
                 <span class="text-sm text-gray-300"><?php echo htmlspecialchars($user['name']); ?></span>
