@@ -19,6 +19,14 @@
         header("Location: knowledge-test.php");
         exit;
     }
+
+    // Check if MT5 details are already submitted
+    $stmt = $pdo->prepare("SELECT id FROM mt5_details WHERE user_id = ?");
+    $stmt->execute([$user['id']]);
+    if($stmt->fetch(PDO::FETCH_ASSOC)){
+        header("Location: referral_dashboard.php");
+        exit;
+    }
 ?>
 
 <!DOCTYPE html>
@@ -337,30 +345,67 @@
         </div>
     </main>
 
+    <!-- Success Modal -->
+    <div id="success-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white p-8 rounded-2xl shadow-2xl max-w-md mx-4">
+            <h2 class="text-2xl font-bold text-primary-purple mb-4">Thank You!</h2>
+            <p class="text-gray-700 mb-6">We got your details. Please wait for us to setup your account on our Servers. We will update you by Email within few hours.</p>
+            <a href="referral_dashboard.php" class="px-6 py-3 bg-primary-purple text-white font-bold rounded-lg hover:bg-header-dark transition duration-300">OK</a>
+        </div>
+    </div>
+
     <script>
         function handleFormSubmit(event) {
-            event.preventDefault(); 
-            
+            event.preventDefault();
+
             const form = document.getElementById('mt5-form');
             const username = form.username.value;
+            const password = form.password.value;
             const server = form.server.value;
             const messageBox = document.getElementById('message-box');
 
-            // Simulate submission
-            console.log("Details Submitted:", { username, server });
+            const mt5Details = {
+                username: username,
+                password: password,
+                server: server,
+                submitted_at: new Date().toISOString()
+            };
 
-            messageBox.innerHTML = `
-                <span class="text-lg block mb-1">✅ Details Received!</span>
-                Monitoring setup for account <strong>${username}</strong> on <strong>${server}</strong> initiated. 
-                <br>Please wait for email confirmation before taking your first trade.
-            `;
-            messageBox.className = 'mt-4 p-4 rounded-lg text-sm text-center bg-green-50 text-green-800 border border-green-200 block shadow-inner';
-            
-            form.reset();
+            // Send to server
+            fetch('store_mt5_details.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ mt5_details: mt5Details }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Show modal
+                    document.getElementById('success-modal').classList.remove('hidden');
+                    form.reset();
 
-            setTimeout(() => {
-                messageBox.classList.add('hidden');
-            }, 8000);
+                    setTimeout(() => {
+                        window.location.href = "referral_dashboard.php";
+                    }, 5000);
+                } else {
+                    // Show error
+                    messageBox.innerHTML = `<span class="text-red-600">Error: ${data.error}</span>`;
+                    messageBox.className = 'mt-4 p-4 rounded-lg text-sm text-center bg-red-50 text-red-800 border border-red-200 block';
+                    messageBox.classList.remove('hidden');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                messageBox.innerHTML = `<span class="text-red-600">Network error. Please try again.</span>`;
+                messageBox.className = 'mt-4 p-4 rounded-lg text-sm text-center bg-red-50 text-red-800 border border-red-200 block';
+                messageBox.classList.remove('hidden');
+            });
+        }
+
+        function closeModal() {
+            document.getElementById('success-modal').classList.add('hidden');
         }
     </script>
 </body>
