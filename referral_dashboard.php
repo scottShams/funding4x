@@ -1360,7 +1360,7 @@ if ($user) {
         const topics = [
             { id: 1, name: "1. Verify your Email Address", isCompleted: <?php echo ($user && $user['email_verified'] == 1) ? 'true' : 'false'; ?> },
             { id: 2, name: "2. Refer 5 Forex Traders to get a FREE Trading Test", isCompleted: <?php echo ($user && $verifiedReferrals >= 5) ? 'true' : 'false'; ?> },
-            { id: 3, name: "3. Complete the Knowledge Test", isCompleted: false },
+            { id: 3, name: "3. Complete the Knowledge Test", isCompleted: <?php echo ($user && !empty($user['knowledge_test_result'])) ? 'true' : 'false'; ?> },
             { id: 4, name: "5. Pass the Trading Test 1", isCompleted: false },
             { id: 5, name: "6. Pass the Trading Test 2", isCompleted: false },
             { id: 6, name: "7. Get your $5000 Funded Account", isCompleted: false }
