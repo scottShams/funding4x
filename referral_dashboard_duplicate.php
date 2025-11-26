@@ -236,6 +236,10 @@ if ($user) {
 
                         'header-dark': '#240046', // Very Dark Purple/Black for the sticky header/footer
 
+                        'success-green': '#10b981', // Tailwind green-500 for completion
+
+                        'border-light': '#e5e7eb', // Gray-200
+
                     }
 
                 }
@@ -319,12 +323,8 @@ if ($user) {
 
         /* Checklist completion styles */
         .topic-item {
-            cursor: pointer;
+            cursor: default;
             transition: all 0.2s ease;
-        }
-        .topic-item:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
         .checkmark-icon {
             opacity: 0;
@@ -569,11 +569,14 @@ if ($user) {
                         <h2 class="text-4xl sm:text-5xl font-extrabold tracking-tight mb-4 text-white">
                             Get Your Funded Account Now
                         </h2>
-                        <!-- Benefit 1 -->
-                        <button onclick="document.getElementById('modal').classList.remove('hidden')" class="bg-trophy-gold p-4 rounded-xl shadow-lg border-b-4 border-yellow-700 cursor-pointer">
-                            <p class="font-bold text-lg mb-1">Buy Now - 38% Off</p>
-                            <p class="text-sm"><del>Normally $59</del>, now only $36 for First Comers</p>
-                        </button>
+                        <?php if ($user && $verifiedReferrals < 5): ?>
+                            <!-- Benefit 1 -->
+                            <button onclick="document.getElementById('modal').classList.remove('hidden')" class="bg-trophy-gold p-4 rounded-xl shadow-lg border-b-4 border-yellow-700 cursor-pointer">
+                                <p class="font-bold text-lg mb-1">Buy Now - 38% Off</p>
+                                <p class="text-sm"><del>Normally $59</del>, now only $36 for First Comers</p>
+                            </button>
+                        <?php endif; ?>
+
                     </div>
                 </div>
             </div>
@@ -949,12 +952,52 @@ if ($user) {
 
     <?php endif; ?>
     
-    <!-- Simple Modal for Sign-up (Contact Form) -->
-    <div id="modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 hidden z-50">
-        <div class="bg-white p-8 rounded-xl shadow-2xl max-w-md w-full relative">
-            <p class="text-gray-700 mb-6">Buy Option not available yet. For now we are processing all the Free Entries as Promised. Check again soon.</p>
-            
-            <button type="button" onclick="document.getElementById('modal').classList.add('hidden')" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">Cancel</button>
+    <!-- Gorgeous Modal for Buy Option -->
+    <div id="modal" class="fixed inset-0 bg-gradient-to-br from-primary-purple/90 via-purple-900/90 to-header-dark/90 backdrop-blur-sm flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-gradient-to-br from-white via-gray-50 to-white p-8 rounded-3xl shadow-2xl max-w-lg w-full relative border border-white/20 transform transition-all duration-300 scale-100 hover:scale-[1.02]">
+            <!-- Decorative Elements -->
+            <div class="absolute -top-4 -left-4 w-8 h-8 bg-trophy-gold rounded-full opacity-20"></div>
+            <div class="absolute -top-6 -right-6 w-6 h-6 bg-primary-purple rounded-full opacity-30"></div>
+            <div class="absolute -bottom-4 -right-4 w-10 h-10 bg-fomo-red rounded-full opacity-10"></div>
+
+            <!-- Header with Icon -->
+            <div class="text-center mb-6">
+                <div class="w-20 h-20 bg-gradient-to-br from-trophy-gold to-yellow-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                    <i class="fas fa-shopping-cart text-3xl text-white"></i>
+                </div>
+                <h2 class="text-2xl font-bold bg-gradient-to-r from-primary-purple to-trophy-gold bg-clip-text text-transparent mb-2">
+                    Premium Access
+                </h2>
+                <div class="w-16 h-1 bg-gradient-to-r from-primary-purple to-trophy-gold rounded-full mx-auto"></div>
+            </div>
+
+            <!-- Content -->
+            <div class="text-center mb-8">
+                <p class="text-gray-700 text-lg leading-relaxed mb-4 font-medium">
+                    🚀 <strong>Exciting News!</strong> Our Premium Buy Option is coming soon!
+                </p>
+                <p class="text-gray-600 leading-relaxed">
+                    For now, we're focused on processing all the <span class="text-primary-purple font-semibold">FREE Entries</span> as promised.
+                    Check back soon for the enhanced premium experience!
+                </p>
+            </div>
+
+            <!-- Action Button -->
+            <div class="flex justify-center">
+                <button type="button"
+                        onclick="document.getElementById('modal').classList.add('hidden')"
+                        class="px-8 py-3 bg-gradient-to-r from-primary-purple to-purple-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 border border-white/20">
+                    <i class="fas fa-times mr-2"></i>
+                    Got it, thanks!
+                </button>
+            </div>
+
+            <!-- Footer Note -->
+            <div class="mt-6 text-center">
+                <p class="text-xs text-gray-500 italic">
+                    Stay tuned for updates on our Telegram channel
+                </p>
+            </div>
         </div>
     </div>
     <!-- JavaScript for Clipboard Functionality and Pie Chart -->
@@ -1315,14 +1358,12 @@ if ($user) {
     </script>
     <script>
         const topics = [
-            { id: 1, name: "1. Verify your Email Address", isCompleted: false },
-            { id: 2, name: "2. Refer 5 Forex Traders to get a FREE Trading Test", isCompleted: false },
+            { id: 1, name: "1. Verify your Email Address", isCompleted: <?php echo ($user && $user['email_verified'] == 1) ? 'true' : 'false'; ?> },
+            { id: 2, name: "2. Refer 5 Forex Traders to get a FREE Trading Test", isCompleted: <?php echo ($user && $verifiedReferrals >= 5) ? 'true' : 'false'; ?> },
             { id: 3, name: "3. Complete the Knowledge Test", isCompleted: false },
-        
             { id: 4, name: "5. Pass the Trading Test 1", isCompleted: false },
             { id: 5, name: "6. Pass the Trading Test 2", isCompleted: false },
-            { id: 6, name: "7. Get your $5000 Funded Account", isCompleted: false },
-            
+            { id: 6, name: "7. Get your $5000 Funded Account", isCompleted: false }
         ];
 
         const checklistContainer = document.getElementById('topic-checklist');
@@ -1355,13 +1396,23 @@ if ($user) {
         }
 
         function toggleCompletion(id) {
-            const topicIndex = topics.findIndex(t => t.id === id);
-            if (topicIndex !== -1) {
-                // In a real application, this state change would be based on the quiz result,
-                // but here we toggle it for visualization.
-                topics[topicIndex].isCompleted = !topics[topicIndex].isCompleted;
-                renderChecklist(); 
-            }
+            // Show modal instead of toggling
+            showNoModifyModal();
+        }
+
+        function showNoModifyModal() {
+            const container = document.createElement('div');
+            container.className = 'fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50';
+            container.innerHTML = `
+                <div class="bg-white p-6 rounded-lg shadow-2xl w-full max-w-sm transform transition-all scale-100 duration-300">
+                    <h4 class="text-xl font-bold text-primary-purple mb-3">Cannot Modify</h4>
+                    <p class="text-gray-700 mb-6">You cannot modify the checklist items. They are automatically updated based on your progress.</p>
+                    <button onclick="document.body.removeChild(this.parentNode.parentNode)" class="w-full py-2 bg-primary-purple text-white rounded-lg font-semibold hover:bg-trophy-gold hover:text-header-dark transition">
+                        Close
+                    </button>
+                </div>
+            `;
+            document.body.appendChild(container);
         }
 
         function updateProgress() {
