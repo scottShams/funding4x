@@ -226,10 +226,10 @@ $recaptchaSiteKey = EnvLoader::get('RECAPTCHA_SITE_KEY', 'your_recaptcha_site_ke
             // const targetDate = new Date().getTime() + twentyDays;
              
             // FIXED start date for global countdown (set once)
-            const startDate = new Date('2025-11-20T00:00:00').getTime();
+            const startDate = new Date('2025-11-27T00:00:00').getTime();
 
             // Add 20 days to it (constant for everyone)
-            const targetDate = startDate + (20 * 24 * 60 * 60 * 1000);
+            const targetDate = startDate + (12 * 24 * 60 * 60 * 1000);
 
             // Get DOM elements
             const $days = document.getElementById('days');
