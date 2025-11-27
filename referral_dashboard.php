@@ -1365,7 +1365,7 @@ if ($user) {
             { id: 1, name: "1. Verify your Email Address", isCompleted: <?php echo ($user && $user['email_verified'] == 1) ? 'true' : 'false'; ?> },
             { id: 2, name: "2. Refer 5 Forex Traders (optional)", isCompleted: <?php echo ($user && $verifiedReferrals >= 5) ? 'true' : 'false'; ?> },
             { id: 3, name: "3. Complete the Knowledge Check", redirectTo: "knowledge-test.php", isCompleted: <?php echo ($user && !empty($user['knowledge_test_result'])) ? 'true' : 'false'; ?> },
-            { id: 4, name: "5. Pass the Trading Test 1", redirectTo: "quiz.php", isCompleted: <?php echo ($user && !empty($user['quiz_result'])) ? 'true' : 'false'; ?> },
+            { id: 4, name: "5. Pass the Trading Test 1", redirectTo: "quiz.php", isCompleted: false },
             { id: 5, name: "6. Pass the Trading Test 2", redirectTo: "knowledge-test.php", isCompleted: false },
             { id: 6, name: "7. Get your $5000 Funded Account", isCompleted: false }
         ];
