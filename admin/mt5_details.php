@@ -6,6 +6,31 @@ require_once '../database.php';
 // Get database connection
 $pdo = getPDO();
 
+// Handle status toggle action
+if (isset($_POST['action']) && $_POST['action'] === 'toggle_status') {
+    header('Content-Type: application/json');
+
+    $mt5Id = (int)$_POST['mt5_id'];
+    $newStatus = $_POST['status'];
+
+    // Validate status
+    if (!in_array($newStatus, ['pass', 'fail'])) {
+        echo json_encode(['success' => false, 'message' => 'Invalid status']);
+        exit;
+    }
+
+    // Update status
+    $stmt = $pdo->prepare("UPDATE mt5_details SET status = ? WHERE id = ?");
+    $success = $stmt->execute([$newStatus, $mt5Id]);
+
+    if ($success) {
+        echo json_encode(['success' => true, 'message' => 'Status updated successfully']);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Failed to update status']);
+    }
+    exit;
+}
+
 // Get MT5 details with user info
 $query = "
     SELECT
@@ -40,7 +65,9 @@ ob_start();
                         <th>MT5 Username</th>
                         <th>MT5 Password</th>
                         <th>Server</th>
+                        <th>Status</th>
                         <th>Submitted At</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -52,7 +79,37 @@ ob_start();
                         <td><?php echo htmlspecialchars($detail['username']); ?></td>
                         <td><?php echo htmlspecialchars($detail['password']); ?></td>
                         <td><?php echo htmlspecialchars($detail['server']); ?></td>
+                        <td>
+                            <?php
+                            $status = $detail['status'] ?? 'pending';
+                            $badgeClass = 'bg-warning';
+                            $statusText = 'Pending';
+                            if ($status === 'pass') {
+                                $badgeClass = 'bg-success';
+                                $statusText = 'Pass';
+                            } elseif ($status === 'fail') {
+                                $badgeClass = 'bg-danger';
+                                $statusText = 'Fail';
+                            }
+                            ?>
+                            <span class="badge <?php echo $badgeClass; ?>"><?php echo $statusText; ?></span>
+                        </td>
                         <td><?php echo date('M d, Y H:i', strtotime($detail['submitted_at'])); ?></td>
+                        <td>
+                            <div class="btn-group" role="group">
+                                <?php
+                                $buttonText = $status === 'pass' ? 'Mark as Fail' : 'Mark as Pass';
+                                $buttonClass = $status === 'pass' ? 'btn-danger' : 'btn-success';
+                                ?>
+                                <button class="btn btn-sm <?php echo $buttonClass; ?> toggle-status-btn"
+                                        data-mt5-id="<?php echo $detail['id']; ?>"
+                                        data-current-status="<?php echo $status; ?>"
+                                        data-user-name="<?php echo htmlspecialchars($detail['name']); ?>"
+                                        onclick="toggleStatus(this)">
+                                    <?php echo $buttonText; ?>
+                                </button>
+                            </div>
+                        </td>
                     </tr>
                     <?php endforeach; ?>
                 </tbody>
@@ -126,10 +183,107 @@ $(document).ready(function() {
         ordering: true,
         order: [[0, 'desc']],
         responsive: true,
+        columnDefs: [
+            {
+                targets: [8], // Actions column
+                orderable: false
+            }
+        ],
         initComplete: function () {
             $('.dataTables_length select').addClass('form-select form-select-sm');
             $('.dataTables_filter input').addClass('form-control form-control-sm');
         }
     });
 });
+
+// Toggle status function
+function toggleStatus(button) {
+    const mt5Id = button.getAttribute('data-mt5-id');
+    const currentStatus = button.getAttribute('data-current-status');
+    const userName = button.getAttribute('data-user-name');
+
+    // Determine new status
+    const newStatus = currentStatus === 'pass' ? 'fail' : 'pass';
+    const actionText = newStatus === 'pass' ? 'Pass' : 'Fail';
+
+    Swal.fire({
+        title: `Mark as ${actionText}`,
+        text: `Are you sure you want to mark "${userName}" as ${actionText.toLowerCase()}?`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: newStatus === 'pass' ? '#28a745' : '#dc3545',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: `Yes, mark as ${actionText.toLowerCase()}`,
+        cancelButtonText: 'Cancel',
+        customClass: {
+            confirmButton: 'btn btn-primary',
+            cancelButton: 'btn btn-secondary'
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Show loading
+            Swal.fire({
+                title: 'Updating...',
+                text: 'Please wait while we update the status',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            // Send AJAX request
+            $.ajax({
+                url: 'mt5_details.php',
+                type: 'POST',
+                data: {
+                    action: 'toggle_status',
+                    mt5_id: mt5Id,
+                    status: newStatus
+                },
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        // Update button text, class, and data attributes
+                        button.setAttribute('data-current-status', newStatus);
+                        button.textContent = newStatus === 'pass' ? 'Mark as Fail' : 'Mark as Pass';
+
+                        // Update button class
+                        button.classList.remove('btn-success', 'btn-danger');
+                        button.classList.add(newStatus === 'pass' ? 'btn-danger' : 'btn-success');
+
+                        // Update the status badge in the same row
+                        const row = button.closest('tr');
+                        const statusCell = row.querySelector('td:nth-child(7) .badge'); // Status is 7th column
+                        statusCell.className = 'badge ' + (newStatus === 'pass' ? 'bg-success' : 'bg-danger');
+                        statusCell.textContent = newStatus === 'pass' ? 'Pass' : 'Fail';
+
+                        Swal.fire({
+                            title: 'Success!',
+                            text: 'Status updated successfully.',
+                            icon: 'success',
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+                    } else {
+                        Swal.fire({
+                            title: 'Error!',
+                            text: response.message || 'Failed to update status.',
+                            icon: 'error',
+                            confirmButtonText: 'OK'
+                        });
+                    }
+                },
+                error: function() {
+                    Swal.fire({
+                        title: 'Error!',
+                        text: 'An error occurred while updating the status.',
+                        icon: 'error',
+                        confirmButtonText: 'OK'
+                    });
+                }
+            });
+        }
+    });
+}
 </script>
