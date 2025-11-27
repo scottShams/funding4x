@@ -503,7 +503,7 @@ if ($user) {
                 <a href="https://t.me/funding4x" target="_blank" rel="noopener noreferrer"
                     class="inline-flex items-center px-6 py-3 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 transition duration-300 shadow-md">
                     <i class="fab fa-telegram-plane text-xl mr-2"></i>
-                    Join us on Telegram for Live Updates
+                    Join on Telegram for Updates
                 </a>
                 
                 
@@ -512,7 +512,7 @@ if ($user) {
             
             
             <br />
-            <p>Join us on YouTube for Forex Trading Ideas, Forex Trading Strategies, Forex Lessons, Forex Market Updates and more...</p>
+            <p>Subscribe on YouTube latest Tutorial & Updates</p>
             <br />
             <script src="https://apis.google.com/js/platform.js"></script>
 
@@ -525,13 +525,14 @@ if ($user) {
                 5 Referrals = <span class="text-trophy-gold">$5,000</span> Funded Account
             </h2>
             <p class="mt-4 text-xl text-gray-200">
-                Share your unique link with other passionate traders. For every successful referral who joins the competition and verifies their email, you earn **1 Credit**. Collect five credits to bypass the competition and get FREE Entry for the Test to get your Funded Account  (usually costs $59)!
+                Share your unique link with other passionate <strong>Forex Traders only</strong>. For every successful referral who joins the competition and verifies their email, you earn **1 Credit**. Collect five credits to bypass the competition and get FREE Entry for the Test to get your Funded Account  (usually costs $59)!
                 <br/><br/>
-                <strong>NOTE: You must only Refer people you know who are Forex Traders - everyone will be Tested for their Skill</strong>
+                
             </p>
         </div>
     </section>
     
+    <br />
     <!-- Checklist and Referral Link Content -->
     <section class="flex-grow p-4 sm:p-8">
         <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-8">
@@ -543,7 +544,7 @@ if ($user) {
                         Next Steps...
                     </h2>
                     <p class="text-gray-600">
-                        Please follow these steps 1 by 1 and complete each step in the correct order to reach the $5000 Funded Account.
+                        Complete these Steps to reach the $5000 Funded Account.
                     </p>
                     <!-- Progress Bar -->
                     <div class="mt-4">
@@ -567,7 +568,7 @@ if ($user) {
                 <div class="mt-8 mb-10 p-8 sm:p-12 rounded-2xl bg-primary-purple text-white shadow-2xl transform hover:scale-[1.01] transition duration-300">
                     <div class="max-w-4xl mx-auto text-center">
                         <h2 class="text-4xl sm:text-5xl font-extrabold tracking-tight mb-4 text-white">
-                            Get Your Funded Account Now
+                            Get Your Funded Account Test Now
                         </h2>
                         <?php if ($user && $verifiedReferrals < 5): ?>
                             <!-- Benefit 1 -->
@@ -640,7 +641,7 @@ if ($user) {
                             
                             <br /><br />
                                 
-                                <p>Join us on YouTube for Forex Trading Ideas, Forex Trading Strategies, Forex Lessons, Forex Market Updates and more...</p>
+                                <p>Subscribe on YouTube for Forex Trading Ideas, Forex Trading Strategies, Forex Lessons, Forex Market Updates and more...</p>
                                 <br />
                                 <script src="https://apis.google.com/js/platform.js"></script>
             
@@ -669,7 +670,7 @@ if ($user) {
                                                 
                             <h3 class="text-2xl font-bold text-primary-purple mb-4">
                                 Your Credit Progress: <span id="credit-count" class="text-fomo-red"><?php echo $credits; ?> / <?php echo $goalCredits; ?></span>
-                                <span class="text-sm text-gray-600">(Based on Verified Referrals Only)</span>
+                                <br /><span class="text-sm text-gray-600">(Based on Verified Referrals Only)</span>
                             </h3>
                             
                         
@@ -1359,8 +1360,8 @@ if ($user) {
     <script>
         const topics = [
             { id: 1, name: "1. Verify your Email Address", isCompleted: <?php echo ($user && $user['email_verified'] == 1) ? 'true' : 'false'; ?> },
-            { id: 2, name: "2. Refer 5 Forex Traders to get a FREE Trading Test", isCompleted: <?php echo ($user && $verifiedReferrals >= 5) ? 'true' : 'false'; ?> },
-            { id: 3, name: "3. Complete the Knowledge Test", isCompleted: <?php echo ($user && !empty($user['knowledge_test_result'])) ? 'true' : 'false'; ?> },
+            { id: 2, name: "2. Refer 5 Forex Traders (optional)", isCompleted: <?php echo ($user && $verifiedReferrals >= 5) ? 'true' : 'false'; ?> },
+            { id: 3, name: "3. Complete the Knowledge Check", isCompleted: <?php echo ($user && !empty($user['knowledge_test_result'])) ? 'true' : 'false'; ?> },
             { id: 4, name: "5. Pass the Trading Test 1", isCompleted: false },
             { id: 5, name: "6. Pass the Trading Test 2", isCompleted: false },
             { id: 6, name: "7. Get your $5000 Funded Account", isCompleted: false }

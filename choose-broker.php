@@ -154,6 +154,8 @@
             <div class="bg-card-white p-6 md:p-10 rounded-2xl shadow-xl mb-12 border-t-4 border-trophy-gold">
                 <div class="text-center mb-10">
                     <h2 class="text-3xl font-extrabold text-primary-purple mb-3">Your Trading Setup Checklist</h2>
+                    <h3>Congratulations <?php echo htmlspecialchars($user['name']); ?> in Getting this Far! We want to see your Trading capability now.</h3>
+                    <br/>
                     <p class="text-gray-600">Follow these 4 steps to Setup your Trading and Connect with us for monitoring.</p>
                 </div>
                 
@@ -375,9 +377,9 @@
                     </svg>
                 </div>
 
-                <h2 class="text-3xl font-extrabold text-primary-purple mb-4">Thank You!</h2>
+                <h2 class="text-3xl font-extrabold text-primary-purple mb-4">Thank You <?php echo htmlspecialchars($user['name']); ?>!</h2>
                 <p class="text-gray-700 mb-8 leading-relaxed text-lg">
-                    We got your details. Please wait for us to setup your account on our Servers. We will update you by Email within few hours.
+                    We got your details. Please wait for us to setup your account on our Servers. We will update you by Email within few hours. We are so Excited to see you in action!
                 </p>
 
                 <div class="flex justify-center space-x-4">
