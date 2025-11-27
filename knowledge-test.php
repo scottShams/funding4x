@@ -128,8 +128,8 @@
                 <svg class="w-16 h-16 text-trophy-gold mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                 <h3 class="text-2xl font-bold text-primary-purple mb-3">Knowledge Check Complete!</h3>
                 <p class="text-lg text-gray-700 mb-6">You've completed the Knowledge Check. Please click below to access your referral dashboard.</p>
-                <a href="choose-broker.php" class="px-8 py-3 bg-primary-purple text-white font-bold rounded-lg hover:bg-trophy-gold hover:text-header-dark transition duration-300 shadow-lg">
-                    Continue to Next Step
+                <a href="referral_dashboard.php" class="px-8 py-3 bg-primary-purple text-white font-bold rounded-lg hover:bg-trophy-gold hover:text-header-dark transition duration-300 shadow-lg">
+                    Continue to Referral Dashboard
                 </a>
             </div>
 
@@ -354,7 +354,7 @@
 
         function startAutoRedirectTimer() {
             let redirectTimer = setTimeout(() => {
-                window.location.href = "choose-broker.php";
+                window.location.href = "referral_dashboard.php";
             }, 20000);
 
             // If user interacts with the modal, cancel auto redirect
