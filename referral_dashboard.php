@@ -1409,9 +1409,9 @@ if ($user) {
             { id: 1, name: "1. Verify your Email Address", isCompleted: <?php echo ($user && $user['email_verified'] == 1) ? 'true' : 'false'; ?> },
             { id: 2, name: "2. Refer 5 Forex Traders (optional)", isCompleted: <?php echo ($user && $verifiedReferrals >= 5) ? 'true' : 'false'; ?> },
             { id: 3, name: "3. Complete the Knowledge Check", redirectTo: "knowledge-test.php", isCompleted: <?php echo ($user && !empty($user['knowledge_test_result'])) ? 'true' : 'false'; ?> },
-            { id: 4, name: "5. Pass the Trading Test 1", redirectTo: "quiz.php", isCompleted: false },
-            { id: 5, name: "6. Pass the Trading Test 2", redirectTo: "knowledge-test.php", isCompleted: false },
-            { id: 6, name: "7. Get your $5000 Funded Account", isCompleted: false }
+            { id: 4, name: "4. Pass the Trading Test 1", redirectTo: "quiz.php", isCompleted: false },
+            { id: 5, name: "5. Pass the Trading Test 2", redirectTo: "knowledge-test.php", isCompleted: false },
+            { id: 6, name: "6. Get your $5000 Funded Account", isCompleted: false }
         ];
 
         const checklistContainer = document.getElementById('topic-checklist');
@@ -1455,31 +1455,31 @@ if ($user) {
                 return;
             }
 
-            if (id === 3 || id === 5) {
+            if (id === 3) {
                 if (!USER_EMAIL_VERIFIED || !USER_QUIZ_COMPLETED) {
                     showNotReadyModal();
                     return;
                 }
                 window.location.href = topic.redirectTo;
                 return;
-            }else if (id === 4) {
-                if (!USER_EMAIL_VERIFIED) {
-                    showNotReadyModal();
-                    return;
-                }
-                window.location.href = topic.redirectTo;
-                return;
-            } else {
+            }
+            // else if (id === 4) {
+            //     if (!USER_EMAIL_VERIFIED) {
+            //         showNotReadyModal();
+            //         return;
+            //     }
+            //     window.location.href = topic.redirectTo;
+            //     return;
+            // } 
+            else {
                 // Already completed → you decide (block)
-                showNoModifyModal();
+                showNoModifyModalForSpecificID();
                 return;
             }
 
             // Fallback
             showNoModifyModal();
         }
-
-
 
         function showNoModifyModal() {
             const container = document.createElement('div');
@@ -1488,6 +1488,21 @@ if ($user) {
                 <div class="bg-white p-6 rounded-lg shadow-2xl w-full max-w-sm transform transition-all scale-100 duration-300">
                     <h4 class="text-xl font-bold text-primary-purple mb-3">Cannot Modify</h4>
                     <p class="text-gray-700 mb-6">You cannot modify the checklist items. They are automatically updated based on your progress.</p>
+                    <button onclick="document.body.removeChild(this.parentNode.parentNode)" class="w-full py-2 bg-primary-purple text-white rounded-lg font-semibold hover:bg-trophy-gold hover:text-header-dark transition">
+                        Close
+                    </button>
+                </div>
+            `;
+            document.body.appendChild(container);
+        }
+
+        function showNoModifyModalForSpecificID() {
+            const container = document.createElement('div');
+            container.className = 'fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50';
+            container.innerHTML = `
+                <div class="bg-white p-6 rounded-lg shadow-2xl w-full max-w-sm transform transition-all scale-100 duration-300">
+                    <h4 class="text-xl font-bold text-primary-purple mb-3">Upcoming..</h4>
+                    <p class="text-gray-700 mb-6">This is not ready yet. We will inform you in the Telegram group when it's Ready.</p>
                     <button onclick="document.body.removeChild(this.parentNode.parentNode)" class="w-full py-2 bg-primary-purple text-white rounded-lg font-semibold hover:bg-trophy-gold hover:text-header-dark transition">
                         Close
                     </button>
