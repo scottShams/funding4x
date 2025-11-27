@@ -120,7 +120,7 @@ if (!$user) {
 } else {
     // Get list of referrals (users who were referred by this user) with email verification status
     $stmt = $pdo->prepare("
-        SELECT name, country, user_ip, status, quiz_result, created_at, email_verified
+        SELECT name, country, user_ip, status, quiz_result, user_credit, created_at, email_verified
         FROM waitlist_users 
         WHERE parent_user_id = ? 
         ORDER BY created_at DESC
@@ -859,11 +859,7 @@ if ($user) {
 
                                                 <!-- Icon (tick or pending) -->
                                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
-                                                    <?php if ($isVerified): ?>
-                                                        <span style="color:#16a34a; font-size:20px; font-weight:bold;">✓</span>
-                                                    <?php else: ?>
-                                                        <span style="color:#d97706; font-size:20px; font-weight:bold;">⏳</span>
-                                                    <?php endif; ?>
+                                                    <?php echo htmlspecialchars($referral['user_credit']); ?>
                                                 </td>
                                             </tr>
 

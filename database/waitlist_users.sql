@@ -47,3 +47,6 @@ ADD COLUMN quiz_result JSON NULL AFTER status;
 
 ALTER TABLE waitlist_users
 ADD COLUMN knowledge_test_result JSON NULL AFTER quiz_result;
+
+ALTER TABLE waitlist_users
+ADD COLUMN user_credit INT DEFAULT 0 AFTER knowledge_test_result;
