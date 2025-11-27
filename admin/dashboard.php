@@ -11,6 +11,12 @@ $userCount = $pdo->query("SELECT COUNT(*) FROM waitlist_users WHERE email != 'ad
 $verifiedCount = $pdo->query("SELECT COUNT(*) FROM waitlist_users WHERE email_verified = 1 AND email != 'admin@gmail.com'")->fetchColumn();
 $referralCount = $pdo->query("SELECT COUNT(*) FROM waitlist_users WHERE parent_user_id IS NOT NULL")->fetchColumn();
 
+// Get Knowledge Tests count (users who have completed knowledge test)
+$knowledgeTestCount = $pdo->query("SELECT COUNT(*) FROM waitlist_users WHERE knowledge_test_result IS NOT NULL AND email != 'admin@gmail.com'")->fetchColumn();
+
+// Get MT5 Details count (users who have submitted MT5 details)
+$mt5DetailsCount = $pdo->query("SELECT COUNT(DISTINCT user_id) FROM mt5_details")->fetchColumn();
+
 // Fetch counts in a single query
 $stmt = $pdo->query("
     SELECT
@@ -50,7 +56,7 @@ ob_start();
 
 <!-- Stats Cards -->
 <div class="row">
-    <div class="col-md-2">
+    <div class="col-md-3 col-sm-6">
         <div class="card text-white bg-primary mb-3">
             <div class="card-body">
                 <h5 class="card-title">Total Users</h5>
@@ -58,7 +64,7 @@ ob_start();
             </div>
         </div>
     </div>
-    <div class="col-md-2">
+    <div class="col-md-3 col-sm-6">
         <div class="card text-white bg-success mb-3">
             <div class="card-body">
                 <h5 class="card-title">Verified Users</h5>
@@ -66,7 +72,7 @@ ob_start();
             </div>
         </div>
     </div>
-    <div class="col-md-2">
+    <div class="col-md-3 col-sm-6">
         <div class="card text-white bg-info mb-3">
             <div class="card-body">
                 <h5 class="card-title">Total Referrals</h5>
@@ -74,7 +80,7 @@ ob_start();
             </div>
         </div>
     </div>
-    <div class="col-md-2">
+    <div class="col-md-3 col-sm-6">
         <div class="card text-white bg-success mb-3">
             <div class="card-body">
                 <h5 class="card-title">Quiz Pass</h5>
@@ -82,12 +88,30 @@ ob_start();
             </div>
         </div>
     </div>
-    <div class="col-md-2">
+    <div class="col-md-3 col-sm-6">
         <div class="card text-white bg-danger mb-3">
             <div class="card-body">
                 <h5 class="card-title">Quiz Fail</h5>
                 <p class="mb-1">Fail: <?php echo $failCount; ?></p>
                 <p class="mb-0">Not Attempted: <?php echo $notAttemptCount; ?></p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="card text-white bg-warning mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Knowledge Tests</h5>
+                <h2><?php echo $knowledgeTestCount; ?></h2>
+                <p class="mb-0">Completed Tests</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="card text-white bg-secondary mb-3">
+            <div class="card-body">
+                <h5 class="card-title">MT5 Details</h5>
+                <h2><?php echo $mt5DetailsCount; ?></h2>
+                <p class="mb-0">Submissions</p>
             </div>
         </div>
     </div>
