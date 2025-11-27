@@ -25,6 +25,18 @@
                 </a>
             </li>
             <li class="nav-item">
+                <a class="nav-link d-flex align-items-center <?php echo basename($_SERVER['PHP_SELF']) == 'verified_users.php' ? 'active' : ''; ?>" href="verified_users.php">
+                    <i class="bi bi-check-circle me-2"></i>
+                    <span>Verified Users</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link d-flex align-items-center <?php echo basename($_SERVER['PHP_SELF']) == 'quiz_pass_users.php' ? 'active' : ''; ?>" href="quiz_pass_users.php">
+                    <i class="bi bi-trophy me-2"></i>
+                    <span>Quiz Pass Users</span>
+                </a>
+            </li>
+            <li class="nav-item">
                 <a class="nav-link d-flex align-items-center <?php echo basename($_SERVER['PHP_SELF']) == 'referrals.php' ? 'active' : ''; ?>" href="referrals.php">
                     <i class="bi bi-diagram-3 me-2"></i>
                     <span>Referrals</span>
