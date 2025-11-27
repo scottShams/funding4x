@@ -807,9 +807,13 @@ if ($user) {
                                                         <span style="background:#d1fae5; color:#065f46; padding:3px 8px; border-radius:6px; font-weight:600;">
                                                             Trader
                                                         </span>
-                                                    <?php else: ?>
+                                                    <?php elseif(empty($referral['quiz_result']) && $referral['status'] === 'inactive'): ?>
                                                         <span style="background:#fee2e2; color:#991b1b; padding:3px 8px; border-radius:6px; font-weight:600;">
                                                             Non Trader
+                                                        </span>
+                                                    <?php else: ?>
+                                                        <span style="background:#fee2e2; color:#991b1b; padding:3px 8px; border-radius:6px; font-weight:600;">
+                                                            Unknown
                                                         </span>
                                                     <?php endif; ?>
                                                 </td>
@@ -842,7 +846,7 @@ if ($user) {
 
                                                 <!-- status Completed / Pending -->
                                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
-                                                    <?php if ($referral['status'] === 'active'): ?>
+                                                    <?php if ($referral['status'] === 'active' && !empty($referral['quiz_result'])): ?>
                                                         <span style="background:#d1fae5; color:#065f46; padding:4px 10px; border-radius:8px; font-weight:600;">
                                                             <i class="fas fa-check-circle mr-1"></i> Completed
                                                         </span>
