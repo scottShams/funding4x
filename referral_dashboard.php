@@ -774,10 +774,10 @@ if ($user) {
                                                 Referred Trader
                                             </th>
                                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-trophy-gold uppercase tracking-wider">
-                                                Country
+                                                IsTrader
                                             </th>
                                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-trophy-gold uppercase tracking-wider">
-                                                Joined On
+                                                IsReal
                                             </th>
                                             <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-trophy-gold uppercase tracking-wider">
                                                 Status
@@ -797,10 +797,10 @@ if ($user) {
                                                     <?php echo htmlspecialchars($referral['name']); ?>
                                                 </td>
                                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                    <?php echo htmlspecialchars($referral['country']); ?>
+                                                    <?php echo !empty($referral['quiz_result']) ? 'Trader' : 'Non Trader'; ?>
                                                 </td>
                                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                    <?php echo date('M j, Y', strtotime($referral['created_at'])); ?>
+                                                    <?php echo ($referral['user_ip'] === $user['user_ip']) ? 'Fake' : 'Real'; ?>
                                                 </td>
                                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
                                                     <?php if ($isVerified): ?>
