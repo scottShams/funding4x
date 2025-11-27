@@ -116,7 +116,7 @@ ob_start();
                     ?>
                     <tr>
                         <td><?php echo $user['id']; ?></td>
-                        <td><?php echo htmlspecialchars($user['name']); ?></td>
+                        <td><a href="user_referral_details.php?id=<?php echo $user['id']; ?>" class="text-decoration-none"><?php echo htmlspecialchars($user['name']); ?></a></td>
                         <td><?php echo htmlspecialchars($user['email']); ?></td>
                         <td>
                             <span id="credit-<?php echo $user['id']; ?>"><?php echo $user['user_credit'] ?? 0; ?></span>
