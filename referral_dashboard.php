@@ -1378,8 +1378,12 @@ if ($user) {
         function renderChecklist() {
             checklistContainer.innerHTML = topics.map(topic => `
                 <div id="topic-${topic.id}" data-id="${topic.id}"
-                     class="topic-item p-4 rounded-xl shadow-md flex items-center justify-between border border-border-light ${topic.isCompleted ? 'completed border-green-500' : 'bg-white'}"
-                     onclick="toggleCompletion(${topic.id})">
+                    class="topic-item p-4 rounded-xl shadow-md flex items-center justify-between 
+                            border border-border-light 
+                            ${topic.isCompleted ? 'completed border-green-500' : 'bg-white'}
+                            cursor-pointer transition duration-200 
+                            hover:bg-gray-100 hover:shadow-lg hover:scale-[1.01]"
+                    onclick="toggleCompletion(${topic.id})">
                     
                     <span class="text-lg font-medium ${topic.isCompleted ? 'text-success-green line-through' : 'text-header-dark'}">
                         ${topic.name}
