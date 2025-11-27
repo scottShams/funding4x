@@ -6,15 +6,15 @@ require_once '../database.php';
 // Get database connection
 $pdo = getPDO();
 
-// Handle status toggle action
-if (isset($_POST['action']) && $_POST['action'] === 'toggle_status') {
+// Handle status update action
+if (isset($_POST['action']) && $_POST['action'] === 'update_status') {
     header('Content-Type: application/json');
 
     $mt5Id = (int)$_POST['mt5_id'];
     $newStatus = $_POST['status'];
 
     // Validate status
-    if (!in_array($newStatus, ['pass', 'fail'])) {
+    if (!in_array($newStatus, ['pass', 'fail', 'pending'])) {
         echo json_encode(['success' => false, 'message' => 'Invalid status']);
         exit;
     }
@@ -96,18 +96,21 @@ ob_start();
                         </td>
                         <td><?php echo date('M d, Y H:i', strtotime($detail['submitted_at'])); ?></td>
                         <td>
-                            <div class="btn-group" role="group">
-                                <?php
-                                $buttonText = $status === 'pass' ? 'Mark as Fail' : 'Mark as Pass';
-                                $buttonClass = $status === 'pass' ? 'btn-danger' : 'btn-success';
-                                ?>
-                                <button class="btn btn-sm <?php echo $buttonClass; ?> toggle-status-btn"
-                                        data-mt5-id="<?php echo $detail['id']; ?>"
-                                        data-current-status="<?php echo $status; ?>"
-                                        data-user-name="<?php echo htmlspecialchars($detail['name']); ?>"
-                                        onclick="toggleStatus(this)">
-                                    <?php echo $buttonText; ?>
+                            <div class="dropdown">
+                                <button class="btn btn-secondary btn-sm dropdown-toggle" type="button" id="dropdownMenuButton<?php echo $detail['id']; ?>" data-bs-toggle="dropdown" aria-expanded="false">
+                                    Actions
                                 </button>
+                                <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton<?php echo $detail['id']; ?>">
+                                    <li><a class="dropdown-item text-success" href="#" onclick="updateStatus(<?php echo $detail['id']; ?>, 'pass', '<?php echo htmlspecialchars($detail['name']); ?>')">
+                                        <i class="bi bi-check-circle me-2"></i>Mark as Pass
+                                    </a></li>
+                                    <li><a class="dropdown-item text-danger" href="#" onclick="updateStatus(<?php echo $detail['id']; ?>, 'fail', '<?php echo htmlspecialchars($detail['name']); ?>')">
+                                        <i class="bi bi-x-circle me-2"></i>Mark as Fail
+                                    </a></li>
+                                    <li><a class="dropdown-item text-warning" href="#" onclick="updateStatus(<?php echo $detail['id']; ?>, 'pending', '<?php echo htmlspecialchars($detail['name']); ?>')">
+                                        <i class="bi bi-clock me-2"></i>Mark as Pending
+                                    </a></li>
+                                </ul>
                             </div>
                         </td>
                     </tr>
@@ -196,24 +199,19 @@ $(document).ready(function() {
     });
 });
 
-// Toggle status function
-function toggleStatus(button) {
-    const mt5Id = button.getAttribute('data-mt5-id');
-    const currentStatus = button.getAttribute('data-current-status');
-    const userName = button.getAttribute('data-user-name');
-
-    // Determine new status
-    const newStatus = currentStatus === 'pass' ? 'fail' : 'pass';
-    const actionText = newStatus === 'pass' ? 'Pass' : 'Fail';
+// Update status function
+function updateStatus(mt5Id, newStatus, userName) {
+    const statusText = newStatus === 'pass' ? 'Pass' : (newStatus === 'fail' ? 'Fail' : 'Pending');
+    const confirmColor = newStatus === 'pass' ? '#28a745' : (newStatus === 'fail' ? '#dc3545' : '#ffc107');
 
     Swal.fire({
-        title: `Mark as ${actionText}`,
-        text: `Are you sure you want to mark "${userName}" as ${actionText.toLowerCase()}?`,
+        title: `Mark as ${statusText}`,
+        text: `Are you sure you want to mark "${userName}" as ${statusText.toLowerCase()}?`,
         icon: 'question',
         showCancelButton: true,
-        confirmButtonColor: newStatus === 'pass' ? '#28a745' : '#dc3545',
+        confirmButtonColor: confirmColor,
         cancelButtonColor: '#6c757d',
-        confirmButtonText: `Yes, mark as ${actionText.toLowerCase()}`,
+        confirmButtonText: `Yes, mark as ${statusText.toLowerCase()}`,
         cancelButtonText: 'Cancel',
         customClass: {
             confirmButton: 'btn btn-primary',
@@ -237,26 +235,32 @@ function toggleStatus(button) {
                 url: 'mt5_details.php',
                 type: 'POST',
                 data: {
-                    action: 'toggle_status',
+                    action: 'update_status',
                     mt5_id: mt5Id,
                     status: newStatus
                 },
                 dataType: 'json',
                 success: function(response) {
                     if (response.success) {
-                        // Update button text, class, and data attributes
-                        button.setAttribute('data-current-status', newStatus);
-                        button.textContent = newStatus === 'pass' ? 'Mark as Fail' : 'Mark as Pass';
-
-                        // Update button class
-                        button.classList.remove('btn-success', 'btn-danger');
-                        button.classList.add(newStatus === 'pass' ? 'btn-danger' : 'btn-success');
-
                         // Update the status badge in the same row
-                        const row = button.closest('tr');
+                        // Find the row containing this dropdown
+                        const dropdownButton = document.querySelector(`#dropdownMenuButton${mt5Id}`);
+                        const row = dropdownButton.closest('tr');
                         const statusCell = row.querySelector('td:nth-child(7) .badge'); // Status is 7th column
-                        statusCell.className = 'badge ' + (newStatus === 'pass' ? 'bg-success' : 'bg-danger');
-                        statusCell.textContent = newStatus === 'pass' ? 'Pass' : 'Fail';
+
+                        // Update badge class and text
+                        let badgeClass = 'bg-warning';
+                        let badgeText = 'Pending';
+                        if (newStatus === 'pass') {
+                            badgeClass = 'bg-success';
+                            badgeText = 'Pass';
+                        } else if (newStatus === 'fail') {
+                            badgeClass = 'bg-danger';
+                            badgeText = 'Fail';
+                        }
+
+                        statusCell.className = 'badge ' + badgeClass;
+                        statusCell.textContent = badgeText;
 
                         Swal.fire({
                             title: 'Success!',
