@@ -120,7 +120,7 @@ if (!$user) {
 } else {
     // Get list of referrals (users who were referred by this user) with email verification status
     $stmt = $pdo->prepare("
-        SELECT name, country, user_ip, quiz_result, created_at, email_verified
+        SELECT name, country, user_ip, status, quiz_result, created_at, email_verified
         FROM waitlist_users 
         WHERE parent_user_id = ? 
         ORDER BY created_at DESC
@@ -780,6 +780,9 @@ if ($user) {
                                                 IsReal
                                             </th>
                                             <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-trophy-gold uppercase tracking-wider">
+                                                IsVerified
+                                            </th>
+                                            <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-trophy-gold uppercase tracking-wider">
                                                 Status
                                             </th>
                                             <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-trophy-gold uppercase tracking-wider">
@@ -793,36 +796,73 @@ if ($user) {
                                                 $isVerified = ($referral['email_verified'] == 1 && $referral['quiz_result'] != null && $referral['user_ip'] !== $user['user_ip']);
                                             ?>
                                             <tr class="hover:bg-gray-50">
+                                                <!-- Name -->
                                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                                     <?php echo htmlspecialchars($referral['name']); ?>
                                                 </td>
+
+                                                <!-- Trader / Non Trader -->
                                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                    <?php echo !empty($referral['quiz_result']) ? 'Trader' : 'Non Trader'; ?>
-                                                </td>
-                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                    <?php echo ($referral['user_ip'] === $user['user_ip']) ? 'Fake' : 'Real'; ?>
-                                                </td>
-                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
-                                                    <?php if ($isVerified): ?>
-                                                        <span class="verification-badge verified-badge">
-                                                            <i class="fas fa-check-circle mr-1"></i>
-                                                            Completed
+                                                    <?php if (!empty($referral['quiz_result'])): ?>
+                                                        <span style="background:#d1fae5; color:#065f46; padding:3px 8px; border-radius:6px; font-weight:600;">
+                                                            Trader
                                                         </span>
                                                     <?php else: ?>
-                                                        <span class="verification-badge pending-badge">
-                                                            <i class="fas fa-clock mr-1"></i>
-                                                            Pending
+                                                        <span style="background:#fee2e2; color:#991b1b; padding:3px 8px; border-radius:6px; font-weight:600;">
+                                                            Non Trader
                                                         </span>
                                                     <?php endif; ?>
                                                 </td>
+
+                                                <!-- Fake / Real -->
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                    <?php if ($referral['user_ip'] === $user['user_ip']): ?>
+                                                        <span style="background:#fee2e2; color:#991b1b; padding:3px 8px; border-radius:6px; font-weight:600;">
+                                                            Fake
+                                                        </span>
+                                                    <?php else: ?>
+                                                        <span style="background:#d1fae5; color:#065f46; padding:3px 8px; border-radius:6px; font-weight:600;">
+                                                            Real
+                                                        </span>
+                                                    <?php endif; ?>
+                                                </td>
+
+                                                <!-- varification Completed / Pending -->
                                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
                                                     <?php if ($isVerified): ?>
-                                                        <span class="text-lg text-green-600 font-bold">✓</span>
+                                                        <span style="background:#d1fae5; color:#065f46; padding:4px 10px; border-radius:8px; font-weight:600;">
+                                                            <i class="fas fa-check-circle mr-1"></i> Verified
+                                                        </span>
                                                     <?php else: ?>
-                                                        <span class="text-lg text-yellow-600 font-bold">⏳</span>
+                                                        <span style="background:#fef3c7; color:#92400e; padding:4px 10px; border-radius:8px; font-weight:600;">
+                                                            <i class="fas fa-x mr-1"></i> Unverified
+                                                        </span>
+                                                    <?php endif; ?>
+                                                </td>
+
+                                                <!-- status Completed / Pending -->
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
+                                                    <?php if ($referral['status'] === 'active'): ?>
+                                                        <span style="background:#d1fae5; color:#065f46; padding:4px 10px; border-radius:8px; font-weight:600;">
+                                                            <i class="fas fa-check-circle mr-1"></i> Completed
+                                                        </span>
+                                                    <?php else: ?>
+                                                        <span style="background:#fef3c7; color:#92400e; padding:4px 10px; border-radius:8px; font-weight:600;">
+                                                            <i class="fas fa-clock mr-1"></i> Pending
+                                                        </span>
+                                                    <?php endif; ?>
+                                                </td>
+
+                                                <!-- Icon (tick or pending) -->
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
+                                                    <?php if ($isVerified): ?>
+                                                        <span style="color:#16a34a; font-size:20px; font-weight:bold;">✓</span>
+                                                    <?php else: ?>
+                                                        <span style="color:#d97706; font-size:20px; font-weight:bold;">⏳</span>
                                                     <?php endif; ?>
                                                 </td>
                                             </tr>
+
                                         <?php endforeach; ?>
                                     </tbody>
                                 </table>
