@@ -26,13 +26,26 @@ if (!$user) {
 
 // Get list of referrals (users who were referred by this user) with email verification status
 $stmt = $pdo->prepare("
-    SELECT id, name, country, user_ip, status, quiz_result, user_credit, created_at, email_verified
+    SELECT 
+        id,
+        name,
+        country,
+        user_ip,
+        status,
+        quiz_result,
+        user_credit,
+        created_at,
+        email_verified,
+        (SELECT COUNT(*) FROM waitlist_users AS c WHERE c.parent_user_id = waitlist_users.id)
+        AS child_count
+
     FROM waitlist_users
     WHERE parent_user_id = ?
     ORDER BY created_at DESC
 ");
 $stmt->execute([$user['id']]);
 $referrals = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
 
 // Calculate verified vs pending referrals
 $totalReferrals = count($referrals);
@@ -111,6 +124,7 @@ ob_start();
                             <th>Is Real</th>
                             <th>Is Verified</th>
                             <th>Status</th>
+                            <th>Total Referrals</th>
                             <th>Credit</th>
                             <th>Joined Date</th>
                         </tr>
@@ -170,7 +184,10 @@ ob_start();
                                         </span>
                                     <?php endif; ?>
                                 </td>
-
+                                
+                                <!-- Total Referrals -->
+                                <td><?php echo $referral['child_count']; ?></td>
+                                
                                 <!-- Credit -->
                                 <td><?php echo htmlspecialchars($referral['user_credit']); ?></td>
 
