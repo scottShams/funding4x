@@ -859,7 +859,11 @@ if ($user) {
 
                                                 <!-- Icon (tick or pending) -->
                                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
-                                                    <?php echo htmlspecialchars($referral['user_credit']); ?>
+                                                    <?php if ($isVerified): ?>
+                                                        <span class="text-lg text-green-600 font-bold">✓</span>
+                                                    <?php else: ?>
+                                                        <span class="text-lg text-yellow-600 font-bold">⏳</span>
+                                                    <?php endif; ?>
                                                 </td>
                                             </tr>
 
