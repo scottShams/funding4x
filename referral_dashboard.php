@@ -608,6 +608,17 @@ if ($user) {
         <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-8">
             <!-- Checklist Content - col-4 on medium+ screens, full width on mobile -->
             <div class="col-span-1 md:col-span-4">
+                
+                <!-- Credit Notification -->
+                <?php if ($user && isset($user['user_credit']) && $user['user_credit'] >= 1): ?>
+                <div class="bg-primary-purple text-white p-4 rounded-xl shadow-lg mb-4 border-l-4 border-trophy-gold">
+                    <div class="flex items-center justify-center">
+                        <i class="fas fa-star text-trophy-gold mr-2"></i>
+                        <span class="text-lg font-semibold">You have <?php echo $user['user_credit']; ?> Credit<?php echo $user['user_credit'] > 1 ? 's' : ''; ?>. Go Ahead and Start your Trading!</span>
+                        <i class="fas fa-star text-trophy-gold ml-2"></i>
+                    </div>
+                </div>
+                <?php endif; ?>
                 <!-- Title Block -->
                 <div class="mb-8 p-4 bg-white rounded-xl shadow-lg border-l-4 border-primary-purple">
                     <h2 class="text-3xl font-extrabold text-primary-purple mb-2">
@@ -640,6 +651,7 @@ if ($user) {
                         <h2 class="text-4xl sm:text-5xl font-extrabold tracking-tight mb-4 text-white">
                             Get Your Funded Account Test Now
                         </h2>
+
                         <!-- Benefit 1 -->
                         <button onclick="document.getElementById('modal').classList.remove('hidden')" class="bg-trophy-gold p-4 rounded-xl shadow-lg border-b-4 border-yellow-700 cursor-pointer">
                             <p class="font-bold text-lg mb-1">Buy Now - 38% Off</p>
@@ -655,36 +667,33 @@ if ($user) {
                 <!-- Referral Link, Tracker, and Status Table Section -->
                 <section class="py-16 bg-bg-light">
                     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <!-- Referral Link and Credit Tracker Box -->
-                    <div id="referrals" class="bg-white p-8 sm:p-12 rounded-2xl shadow-xl border-t-4 border-trophy-gold mb-8">
-                        <!-- Referral Link -->
-                        <h3 class="text-2xl font-bold text-primary-purple mb-2">Your Unique Referral Link</h3>
-                        <p class="text-gray-600 text-sm mb-2">
-                        
-                            Refer 5 other Forex Traders and get FREE ENTRY to The Trader Programme 
-                            (<del class="text-red-600">normally $59</del>),
-                            FREE with 5 real Referrals
-                        </p>
-                        <div class="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3 mb-8">
-                            <input type="text" id="referral-link" value="<?php echo htmlspecialchars($referralLink); ?>" readonly 
-                                class="flex-grow p-3 border-2 border-gray-300 rounded-lg bg-gray-50 text-gray-700 font-mono text-sm">
-                            <button onclick="nativeShare('referral-link')" 
-                                    class="bg-gray-200 hover:bg-gray-300 text-violet-700 py-3 px-4 rounded-lg font-bold shadow-md flex items-center justify-center space-x-2">
-                                <i class="fas fa-share-alt text-xl"></i>
-                                <span>Share</span>
-                            </button>
-                            <button onclick="copyToClipboard('referral-link')" 
-                                    class="copy-btn px-6 py-3 bg-trophy-gold text-header-dark font-semibold rounded-lg hover:bg-yellow-700 transition duration-300 shadow-md">
-                                Copy Link
-                            </button>
-                        </div>
+                        <!-- Referral Link and Credit Tracker Box -->
+                        <div id="referrals" class="bg-white p-8 sm:p-12 rounded-2xl shadow-xl border-t-4 border-trophy-gold mb-8">
+                            <!-- Referral Link -->
+                            <h3 class="text-2xl font-bold text-primary-purple mb-2">Your Unique Referral Link</h3>
+                            <p class="text-gray-600 text-sm mb-2">
+                            
+                                Refer 5 other Forex Traders and get FREE ENTRY to The Trader Programme 
+                                (<del class="text-red-600">normally $59</del>),
+                                FREE with 5 real Referrals
+                            </p>
+                            <div class="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3 mb-8">
+                                <input type="text" id="referral-link" value="<?php echo htmlspecialchars($referralLink); ?>" readonly 
+                                    class="flex-grow p-3 border-2 border-gray-300 rounded-lg bg-gray-50 text-gray-700 font-mono text-sm">
+                                <button onclick="nativeShare('referral-link')" 
+                                        class="bg-gray-200 hover:bg-gray-300 text-violet-700 py-3 px-4 rounded-lg font-bold shadow-md flex items-center justify-center space-x-2">
+                                    <i class="fas fa-share-alt text-xl"></i>
+                                    <span>Share</span>
+                                </button>
+                                <button onclick="copyToClipboard('referral-link')" 
+                                        class="copy-btn px-6 py-3 bg-trophy-gold text-header-dark font-semibold rounded-lg hover:bg-yellow-700 transition duration-300 shadow-md">
+                                    Copy Link
+                                </button>
+                            </div>
 
-                        
-                        
-                    
-                    <div class="mt-10 p-6 bg-white border-2 border-fomo-red rounded-xl shadow-2xl max-w-lg mx-auto fomo-glow">
-                        
-                        <!-- Telegram Button -->
+                            <div class="mt-10 p-6 bg-white border-2 border-fomo-red rounded-xl shadow-2xl max-w-lg mx-auto fomo-glow">
+                                
+                                <!-- Telegram Button -->
                                 <div class="flex justify-center mt-6">
                                     <a href="https://t.me/funding4x" target="_blank" rel="noopener noreferrer"
                                     class="inline-flex items-center px-6 py-3 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 transition duration-300 shadow-md">
@@ -696,258 +705,256 @@ if ($user) {
                                 <br /><br />
                                 
                                 <!-- Twitter X --> 
-                            <a href="https://x.com/NasirFXTrader" target="_blank"
-                            class="flex items-center bg-white border border-gray-200 rounded-full shadow-sm hover:shadow-md transition px-4 py-2 w-full sm:w-auto">
-                                <div class="flex items-center justify-center bg-black text-white rounded-full w-8 h-8">
-                                    <i class="fab fa-x-twitter text-base"></i>
-                                </div>
-                                <div class="ml-3 leading-tight">
-                                    <p class="text-gray-500 text-[10px] tracking-wide">FOLLOW US ON</p>
-                                    <p class="text-gray-900 text-sm font-bold">Twitter X</p>
-                                </div>
-                            </a>
-                            
-                            <br /><br />
-                                
+                                <a href="https://x.com/NasirFXTrader" target="_blank"
+                                class="flex items-center bg-white border border-gray-200 rounded-full shadow-sm hover:shadow-md transition px-4 py-2 w-full sm:w-auto">
+                                    <div class="flex items-center justify-center bg-black text-white rounded-full w-8 h-8">
+                                        <i class="fab fa-x-twitter text-base"></i>
+                                    </div>
+                                    <div class="ml-3 leading-tight">
+                                        <p class="text-gray-500 text-[10px] tracking-wide">FOLLOW US ON</p>
+                                        <p class="text-gray-900 text-sm font-bold">Twitter X</p>
+                                    </div>
+                                </a>
+                                    
+                                <br /><br />
+                                        
                                 <p>Subscribe on YouTube for Forex Trading Ideas, Forex Trading Strategies, Forex Lessons, Forex Market Updates and more...</p>
                                 <br />
                                 <script src="https://apis.google.com/js/platform.js"></script>
             
                                 <div class="g-ytsubscribe" data-channelid="UCkosETo_p1wOaAx2g2B0jLA" data-layout="full" data-count="hidden"></div>
-                                
-                            <br />
-                            
-                            
-
-                        </div> 
-
-                        <!-- Credit Tracker -->
-                        <div class="mt-10">
-                        
-                        <!--
-                        <p class="text-sm text-gray-600 mt-3 text-center">
-                        Get Unlimited FREE Entry for Trading Test. (<del class="text-red-600">no need $59 payment per Entry</del>) <br />
-                            5/5 referrals  = ONE FREE Entry for Trading Test <br />
-                            10/5 referrals  = TWO FREE Entry for Trading Test <br />
-                            
-                            Only Refer other Real Forex Traders.
-                            <br /> <br />
-                        </p>
-                        -->
-                                                
-                                                
-                            <h3 class="text-2xl font-bold text-primary-purple mb-4">
-                                Your Credit Progress: <span id="credit-count" class="text-fomo-red"><?php echo $credits; ?> / <?php echo $goalCredits; ?></span>
-                                <br /><span class="text-sm text-gray-600">(Based on Verified Referrals Only)</span>
-                            </h3>
-                            
-                        
-                            <div class="w-full bg-gray-200 rounded-full h-8 overflow-hidden shadow-inner">
-                                <div id="progress-bar" class="h-8 bg-primary-purple rounded-full transition-all duration-700 ease-out" 
-                                    style="width: <?php echo $progressPercentage; ?>%;">
-                                    <span class="text-white font-bold pl-4 leading-8 text-sm">
-                                        <?php echo round($progressPercentage); ?>% Complete (<?php echo $credits; ?> Credits)
-                                    </span>
-                                </div>
-                            </div>
-                            <p class="text-sm text-gray-600 mt-3 text-center">
-                                <?php if ($credits >= $goalCredits): ?>
-                                    <div class="bg-white p-8 rounded-2xl shadow-2xl border-2 border-primary-purple h-fit lg:sticky lg:top-24">
-                                        <h2 class="text-2xl font-bold text-primary-purple mb-2">Congratulations! 1 Free Trading Test Unlocked<del class="text-red-600"> (no need to pay $59)</del></h2>
-                                        <p class="text-sm text-gray-600 mb-6">
-                                            You've earned a Free Trading Test for the $5,000 Funded Account!
                                         
-                                        <br /><br />
-                                    Thank for referring other Forex Traders. To stay up to date with the Next Steps, go ahead and join the telegram group where we will give live updates.
-                                        
-                                        <br /><br />                    
-                                        <strong>You can also keep inviting more people to get more Credits.
-                                        More credits = More free Trading Tests for you.</strong>
-                                        <br />                    
-                                        Thank you for being patient with us.</p>
-                    
-                                        <!-- Success/Error Message Box -->
-                                        <div id="message-box" class="mt-4 p-4 rounded-lg text-sm text-center hidden font-medium"></div>
-                    
-                                    </div>
+                                <br />
                                     
                                     
-                                <?php else: ?>
-                                    You are <strong><?php echo ($goalCredits - $credits); ?></strong> successful referral(s) away from a $5,000 Funded Account!
-                                <?php endif; ?>
-                            </p>
-                        </div>
 
-                        <!-- Pie Chart Section -->
-                        <?php if ($totalReferrals > 0): ?>
-                        <div class="mt-10">
-                            <h3 class="text-2xl font-bold text-primary-purple mb-6 text-center">Referral Status Overview</h3>
-                            <div class="flex flex-col md:flex-row items-center justify-center space-y-6 md:space-y-0 md:space-x-8">
-                                <!-- Pie Chart -->
-                                <div class="pie-chart">
-                                    <canvas id="referralPieChart"></canvas>
-                                </div>
+                            </div> 
+
+                            <!-- Credit Tracker -->
+                            <div class="mt-10">
                                 
-                                <!-- Legend -->
-                                <div class="space-y-4">
-                                    <div class="flex items-center space-x-3">
-                                        <div class="w-4 h-4 bg-green-500 rounded"></div>
-                                        <span class="text-lg font-semibold text-gray-700">
-                                            Completed: <?php echo $verifiedReferrals; ?>
-                                        </span>
-                                    </div>
-                                    <div class="flex items-center space-x-3">
-                                        <div class="w-4 h-4 bg-yellow-500 rounded"></div>
-                                        <span class="text-lg font-semibold text-gray-700">
-                                            Pending: <?php echo $pendingReferrals; ?>
-                                        </span>
-                                    </div>
-                                    <div class="flex items-center space-x-3">
-                                        <div class="w-4 h-4 bg-primary-purple rounded"></div>
-                                        <span class="text-lg font-semibold text-gray-700">
-                                            Total: <?php echo $totalReferrals; ?>
+                                <!--
+                                <p class="text-sm text-gray-600 mt-3 text-center">
+                                Get Unlimited FREE Entry for Trading Test. (<del class="text-red-600">no need $59 payment per Entry</del>) <br />
+                                    5/5 referrals  = ONE FREE Entry for Trading Test <br />
+                                    10/5 referrals  = TWO FREE Entry for Trading Test <br />
+                                    
+                                    Only Refer other Real Forex Traders.
+                                    <br /> <br />
+                                </p>
+                                -->                       
+                                <h3 class="text-2xl font-bold text-primary-purple mb-4">
+                                    Your Credit Progress: <span id="credit-count" class="text-fomo-red"><?php echo $credits; ?> / <?php echo $goalCredits; ?></span>
+                                    <br /><span class="text-sm text-gray-600">(Based on Verified Referrals Only)</span>
+                                </h3>
+                            
+                                <div class="w-full bg-gray-200 rounded-full h-8 overflow-hidden shadow-inner">
+                                    <div id="progress-bar" class="h-8 bg-primary-purple rounded-full transition-all duration-700 ease-out" 
+                                        style="width: <?php echo $progressPercentage; ?>%;">
+                                        <span class="text-white font-bold pl-4 leading-8 text-sm">
+                                            <?php echo round($progressPercentage); ?>% Complete (<?php echo $credits; ?> Credits)
                                         </span>
                                     </div>
                                 </div>
-                            </div>
-                            <p class="text-sm text-gray-500 mt-6 text-center italic">
-                                Only verified referrals count towards your credits. Pending referrals need to verify their email to earn you credits.
-                            </p>
-                        </div>
-                        <?php endif; ?>
-                    </div>
-
-                    <!-- Referral Status Table Box -->
-                    <div class="bg-white p-8 sm:p-10 rounded-2xl shadow-xl border-t-4 border-primary-purple">
-                        <h3 class="text-2xl font-bold text-primary-purple mb-6">Your Referrals (<?php echo $totalReferrals; ?>)</h3>
+                                <p class="text-sm text-gray-600 mt-3 text-center">
+                                    <?php if ($credits >= $goalCredits): ?>
+                                        <div class="bg-white p-8 rounded-2xl shadow-2xl border-2 border-primary-purple h-fit lg:sticky lg:top-24">
+                                            <h2 class="text-2xl font-bold text-primary-purple mb-2">Congratulations! 1 Free Trading Test Unlocked<del class="text-red-600"> (no need to pay $59)</del></h2>
+                                            <p class="text-sm text-gray-600 mb-6">
+                                                You've earned a Free Trading Test for the $5,000 Funded Account!
+                                            
+                                            <br /><br />
+                                        Thank for referring other Forex Traders. To stay up to date with the Next Steps, go ahead and join the telegram group where we will give live updates.
+                                            
+                                            <br /><br />                    
+                                            <strong>You can also keep inviting more people to get more Credits.
+                                            More credits = More free Trading Tests for you.</strong>
+                                            <br />                    
+                                            Thank you for being patient with us.</p>
                         
-                        <?php if (empty($referrals)): ?>
-                            <!-- No referrals yet -->
-                            <div class="text-center py-12">
-                                <div class="text-6xl mb-4">👥</div>
-                                <h4 class="text-xl font-bold text-gray-600 mb-2">No Referrals Yet</h4>
-                                <p class="text-gray-500 mb-6">Share your unique link above to start earning credits!</p>
-                                <button onclick="copyToClipboard('referral-link')" 
-                                        class="copy-btn px-6 py-3 bg-primary-purple text-white font-semibold rounded-lg hover:bg-purple-700 transition duration-300">
-                                    Copy & Share Your Link
-                                </button>
+                                            <!-- Success/Error Message Box -->
+                                            <div id="message-box" class="mt-4 p-4 rounded-lg text-sm text-center hidden font-medium"></div>
+                        
+                                        </div>
+                                        
+                                        
+                                    <?php else: ?>
+                                        You are <strong><?php echo ($goalCredits - $credits); ?></strong> successful referral(s) away from a $5,000 Funded Account!
+                                    <?php endif; ?>
+                                </p>
                             </div>
-                        <?php else: ?>
-                            <!-- Has referrals -->
-                            <div class="overflow-x-auto">
-                                <table class="min-w-full divide-y divide-gray-200 rounded-xl overflow-hidden">
-                                    <thead class="bg-primary-purple">
-                                        <tr>
-                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-trophy-gold uppercase tracking-wider">
-                                                Referred Trader
-                                            </th>
-                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-trophy-gold uppercase tracking-wider">
-                                                IsTrader
-                                            </th>
-                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-trophy-gold uppercase tracking-wider">
-                                                IsReal
-                                            </th>
-                                            <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-trophy-gold uppercase tracking-wider">
-                                                IsVerified
-                                            </th>
-                                            <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-trophy-gold uppercase tracking-wider">
-                                                Status
-                                            </th>
-                                            <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-trophy-gold uppercase tracking-wider">
-                                                Credit
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="bg-white divide-y divide-gray-200">
-                                        <?php foreach ($referrals as $index => $referral): ?>
-                                            <?php 
-                                                $isVerified = ($referral['email_verified'] == 1 && $referral['quiz_result'] != null && $referral['user_ip'] !== $user['user_ip']);
-                                            ?>
-                                            <tr class="hover:bg-gray-50">
-                                                <!-- Name -->
-                                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                                    <?php echo htmlspecialchars($referral['name']); ?>
-                                                </td>
 
-                                                <!-- Trader / Non Trader -->
-                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                    <?php if (!empty($referral['quiz_result'])): ?>
-                                                        <span style="background:#d1fae5; color:#065f46; padding:3px 8px; border-radius:6px; font-weight:600;">
-                                                            Trader
-                                                        </span>
-                                                    <?php elseif(empty($referral['quiz_result']) && $referral['status'] === 'inactive'): ?>
-                                                        <span style="background:#fee2e2; color:#991b1b; padding:3px 8px; border-radius:6px; font-weight:600;">
-                                                            Non Trader
-                                                        </span>
-                                                    <?php else: ?>
-                                                        <span style="background:#fee2e2; color:#991b1b; padding:3px 8px; border-radius:6px; font-weight:600;">
-                                                            Unknown
-                                                        </span>
-                                                    <?php endif; ?>
-                                                </td>
+                            <!-- Pie Chart Section -->
+                            <?php if ($totalReferrals > 0): ?>
+                            <div class="mt-10">
+                                <h3 class="text-2xl font-bold text-primary-purple mb-6 text-center">Referral Status Overview</h3>
+                                <div class="flex flex-col md:flex-row items-center justify-center space-y-6 md:space-y-0 md:space-x-8">
+                                    <!-- Pie Chart -->
+                                    <div class="pie-chart">
+                                        <canvas id="referralPieChart"></canvas>
+                                    </div>
+                                    
+                                    <!-- Legend -->
+                                    <div class="space-y-4">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-4 h-4 bg-green-500 rounded"></div>
+                                            <span class="text-lg font-semibold text-gray-700">
+                                                Completed: <?php echo $verifiedReferrals; ?>
+                                            </span>
+                                        </div>
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-4 h-4 bg-yellow-500 rounded"></div>
+                                            <span class="text-lg font-semibold text-gray-700">
+                                                Pending: <?php echo $pendingReferrals; ?>
+                                            </span>
+                                        </div>
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-4 h-4 bg-primary-purple rounded"></div>
+                                            <span class="text-lg font-semibold text-gray-700">
+                                                Total: <?php echo $totalReferrals; ?>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <p class="text-sm text-gray-500 mt-6 text-center italic">
+                                    Only verified referrals count towards your credits. Pending referrals need to verify their email to earn you credits.
+                                </p>
+                            </div>
+                            <?php endif; ?>
+                        </div>
 
-                                                <!-- Fake / Real -->
-                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                    <?php if ($referral['user_ip'] === $user['user_ip']): ?>
-                                                        <span style="background:#fee2e2; color:#991b1b; padding:3px 8px; border-radius:6px; font-weight:600;">
-                                                            Fake
-                                                        </span>
-                                                    <?php else: ?>
-                                                        <span style="background:#d1fae5; color:#065f46; padding:3px 8px; border-radius:6px; font-weight:600;">
-                                                            Real
-                                                        </span>
-                                                    <?php endif; ?>
-                                                </td>
-
-                                                <!-- varification Completed / Pending -->
-                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
-                                                    <?php if ($isVerified): ?>
-                                                        <span style="background:#d1fae5; color:#065f46; padding:4px 10px; border-radius:8px; font-weight:600;">
-                                                            <i class="fas fa-check-circle mr-1"></i> Verified
-                                                        </span>
-                                                    <?php else: ?>
-                                                        <span style="background:#fef3c7; color:#92400e; padding:4px 10px; border-radius:8px; font-weight:600;">
-                                                            <i class="fas fa-x mr-1"></i> Unverified
-                                                        </span>
-                                                    <?php endif; ?>
-                                                </td>
-
-                                                <!-- status Completed / Pending -->
-                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
-                                                    <?php if ($referral['status'] === 'active' && !empty($referral['quiz_result'])): ?>
-                                                        <span style="background:#d1fae5; color:#065f46; padding:4px 10px; border-radius:8px; font-weight:600;">
-                                                            <i class="fas fa-check-circle mr-1"></i> Completed
-                                                        </span>
-                                                    <?php else: ?>
-                                                        <span style="background:#fef3c7; color:#92400e; padding:4px 10px; border-radius:8px; font-weight:600;">
-                                                            <i class="fas fa-clock mr-1"></i> Pending
-                                                        </span>
-                                                    <?php endif; ?>
-                                                </td>
-
-                                                <!-- Icon (tick or pending) -->
-                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
-                                                    <?php if ($isVerified): ?>
-                                                        <span class="text-lg text-green-600 font-bold">✓</span>
-                                                    <?php else: ?>
-                                                        <span class="text-lg text-yellow-600 font-bold">⏳</span>
-                                                    <?php endif; ?>
-                                                </td>
+                        <!-- Referral Status Table Box -->
+                        <div class="bg-white p-8 sm:p-10 rounded-2xl shadow-xl border-t-4 border-primary-purple">
+                            <h3 class="text-2xl font-bold text-primary-purple mb-6">Your Referrals (<?php echo $totalReferrals; ?>)</h3>
+                            
+                            <?php if (empty($referrals)): ?>
+                                <!-- No referrals yet -->
+                                <div class="text-center py-12">
+                                    <div class="text-6xl mb-4">👥</div>
+                                    <h4 class="text-xl font-bold text-gray-600 mb-2">No Referrals Yet</h4>
+                                    <p class="text-gray-500 mb-6">Share your unique link above to start earning credits!</p>
+                                    <button onclick="copyToClipboard('referral-link')" 
+                                            class="copy-btn px-6 py-3 bg-primary-purple text-white font-semibold rounded-lg hover:bg-purple-700 transition duration-300">
+                                        Copy & Share Your Link
+                                    </button>
+                                </div>
+                            <?php else: ?>
+                                <!-- Has referrals -->
+                                <div class="overflow-x-auto">
+                                    <table class="min-w-full divide-y divide-gray-200 rounded-xl overflow-hidden">
+                                        <thead class="bg-primary-purple">
+                                            <tr>
+                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-trophy-gold uppercase tracking-wider">
+                                                    Referred Trader
+                                                </th>
+                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-trophy-gold uppercase tracking-wider">
+                                                    IsTrader
+                                                </th>
+                                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-trophy-gold uppercase tracking-wider">
+                                                    IsReal
+                                                </th>
+                                                <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-trophy-gold uppercase tracking-wider">
+                                                    IsVerified
+                                                </th>
+                                                <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-trophy-gold uppercase tracking-wider">
+                                                    Status
+                                                </th>
+                                                <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-trophy-gold uppercase tracking-wider">
+                                                    Credit
+                                                </th>
                                             </tr>
+                                        </thead>
+                                        <tbody class="bg-white divide-y divide-gray-200">
+                                            <?php foreach ($referrals as $index => $referral): ?>
+                                                <?php 
+                                                    $isVerified = ($referral['email_verified'] == 1 && $referral['quiz_result'] != null && $referral['user_ip'] !== $user['user_ip']);
+                                                ?>
+                                                <tr class="hover:bg-gray-50">
+                                                    <!-- Name -->
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                                        <?php echo htmlspecialchars($referral['name']); ?>
+                                                    </td>
 
-                                        <?php endforeach; ?>
-                                    </tbody>
-                                </table>
-                            </div>
-                        <?php endif; ?>
+                                                    <!-- Trader / Non Trader -->
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                        <?php if (!empty($referral['quiz_result'])): ?>
+                                                            <span style="background:#d1fae5; color:#065f46; padding:3px 8px; border-radius:6px; font-weight:600;">
+                                                                Trader
+                                                            </span>
+                                                        <?php elseif(empty($referral['quiz_result']) && $referral['status'] === 'inactive'): ?>
+                                                            <span style="background:#fee2e2; color:#991b1b; padding:3px 8px; border-radius:6px; font-weight:600;">
+                                                                Non Trader
+                                                            </span>
+                                                        <?php else: ?>
+                                                            <span style="background:#fee2e2; color:#991b1b; padding:3px 8px; border-radius:6px; font-weight:600;">
+                                                                Unknown
+                                                            </span>
+                                                        <?php endif; ?>
+                                                    </td>
 
-                        <p class="mt-6 text-sm text-gray-600 italic border-t pt-4">
-                            <strong>Status Definition:</strong> Each successful referral who registers using your link and verifies their email earns you **1 Credit**. Once you reach 5 credits, you'll get a FREE Entry to the Test for a $5,000 Funded Account!
-                        </p>
+                                                    <!-- Fake / Real -->
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                        <?php if ($referral['user_ip'] === $user['user_ip']): ?>
+                                                            <span style="background:#fee2e2; color:#991b1b; padding:3px 8px; border-radius:6px; font-weight:600;">
+                                                                Fake
+                                                            </span>
+                                                        <?php else: ?>
+                                                            <span style="background:#d1fae5; color:#065f46; padding:3px 8px; border-radius:6px; font-weight:600;">
+                                                                Real
+                                                            </span>
+                                                        <?php endif; ?>
+                                                    </td>
+
+                                                    <!-- varification Completed / Pending -->
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
+                                                        <?php if ($isVerified): ?>
+                                                            <span style="background:#d1fae5; color:#065f46; padding:4px 10px; border-radius:8px; font-weight:600;">
+                                                                <i class="fas fa-check-circle mr-1"></i> Verified
+                                                            </span>
+                                                        <?php else: ?>
+                                                            <span style="background:#fef3c7; color:#92400e; padding:4px 10px; border-radius:8px; font-weight:600;">
+                                                                <i class="fas fa-x mr-1"></i> Unverified
+                                                            </span>
+                                                        <?php endif; ?>
+                                                    </td>
+
+                                                    <!-- status Completed / Pending -->
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
+                                                        <?php if ($referral['status'] === 'active' && !empty($referral['quiz_result'])): ?>
+                                                            <span style="background:#d1fae5; color:#065f46; padding:4px 10px; border-radius:8px; font-weight:600;">
+                                                                <i class="fas fa-check-circle mr-1"></i> Completed
+                                                            </span>
+                                                        <?php else: ?>
+                                                            <span style="background:#fef3c7; color:#92400e; padding:4px 10px; border-radius:8px; font-weight:600;">
+                                                                <i class="fas fa-clock mr-1"></i> Pending
+                                                            </span>
+                                                        <?php endif; ?>
+                                                    </td>
+
+                                                    <!-- Icon (tick or pending) -->
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
+                                                        <?php if ($isVerified): ?>
+                                                            <span class="text-lg text-green-600 font-bold">✓</span>
+                                                        <?php else: ?>
+                                                            <span class="text-lg text-yellow-600 font-bold">⏳</span>
+                                                        <?php endif; ?>
+                                                    </td>
+                                                </tr>
+
+                                            <?php endforeach; ?>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            <?php endif; ?>
+
+                            <p class="mt-6 text-sm text-gray-600 italic border-t pt-4">
+                                <strong>Status Definition:</strong> Each successful referral who registers using your link and verifies their email earns you **1 Credit**. Once you reach 5 credits, you'll get a FREE Entry to the Test for a $5,000 Funded Account!
+                            </p>
+                        </div>
                     </div>
-                </div>
+                </section>
             </div>
-        </section>
+            
         </div>
     </section>
 
