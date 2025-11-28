@@ -26,7 +26,7 @@ if (!$user) {
 
 // Get list of referrals (users who were referred by this user) with email verification status
 $stmt = $pdo->prepare("
-    SELECT name, country, user_ip, status, quiz_result, user_credit, created_at, email_verified
+    SELECT id, name, country, user_ip, status, quiz_result, user_credit, created_at, email_verified
     FROM waitlist_users
     WHERE parent_user_id = ?
     ORDER BY created_at DESC
@@ -122,7 +122,7 @@ ob_start();
                             ?>
                             <tr>
                                 <!-- Name -->
-                                <td><?php echo htmlspecialchars($referral['name']); ?></td>
+                                <td><a href="user_referral_details.php?id=<?php echo $referral['id']; ?>" class="text-decoration-none"><?php echo ucfirst(htmlspecialchars($referral['name'])); ?></a></td>
                                 <td><?php echo htmlspecialchars($referral['country']); ?></td>
 
                                 <!-- Trader / Non Trader -->
