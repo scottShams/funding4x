@@ -570,13 +570,13 @@ if ($user) {
                         <h2 class="text-4xl sm:text-5xl font-extrabold tracking-tight mb-4 text-white">
                             Get Your Funded Account Test Now
                         </h2>
-                        <?php if ($user && $verifiedReferrals < 5): ?>
+                        <!-- <?php if ($user && $verifiedReferrals < 5): ?> -->
                             <!-- Benefit 1 -->
                             <button onclick="document.getElementById('modal').classList.remove('hidden')" class="bg-trophy-gold p-4 rounded-xl shadow-lg border-b-4 border-yellow-700 cursor-pointer">
                                 <p class="font-bold text-lg mb-1">Buy Now - 38% Off</p>
                                 <p class="text-sm"><del>Normally $59</del>, now only $36 for First Comers</p>
                             </button>
-                        <?php endif; ?>
+                        <!-- <?php endif; ?> -->
 
                     </div>
                 </div>
@@ -1501,17 +1501,43 @@ if ($user) {
 
         function showDynamicModal(title, message, color = "primary-purple") {
             const container = document.createElement('div');
-            container.className = 'fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50';
+            container.className = 'fixed inset-0 bg-gradient-to-br from-gray-900/95 via-gray-800/95 to-black/95 flex items-center justify-center z-50 p-4';
+
+            // Determine icon based on color/type
+            let iconClass = 'fas fa-info-circle';
+            let bgGradient = 'from-primary-purple to-purple-700';
+            if (color === 'red-600') {
+                iconClass = 'fas fa-exclamation-triangle';
+                bgGradient = 'from-red-500 to-red-700';
+            } else if (color === 'success-green' || color === 'green-600') {
+                iconClass = 'fas fa-check-circle';
+                bgGradient = 'from-green-500 to-green-700';
+            }
 
             container.innerHTML = `
-                <div class="bg-white p-6 rounded-lg shadow-2xl w-full max-w-sm transform transition-all scale-100 duration-300">
-                    <h4 class="text-xl font-bold text-${color} mb-3">${title}</h4>
-                    <p class="text-gray-700 mb-6">${message}</p>
+                <div class="bg-gradient-to-br from-white via-gray-50 to-white p-8 rounded-2xl shadow-2xl w-full max-w-md border border-white/20">
+                    <!-- Header with Icon -->
+                    <div class="text-center mb-6">
+                        <div class="w-16 h-16 bg-gradient-to-br ${bgGradient} rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                            <i class="${iconClass} text-2xl text-white"></i>
+                        </div>
+                        <h4 class="text-2xl font-bold bg-gradient-to-r from-${color} to-trophy-gold bg-clip-text text-transparent mb-2">${title}</h4>
+                        <div class="w-12 h-1 bg-gradient-to-r from-${color} to-trophy-gold rounded-full mx-auto"></div>
+                    </div>
 
-                    <button onclick="document.body.removeChild(this.parentNode.parentNode)" 
-                        class="w-full py-2 bg-${color} text-white rounded-lg font-semibold hover:opacity-90 transition">
-                        Close
-                    </button>
+                    <!-- Content -->
+                    <div class="text-center mb-8">
+                        <p class="text-gray-700 text-lg leading-relaxed">${message}</p>
+                    </div>
+
+                    <!-- Action Button -->
+                    <div class="flex justify-center">
+                        <button onclick="this.closest('.fixed.inset-0').remove()"
+                            class="px-8 py-3 bg-gradient-to-r ${bgGradient} text-white font-semibold rounded-xl shadow-lg border border-white/20">
+                            <i class="fas fa-times mr-2"></i>
+                            Close
+                        </button>
+                    </div>
                 </div>
             `;
 
