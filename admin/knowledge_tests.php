@@ -71,14 +71,30 @@ if (isset($_POST['action']) && $_POST['action'] === 'remove_credit') {
 // Get users who have completed knowledge test
 $query = "
     SELECT
-        id,
-        name,
-        email,
-        knowledge_test_result,
-        user_credit
-    FROM waitlist_users
-    WHERE knowledge_test_result IS NOT NULL
-    ORDER BY id DESC
+        wu.id,
+        wu.name,
+        wu.email,
+        wu.knowledge_test_result,
+        wu.user_credit,
+        COALESCE(referral_counts.completed_referrals, 0) AS completed_referrals
+    FROM waitlist_users wu
+    LEFT JOIN (
+        SELECT
+            child.parent_user_id,
+            COUNT(*) AS completed_referrals
+        FROM waitlist_users child
+        JOIN waitlist_users parent
+            ON parent.id = child.parent_user_id
+        WHERE child.parent_user_id IS NOT NULL
+        AND child.email_verified = 1
+        AND child.quiz_result IS NOT NULL
+        AND child.user_ip != parent.user_ip
+        GROUP BY child.parent_user_id
+    ) referral_counts
+    ON wu.id = referral_counts.parent_user_id
+    WHERE wu.knowledge_test_result IS NOT NULL
+    ORDER BY wu.id DESC;
+
 ";
 $stmt = $pdo->prepare($query);
 $stmt->execute();
@@ -102,6 +118,7 @@ ob_start();
                         <th>Name</th>
                         <th>Email</th>
                         <th>Credits</th>
+                        <th>Completed Referrals</th>
                         <th>Completed At</th>
                         <th>Actions</th>
                     </tr>
@@ -121,6 +138,7 @@ ob_start();
                         <td>
                             <span id="credit-<?php echo $user['id']; ?>"><?php echo $user['user_credit'] ?? 0; ?></span>
                         </td>
+                        <td><?php echo $user['completed_referrals']; ?></td>
                         <td><?php echo $completed_at; ?></td>
                         <td>
                             <div class="dropdown">
@@ -222,7 +240,7 @@ $(document).ready(function() {
         responsive: true,
         columnDefs: [
             {
-                targets: [5], // Actions column
+                targets: [6], // Actions column
                 orderable: false
             }
         ],
