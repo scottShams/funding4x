@@ -570,13 +570,11 @@ if ($user) {
                         <h2 class="text-4xl sm:text-5xl font-extrabold tracking-tight mb-4 text-white">
                             Get Your Funded Account Test Now
                         </h2>
-                        <!-- <?php if ($user && $verifiedReferrals < 5): ?> -->
-                            <!-- Benefit 1 -->
-                            <button onclick="document.getElementById('modal').classList.remove('hidden')" class="bg-trophy-gold p-4 rounded-xl shadow-lg border-b-4 border-yellow-700 cursor-pointer">
-                                <p class="font-bold text-lg mb-1">Buy Now - 38% Off</p>
-                                <p class="text-sm"><del>Normally $59</del>, now only $36 for First Comers</p>
-                            </button>
-                        <!-- <?php endif; ?> -->
+                        <!-- Benefit 1 -->
+                        <button onclick="document.getElementById('modal').classList.remove('hidden')" class="bg-trophy-gold p-4 rounded-xl shadow-lg border-b-4 border-yellow-700 cursor-pointer">
+                            <p class="font-bold text-lg mb-1">Buy Now - 38% Off</p>
+                            <p class="text-sm"><del>Normally $59</del>, now only $36 for First Comers</p>
+                        </button>
 
                     </div>
                 </div>
