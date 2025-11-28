@@ -106,6 +106,7 @@ ob_start();
                     <thead class="table-dark">
                         <tr>
                             <th>Referred Trader</th>
+                            <th>Country</th>
                             <th>Is Trader</th>
                             <th>Is Real</th>
                             <th>Is Verified</th>
@@ -122,6 +123,7 @@ ob_start();
                             <tr>
                                 <!-- Name -->
                                 <td><?php echo htmlspecialchars($referral['name']); ?></td>
+                                <td><?php echo htmlspecialchars($referral['country']); ?></td>
 
                                 <!-- Trader / Non Trader -->
                                 <td>
