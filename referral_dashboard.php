@@ -1516,10 +1516,9 @@ if ($user) {
             );
         }
 
-
         function showDynamicModal(title, message, color = "primary-purple") {
             const container = document.createElement('div');
-            container.className = 'fixed inset-0 bg-gradient-to-br from-gray-900/95 via-gray-800/95 to-black/95 flex items-center justify-center z-50 p-4';
+            container.className = 'fixed inset-0 bg-gradient-to-br from-primary-purple/90 via-purple-900/90 to-header-dark/90 backdrop-blur-sm flex items-center justify-center p-4 z-50';
 
             // Determine icon based on color/type
             let iconClass = 'fas fa-info-circle';
@@ -1533,14 +1532,19 @@ if ($user) {
             }
 
             container.innerHTML = `
-                <div class="bg-gradient-to-br from-white via-gray-50 to-white p-8 rounded-2xl shadow-2xl w-full max-w-md border border-white/20">
+                <div class="bg-gradient-to-br from-white via-gray-50 to-white p-8 rounded-3xl shadow-2xl max-w-lg w-full relative border border-white/20 transform transition-all duration-300 scale-100 hover:scale-[1.02]">
+                    <!-- Decorative Elements -->
+                    <div class="absolute -top-4 -left-4 w-8 h-8 bg-trophy-gold rounded-full opacity-20"></div>
+                    <div class="absolute -top-6 -right-6 w-6 h-6 bg-primary-purple rounded-full opacity-30"></div>
+                    <div class="absolute -bottom-4 -right-4 w-10 h-10 bg-fomo-red rounded-full opacity-10"></div>
+
                     <!-- Header with Icon -->
                     <div class="text-center mb-6">
-                        <div class="w-16 h-16 bg-gradient-to-br ${bgGradient} rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-                            <i class="${iconClass} text-2xl text-white"></i>
+                        <div class="w-20 h-20 bg-gradient-to-br ${bgGradient} rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                            <i class="${iconClass} text-3xl text-white"></i>
                         </div>
                         <h4 class="text-2xl font-bold bg-gradient-to-r from-${color} to-trophy-gold bg-clip-text text-transparent mb-2">${title}</h4>
-                        <div class="w-12 h-1 bg-gradient-to-r from-${color} to-trophy-gold rounded-full mx-auto"></div>
+                        <div class="w-16 h-1 bg-gradient-to-r from-${color} to-trophy-gold rounded-full mx-auto"></div>
                     </div>
 
                     <!-- Content -->
@@ -1551,10 +1555,17 @@ if ($user) {
                     <!-- Action Button -->
                     <div class="flex justify-center">
                         <button onclick="this.closest('.fixed.inset-0').remove()"
-                            class="px-8 py-3 bg-gradient-to-r ${bgGradient} text-white font-semibold rounded-xl shadow-lg border border-white/20">
+                            class="px-8 py-3 bg-gradient-to-r ${bgGradient} text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 border border-white/20">
                             <i class="fas fa-times mr-2"></i>
                             Close
                         </button>
+                    </div>
+
+                    <!-- Footer Note -->
+                    <div class="mt-6 text-center">
+                        <p class="text-xs text-gray-500 italic">
+                            Stay connected for updates
+                        </p>
                     </div>
                 </div>
             `;
