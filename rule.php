@@ -89,6 +89,7 @@
                 <!-- Desktop Nav -->
                 <nav class="hidden md:flex space-x-8">
                     <a href="index.php" class="text-gray-300 hover:text-trophy-gold transition duration-150 font-medium">Home</a>
+                    <a href="referral_dashboard.php" class="text-gray-300 hover:text-trophy-gold transition duration-150 font-medium">Dashboard</a>
                     <a href="rule.php" class="text-trophy-gold font-bold transition duration-150 border-b-2 border-trophy-gold">Rules</a>
                     <a href="index.php" class="bg-primary-purple text-white px-4 py-1 rounded-full hover:bg-secondary-purple transition duration-150 font-semibold shadow-md">Sign Up Now</a>
                 </nav>
@@ -101,6 +102,7 @@
         <!-- Mobile Menu -->
         <div id="mobile-menu" class="hidden md:hidden bg-header-dark pb-3 px-2 pt-2 space-y-1 sm:px-3">
             <a href="index.php" class="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:bg-secondary-purple">Home</a>
+            <a href="referral_dashboard.php" class="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:bg-secondary-purple">Dashboard</a>
             <a href="#" class="block px-3 py-2 rounded-md text-base font-medium text-trophy-gold hover:bg-secondary-purple">Rules</a>
             <a href="index.php" class="block px-3 py-2 rounded-md text-base font-medium bg-primary-purple text-white mt-2" onclick="alertMessage('Registration Info', 'This would navigate to the registration form.')">Register Now</a>
         </div>
