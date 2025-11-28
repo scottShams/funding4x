@@ -581,10 +581,7 @@ if ($user) {
                     Join on Telegram for Updates
                 </a>
                 
-                
-                    
             </div>
-            
             
             <br />
             <p>Subscribe on YouTube latest Tutorial & Updates</p>
@@ -592,8 +589,6 @@ if ($user) {
             <script src="https://apis.google.com/js/platform.js"></script>
 
             <div class="g-ytsubscribe" data-channelid="UCkosETo_p1wOaAx2g2B0jLA" data-layout="full" data-count="hidden"></div>
-
-
             <br /><br />
             <span class="text-trophy-gold text-sm font-semibold uppercase tracking-widest block mb-4">The Ultimate Partner Program</span>
             <h2 class="text-4xl sm:text-6xl font-extrabold tracking-tighter leading-tight mb-4">
