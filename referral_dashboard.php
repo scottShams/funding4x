@@ -482,23 +482,42 @@ if ($user) {
 
     <!-- Header & Navigation -->
     <header class="header-bg text-white shadow-2xl sticky top-0 z-10">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-            <!-- Logo Section -->
-            <div class="flex items-center">
-                <img src="assets/logo.png" alt="Funding4X Logo" class="h-10 w-10 mr-3 rounded-lg">
-                <h1 class="text-2xl font-extrabold tracking-tight text-trophy-gold">REFERRAL DASHBOARD</h1>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <!-- Top Header -->
+            <div class="flex justify-between items-center mb-4">
+                <!-- Logo Section -->
+                <div class="flex items-center">
+                    <img src="assets/logo.png" alt="Funding4X Logo" class="h-10 w-10 mr-3 rounded-lg">
+                    <h1 class="text-2xl font-extrabold tracking-tight text-trophy-gold">REFERRAL DASHBOARD</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="text-sm text-gray-300">Welcome, <?php echo htmlspecialchars($user['name']); ?></span>
+                    <a href="logout.php" class="text-sm text-white hover:text-trophy-gold transition duration-300">
+                        ← Logout
+                    </a>
+                </div>
             </div>
-            <div class="flex items-center space-x-4">
-                <span class="text-sm text-gray-300">Welcome, <?php echo htmlspecialchars($user['name']); ?></span>
-                <a href="logout.php" class="text-sm text-white hover:text-trophy-gold transition duration-300">
-                    ← Logout
-                </a>
-            </div>
+
+            <!-- Navigation Menu -->
+            <nav class="border-t border-white/20 pt-3">
+                <ul class="flex space-x-8 justify-center">
+                    <li>
+                        <a href="referral_dashboard.php" class="text-white hover:text-trophy-gold transition duration-300 text-sm font-medium">
+                            Dashboard
+                        </a>
+                    </li>
+                    <li>
+                        <a href="rule.php" class="text-white hover:text-trophy-gold transition duration-300 text-sm font-medium">
+                            Rules
+                        </a>
+                    </li>
+                </ul>
+            </nav>
         </div>
     </header>
 
     <!-- Hero Section -->
-    <section class="py-16 sm:py-24 bg-primary-purple text-white">
+    <section id="dashboard" class="py-16 sm:py-24 bg-primary-purple text-white">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <span class="text-trophy-gold text-sm font-semibold uppercase tracking-widest block mb-4">
                 Thank you <?php echo htmlspecialchars($user['name']); ?>, we added you to the Waiting List for the $5000 Funded Account. 
@@ -591,7 +610,7 @@ if ($user) {
                 <section class="py-16 bg-bg-light">
                     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                     <!-- Referral Link and Credit Tracker Box -->
-                    <div class="bg-white p-8 sm:p-12 rounded-2xl shadow-xl border-t-4 border-trophy-gold mb-8">
+                    <div id="referrals" class="bg-white p-8 sm:p-12 rounded-2xl shadow-xl border-t-4 border-trophy-gold mb-8">
                         <!-- Referral Link -->
                         <h3 class="text-2xl font-bold text-primary-purple mb-2">Your Unique Referral Link</h3>
                         <p class="text-gray-600 text-sm mb-2">
