@@ -88,9 +88,9 @@
                 </div>
                 <!-- Desktop Nav -->
                 <nav class="hidden md:flex space-x-8">
-                    <a href="home.php" class="text-gray-300 hover:text-trophy-gold transition duration-150 font-medium">Home</a>
+                    <a href="index.php" class="text-gray-300 hover:text-trophy-gold transition duration-150 font-medium">Home</a>
                     <a href="rule.php" class="text-trophy-gold font-bold transition duration-150 border-b-2 border-trophy-gold">Rules</a>
-                    <a href="home.php" class="bg-primary-purple text-white px-4 py-1 rounded-full hover:bg-secondary-purple transition duration-150 font-semibold shadow-md">Register Now</a>
+                    <a href="index.php" class="bg-primary-purple text-white px-4 py-1 rounded-full hover:bg-secondary-purple transition duration-150 font-semibold shadow-md">Register Now</a>
                 </nav>
                 <!-- Mobile Menu Button (Hamburger) -->
                 <button id="menu-button" class="md:hidden text-gray-300 hover:text-trophy-gold focus:outline-none">
