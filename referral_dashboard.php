@@ -481,7 +481,7 @@ if ($user) {
     <?php if ($user): ?>
 
     <!-- HEADER -->
-    <header class="bg-black text-white shadow-lg sticky top-0 z-20">
+    <header class="header-bg bg-gradient-to-br from-primary-purple/90 via-purple-900/90 to-header-dark/90 text-white shadow-2xl sticky top-0 z-20 backdrop-blur-sm">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             
             <!-- TOP BAR -->
@@ -490,20 +490,21 @@ if ($user) {
                 <!-- LOGO -->
                 <div class="flex items-center space-x-3">
                     <img src="assets/logo.png" class="h-10 w-10 rounded-lg" alt="Logo">
-                    <h1 class="text-xl font-bold text-trophy-gold">
+                    <h1 class="text-xl font-extrabold tracking-tight text-trophy-gold">
                         REFERRAL DASHBOARD
                     </h1>
                 </div>
 
                 <!-- WELCOME TEXT (DESKTOP ONLY) -->
                 <div class="hidden md:flex items-center space-x-6">
-                    <span class="text-sm text-gray-300">
+                    <span class="text-sm text-gray-200">
                         Welcome, <?php echo htmlspecialchars($user['name']); ?>
                     </span>
                 </div>
 
                 <!-- MOBILE HAMBURGER -->
-                <button id="menuToggle" class="md:hidden p-2 rounded-lg border border-white/20">
+                <button id="menuToggle" 
+                    class="md:hidden p-2 rounded-lg border border-white/20 bg-white/10 backdrop-blur-sm">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
                         viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -514,6 +515,7 @@ if ($user) {
 
             <!-- NAVIGATION LINKS -->
             <nav class="border-t border-white/20">
+                
                 <!-- DESKTOP MENU -->
                 <ul class="hidden md:flex justify-center space-x-10 py-3">
                     <li>
@@ -530,7 +532,7 @@ if ($user) {
                     </li>
                     <li>
                         <a href="logout.php" 
-                        class="text-sm text-red-400 hover:text-red-300 transition font-medium">
+                        class="text-sm text-red-300 hover:text-red-200 transition font-medium">
                         Logout
                         </a>
                     </li>
@@ -538,21 +540,25 @@ if ($user) {
 
                 <!-- MOBILE MENU -->
                 <ul id="mobileMenu"
-                    class="md:hidden hidden flex-col py-3 space-y-2 bg-black border-t border-white/10">
+                    class="md:hidden hidden flex-col py-3 space-y-2 bg-gradient-to-br from-primary-purple via-purple-900 to-header-dark border-t border-white/10 rounded-b-xl">
                     
                     <li>
                         <a href="referral_dashboard.php" 
-                        class="block py-2 px-4 hover:bg-white/10 rounded-lg">Dashboard</a>
+                        class="block py-2 px-4 hover:bg-white/10 rounded-lg">
+                        Dashboard
+                        </a>
                     </li>
 
                     <li>
                         <a href="rule.php" 
-                        class="block py-2 px-4 hover:bg-white/10 rounded-lg">Rules</a>
+                        class="block py-2 px-4 hover:bg-white/10 rounded-lg">
+                        Rules
+                        </a>
                     </li>
 
                     <li class="pt-3 border-t border-white/10">
                         <a href="logout.php" 
-                        class="block py-2 px-4 text-red-400 hover:bg-red-500/20 rounded-lg">
+                        class="block py-2 px-4 text-red-300 hover:bg-red-500/20 rounded-lg">
                         Logout
                         </a>
                     </li>
@@ -1116,11 +1122,8 @@ if ($user) {
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- TOGGLE SCRIPT -->
     <script>
-        const toggleBtn = document.getElementById("menuToggle");
-        const mobileMenu = document.getElementById("mobileMenu");
-
-        toggleBtn.addEventListener("click", () => {
-            mobileMenu.classList.toggle("hidden");
+        document.getElementById("menuToggle").addEventListener("click", () => {
+            document.getElementById("mobileMenu").classList.toggle("hidden");
         });
     </script>
     <script>
