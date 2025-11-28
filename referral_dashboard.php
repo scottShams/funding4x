@@ -118,6 +118,11 @@ if (!$user) {
 if (!$user) {
     $showEmailModal = true;
 } else {
+
+    $mt_stmt = $pdo->prepare("select * from mt5_details where user_id = ?");
+    $mt_stmt->execute([$user['id']]);
+    $mt5_details = $mt_stmt->fetch(PDO::FETCH_ASSOC);
+
     // Get list of referrals (users who were referred by this user) with email verification status
     $stmt = $pdo->prepare("
         SELECT name, country, user_ip, status, quiz_result, user_credit, knowledge_test_result, created_at, email_verified
@@ -1404,13 +1409,14 @@ if ($user) {
         const USER_QUIZ_COMPLETED = <?php echo ($user && !empty($user['quiz_result'])) ? 'true' : 'false'; ?>;
         const USER_KNOWLEDGE_TEST_COMPLETED = <?php echo ($user && !empty($user['knowledge_test_result'])) ? 'true' : 'false'; ?>;
         const USERCREDIT = <?php echo ($user && !empty($user['user_credit'])) ? 'true' : 'false'; ?>;
+        const USER_MT5_DETAILS_STATUS = <?php echo ($mt5_details && isset($mt5_details['status'])) ? '"' . $mt5_details['status'] . '"' : 'null'; ?>;
         
         const topics = [
             { id: 1, name: "1. Verify your Email Address", isCompleted: <?php echo ($user && $user['email_verified'] == 1) ? 'true' : 'false'; ?> },
             { id: 2, name: "2. Refer 5 Forex Traders (optional)", isCompleted: <?php echo ($user && $verifiedReferrals >= 5) ? 'true' : 'false'; ?> },
             { id: 3, name: "3. Complete the Knowledge Check", redirectTo: "knowledge-test.php", isCompleted: <?php echo ($user && !empty($user['knowledge_test_result'])) ? 'true' : 'false'; ?> },
             { id: 4, name: "4. Pass the Trading Test 1", redirectTo: "choose-broker.php", isCompleted: false },
-            { id: 5, name: "5. Pass the Trading Test 2", redirectTo: "knowledge-test.php", isCompleted: false },
+            { id: 5, name: "5. Pass the Trading Test 2", redirectTo: "choose-broker-second.php", isCompleted: false },
             { id: 6, name: "6. Get your $5000 Funded Account", isCompleted: false }
         ];
 
@@ -1476,10 +1482,24 @@ if ($user) {
 
             // ID 4 — Trading Test 1
             if(id === 4){
-                if(!USER_KNOWLEDGE_TEST_COMPLETED || !USERCREDIT){                     
+                if(!USER_KNOWLEDGE_TEST_COMPLETED || !USERCREDIT){
                     showDynamicModal(
                         "Not Ready",
                         "Sorry you're not Ready for this. Make sure you have completed the Knowledge Check and that you have Test Credit. To get Test Credit you must have 5 completed referral or you can Buy a Test Credit",
+                        "red-600"
+                    );
+                    return;
+                }
+                window.location.href = topic.redirectTo;
+                return;
+            }
+
+            // ID 5 — Trading Test 2
+            if(id === 5){
+                if(!USER_MT5_DETAILS_STATUS || USER_MT5_DETAILS_STATUS !== 'pass'){
+                    showDynamicModal(
+                        "Not Ready",
+                        "Sorry you have not Passed the Trading Test 1 Yet. Please complete Trading Test 1.",
                         "red-600"
                     );
                     return;
