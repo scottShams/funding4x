@@ -90,7 +90,7 @@
                 <nav class="hidden md:flex space-x-8">
                     <a href="index.php" class="text-gray-300 hover:text-trophy-gold transition duration-150 font-medium">Home</a>
                     <a href="rule.php" class="text-trophy-gold font-bold transition duration-150 border-b-2 border-trophy-gold">Rules</a>
-                    <a href="index.php" class="bg-primary-purple text-white px-4 py-1 rounded-full hover:bg-secondary-purple transition duration-150 font-semibold shadow-md">Register Now</a>
+                    <a href="index.php" class="bg-primary-purple text-white px-4 py-1 rounded-full hover:bg-secondary-purple transition duration-150 font-semibold shadow-md">Sign Up Now</a>
                 </nav>
                 <!-- Mobile Menu Button (Hamburger) -->
                 <button id="menu-button" class="md:hidden text-gray-300 hover:text-trophy-gold focus:outline-none">
@@ -100,7 +100,7 @@
         </div>
         <!-- Mobile Menu -->
         <div id="mobile-menu" class="hidden md:hidden bg-header-dark pb-3 px-2 pt-2 space-y-1 sm:px-3">
-            <a href="home.php" class="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:bg-secondary-purple">Home</a>
+            <a href="index.php" class="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:bg-secondary-purple">Home</a>
             <a href="#" class="block px-3 py-2 rounded-md text-base font-medium text-trophy-gold hover:bg-secondary-purple">Rules</a>
             <a href="#" class="block px-3 py-2 rounded-md text-base font-medium bg-primary-purple text-white mt-2" onclick="alertMessage('Registration Info', 'This would navigate to the registration form.')">Register Now</a>
         </div>
@@ -125,8 +125,8 @@ We have clear transparent and easy to follow rules to help you be profitable and
             <div class="bg-white rounded-2xl shadow-2xl overflow-hidden border-4 border-trophy-gold transform transition hover:scale-[1.01] duration-300">
                 <!-- Table Header -->
                 <div class="bg-primary-purple p-6 text-center">
-                    <h2 class="text-2xl font-bold text-white uppercase tracking-wider">Trader Cup Account</h2>
-                    <p class="text-trophy-gold font-semibold mt-1">Standard Competition Settings</p>
+                    <h2 class="text-2xl font-bold text-white uppercase tracking-wider"></h2>
+                    <p class="text-trophy-gold font-semibold mt-1">Standard Challenge Settings</p>
                 </div>
                 
                 <!-- The Spec Table -->
@@ -172,16 +172,16 @@ We have clear transparent and easy to follow rules to help you be profitable and
                         </tr>
                          <tr>
                             <td class="font-medium text-gray-600">Instruments</td>
-                            <td class="font-bold text-gray-900 text-right text-sm">FX &amp; Commodities Only</td>
+                            <td class="font-bold text-gray-900 text-right text-sm">FX &amp; Metals Only</td>
                         </tr>
                     </tbody>
                 </table>
 
                  
                 <div class="p-6 bg-gray-50 text-center border-t border-gray-200">
-                    <button class="w-full bg-trophy-gold text-header-dark font-bold py-4 rounded-xl shadow-lg hover:bg-cta-hover transition uppercase tracking-wide text-lg" onclick="alertMessage('Registration', 'Proceeding to account setup...')">
+                    <!--<button class="w-full bg-trophy-gold text-header-dark font-bold py-4 rounded-xl shadow-lg hover:bg-cta-hover transition uppercase tracking-wide text-lg" onclick="alertMessage('Registration', 'Proceeding to account setup...')">
                         Read Detailed Explanations of Rules
-                    </button>
+                    </button>-->
                     <p class="text-xs text-gray-400 mt-3">By registering, you agree to all terms listed above.</p>
                 </div>
             </div>
@@ -255,14 +255,18 @@ We have clear transparent and easy to follow rules to help you be profitable and
                     </div>
                     <div class="bg-bg-light p-4 rounded-lg">
                         <p class="font-semibold text-primary-purple">2.2 Tradable Instruments</p>
-                        <p class="text-gray-700">The competition is limited to Forex pairs (e.g., EUR/USD, GBP/JPY) and Commodities such as Oil and Metals only.  Exotics, Cryptocurrencies, and Stocks are strictly prohibited.</p>
+                        <p class="text-gray-700">The competition is limited to Forex pairs (e.g., EUR/USD, GBP/JPY) and Metals only.  Exotics, Cryptocurrencies, and Stocks are strictly prohibited.</p>
                     </div>
                     <div class="bg-bg-light p-4 rounded-lg">
-                        <p class="font-semibold text-primary-purple">2.3 Minimum Trading Days</p>
+                        <p class="font-semibold text-primary-purple">2.3 No Huge Trades</p>
+                        <p class="text-gray-700">You must Trade safely without over exposing your account. We need to see you are a Safe Forex Trader. The maximum lot size you can do is 0.1 lot in any single Trade. The total combined lot size you are allowed is 0.5 lots. Breaching this limit will result in failure. </p>
+                    </div>
+                    <div class="bg-bg-light p-4 rounded-lg">
+                        <p class="font-semibold text-primary-purple">2.4 Minimum Trading Days</p>
                         <p class="text-gray-700">Participants must execute trades on a **minimum of 5 separate days** to qualify. A trading day is defined as any 24-hour period (00:00 to 23:59 GMT) in which at least one trade is opened and closed.</p>
                     </div>
                     <div class="bg-yellow-50 p-4 rounded-lg border-l-4 border-yellow-500">
-                        <p class="font-semibold text-yellow-800">2.4 Closing Positions End of Day (No Overnight Holding)</p>
+                        <p class="font-semibold text-yellow-800">2.5 Closing Positions End of Day (No Overnight Holding)</p>
                         <p class="text-gray-700">**All open positions must be closed** before 23:59 GMT each trading day. Holding positions overnight (past midnight GMT) is strictly prohibited and will result in the automatic closure of the position and potential penalty.</p>
                     </div>
                 </div>
@@ -309,12 +313,12 @@ We have clear transparent and easy to follow rules to help you be profitable and
             
            
             <!-- CTA -->
-            <div class="mt-12 text-center">
+            <!--<div class="mt-12 text-center">
                 <p class="text-xl font-semibold text-primary-purple mb-4">Ready to Compete Fairly?</p>
                 <button class="bg-trophy-gold text-header-dark font-bold py-3 px-8 rounded-full text-lg shadow-lg hover:bg-cta-hover transition" onclick="alertMessage('Registration', 'Proceeding to fair competition registration.')">
                     Begin Your Challenge
                 </button>
-            </div>
+            </div>-->
 
         </div>
     </section>
