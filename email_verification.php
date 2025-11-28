@@ -150,23 +150,13 @@ class EmailVerification {
             $mail->Body = $body;
             $mail->AltBody = strip_tags($body); // Plain text alternative
             
-            // Log email attempt for debugging
-            error_log("Email verification attempt for: $email, Token: $token");
             
             // Send email
             $sent = $mail->send();
             
-            if ($sent) {
-                error_log("Email verification sent successfully to: $email");
-            } else {
-                error_log("Failed to send email verification to: $email");
-            }
-            
             return $sent;
             
         } catch (Exception $e) {
-            // Log the error
-            error_log("Email sending failed for $email: " . $e->getMessage());
             
             // Also log additional debug info
             $smtpHost = EnvLoader::get('SMTP_HOST', 'N/A');
@@ -229,6 +219,59 @@ class EmailVerification {
         }
     }
 
+    /**
+     * Send account ready for trading email
+     * @param string $email User email
+     * @param string $name User name
+     * @return bool Success status
+     */
+    public static function sendAccountReadyEmail($email, $name) {
+        try {
+            // Get SMTP config
+            $smtpHost = EnvLoader::get('SMTP_HOST', 'localhost');
+            $smtpUsername = EnvLoader::get('SMTP_USERNAME', '');
+            $smtpPassword = EnvLoader::get('SMTP_PASSWORD', '');
+            $smtpPort = EnvLoader::get('SMTP_PORT', 587);
+            $smtpEncryption = EnvLoader::get('SMTP_ENCRYPTION', 'tls');
+
+            // Load account ready email template (HTML)
+            $templatePath = __DIR__ . "/email_templates/account_ready.html";
+            $body = file_exists($templatePath) ? file_get_contents($templatePath) : "";
+
+
+            // Replace placeholders
+            $body = str_replace("USER_NAME", htmlspecialchars($name), $body);
+            $body = str_replace("USER_EMAIL", htmlspecialchars($email), $body);
+
+            $subject = "Your Account is Ready for Trading";
+
+            // PHPMailer
+            $mail = new PHPMailer(true);
+
+            $mail->isSMTP();
+            $mail->Host = $smtpHost;
+            $mail->SMTPAuth = !empty($smtpUsername);
+            $mail->Username = $smtpUsername;
+            $mail->Password = $smtpPassword;
+            $mail->SMTPSecure = $smtpEncryption;
+            $mail->Port = (int)$smtpPort;
+
+            $mail->setFrom('noreply@funding4x.com', 'Funding4x');
+            $mail->addAddress($email, $name);
+            $mail->addReplyTo('support@funding4x.com', 'Funding4x Support');
+
+            $mail->isHTML(true);
+            $mail->Subject = $subject;
+            $mail->Body = $body;
+            $mail->AltBody = strip_tags(str_replace(['<br>', '</p>', '</div>'], ["\n", "\n\n", "\n"], $body));
+
+            return $mail->send();
+
+        } catch (Exception $e) {
+            error_log("Account Ready Email failed for $email: " . $e->getMessage());
+            return false;
+        }
+    }
 
     /**
      * Get email template

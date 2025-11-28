@@ -14,7 +14,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'update_status') {
     $newStatus = $_POST['status'];
 
     // Validate status
-    if (!in_array($newStatus, ['pass', 'fail', 'pending'])) {
+    if (!in_array($newStatus, ['pass', 'fail', 'pending', 'running'])) {
         echo json_encode(['success' => false, 'message' => 'Invalid status']);
         exit;
     }
@@ -24,7 +24,25 @@ if (isset($_POST['action']) && $_POST['action'] === 'update_status') {
     $success = $stmt->execute([$newStatus, $mt5Id]);
 
     if ($success) {
-        echo json_encode(['success' => true, 'message' => 'Status updated successfully']);
+        // Send email if status is "running"
+        $emailSent = true;
+        if ($newStatus === 'running') {
+            // Get user email for sending notification
+            $userStmt = $pdo->prepare("SELECT u.email, u.name FROM mt5_details m JOIN waitlist_users u ON m.user_id = u.id WHERE m.id = ?");
+            $userStmt->execute([$mt5Id]);
+            $userData = $userStmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($userData) {
+                require_once '../email_verification.php';
+                $emailSent = EmailVerification::sendAccountReadyEmail($userData['email'], $userData['name']);
+            }
+        }
+
+        echo json_encode([
+            'success' => true,
+            'message' => 'Status updated successfully',
+            'email_sent' => $emailSent
+        ]);
     } else {
         echo json_encode(['success' => false, 'message' => 'Failed to update status']);
     }
@@ -90,6 +108,9 @@ ob_start();
                             } elseif ($status === 'fail') {
                                 $badgeClass = 'bg-danger';
                                 $statusText = 'Fail';
+                            } elseif ($status === 'running') {
+                                $badgeClass = 'bg-primary';
+                                $statusText = 'Running';
                             }
                             ?>
                             <span class="badge <?php echo $badgeClass; ?>"><?php echo $statusText; ?></span>
@@ -103,6 +124,9 @@ ob_start();
                                 <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton<?php echo $detail['id']; ?>">
                                     <li><a class="dropdown-item text-success" href="#" onclick="updateStatus(<?php echo $detail['id']; ?>, 'pass', '<?php echo htmlspecialchars($detail['name']); ?>')">
                                         <i class="bi bi-check-circle me-2"></i>Mark as Pass
+                                    </a></li>
+                                    <li><a class="dropdown-item text-primary" href="#" onclick="updateStatus(<?php echo $detail['id']; ?>, 'running', '<?php echo htmlspecialchars($detail['name']); ?>', '<?php echo htmlspecialchars($detail['email']); ?>')">
+                                        <i class="bi bi-play-circle me-2"></i>Mark as Running
                                     </a></li>
                                     <li><a class="dropdown-item text-danger" href="#" onclick="updateStatus(<?php echo $detail['id']; ?>, 'fail', '<?php echo htmlspecialchars($detail['name']); ?>')">
                                         <i class="bi bi-x-circle me-2"></i>Mark as Fail
@@ -200,9 +224,9 @@ $(document).ready(function() {
 });
 
 // Update status function
-function updateStatus(mt5Id, newStatus, userName) {
-    const statusText = newStatus === 'pass' ? 'Pass' : (newStatus === 'fail' ? 'Fail' : 'Pending');
-    const confirmColor = newStatus === 'pass' ? '#28a745' : (newStatus === 'fail' ? '#dc3545' : '#ffc107');
+function updateStatus(mt5Id, newStatus, userName, userEmail = null) {
+    const statusText = newStatus === 'pass' ? 'Pass' : (newStatus === 'fail' ? 'Fail' : (newStatus === 'running' ? 'Running' : 'Pending'));
+    const confirmColor = newStatus === 'pass' ? '#28a745' : (newStatus === 'fail' ? '#dc3545' : (newStatus === 'running' ? '#0d6efd' : '#ffc107'));
 
     Swal.fire({
         title: `Mark as ${statusText}`,
@@ -257,18 +281,41 @@ function updateStatus(mt5Id, newStatus, userName) {
                         } else if (newStatus === 'fail') {
                             badgeClass = 'bg-danger';
                             badgeText = 'Fail';
+                        } else if (newStatus === 'running') {
+                            badgeClass = 'bg-primary';
+                            badgeText = 'Running';
                         }
 
                         statusCell.className = 'badge ' + badgeClass;
                         statusCell.textContent = badgeText;
 
-                        Swal.fire({
-                            title: 'Success!',
-                            text: 'Status updated successfully.',
-                            icon: 'success',
-                            timer: 1500,
-                            showConfirmButton: false
-                        });
+                        // Check if email was sent (for running status)
+                        if (newStatus === 'running') {
+                            if (response.email_sent) {
+                                Swal.fire({
+                                    title: 'Success!',
+                                    text: 'Status updated and email sent successfully.',
+                                    icon: 'success',
+                                    timer: 2000,
+                                    showConfirmButton: false
+                                });
+                            } else {
+                                Swal.fire({
+                                    title: 'Status Updated',
+                                    text: 'Status updated but email sending failed.',
+                                    icon: 'warning',
+                                    confirmButtonText: 'OK'
+                                });
+                            }
+                        } else {
+                            Swal.fire({
+                                title: 'Success!',
+                                text: 'Status updated successfully.',
+                                icon: 'success',
+                                timer: 1500,
+                                showConfirmButton: false
+                            });
+                        }
                     } else {
                         Swal.fire({
                             title: 'Error!',

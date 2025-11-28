@@ -4,7 +4,7 @@ CREATE TABLE mt5_details (
     username VARCHAR(255) NOT NULL,
     password VARCHAR(255) NOT NULL,
     server VARCHAR(255) NOT NULL,
-    status ENUM('pending', 'pass', 'fail') DEFAULT 'pending',
+    status ENUM('pending', 'pass', 'running', 'fail') DEFAULT 'pending',
     submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES waitlist_users(id)
 );
