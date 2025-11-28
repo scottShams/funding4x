@@ -102,7 +102,7 @@
         <div id="mobile-menu" class="hidden md:hidden bg-header-dark pb-3 px-2 pt-2 space-y-1 sm:px-3">
             <a href="index.php" class="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:bg-secondary-purple">Home</a>
             <a href="#" class="block px-3 py-2 rounded-md text-base font-medium text-trophy-gold hover:bg-secondary-purple">Rules</a>
-            <a href="#" class="block px-3 py-2 rounded-md text-base font-medium bg-primary-purple text-white mt-2" onclick="alertMessage('Registration Info', 'This would navigate to the registration form.')">Register Now</a>
+            <a href="index.php" class="block px-3 py-2 rounded-md text-base font-medium bg-primary-purple text-white mt-2" onclick="alertMessage('Registration Info', 'This would navigate to the registration form.')">Register Now</a>
         </div>
     </header>
 
