@@ -611,13 +611,14 @@ if ($user) {
                 
                 <!-- Credit Notification -->
                 <?php if ($user && isset($user['user_credit']) && $user['user_credit'] >= 1): ?>
-                <div class="bg-primary-purple text-white p-4 rounded-xl shadow-lg mb-4 border-l-4 border-trophy-gold">
+                <div class="bg-trophy-gold text-white p-4 rounded-xl shadow-lg mb-4 border-l-4 border-trophy-gold">
                     <div class="flex items-center justify-center">
                         <i class="fas fa-star text-trophy-gold mr-2"></i>
-                        <span class="text-lg font-semibold">You have <?php echo $user['user_credit']; ?> Credit<?php echo $user['user_credit'] > 1 ? 's' : ''; ?>. Go Ahead and Start your Trading!</span>
+                        <span class="text-lg font-semibold">Congratulations!  You have <?php echo $user['user_credit']; ?> Credit<?php echo $user['user_credit'] > 1 ? 's' : ''; ?>. <br /> Go Ahead and Start your Trading!</span>
                         <i class="fas fa-star text-trophy-gold ml-2"></i>
                     </div>
                 </div>
+                <br />
                 <?php endif; ?>
                 <!-- Title Block -->
                 <div class="mb-8 p-4 bg-white rounded-xl shadow-lg border-l-4 border-primary-purple">
@@ -1563,7 +1564,7 @@ if ($user) {
                 if(!USER_KNOWLEDGE_TEST_COMPLETED || !USERCREDIT){
                     showDynamicModal(
                         "Not Ready Yet",
-                        "Sorry you're not Ready for this yet. <br /> Make sure you have completed the Knowledge Check AND that you have Test Credit. <br />To get Test Credit you must have 5 completed Referral or you can Buy a Test. <br /><br /> IF you have done this, we will review your account and update it soon. Please check regularly after few hours. Thank You.",
+                        "We will Review your account and update it SOON. Please check regularly daily. Thank You. <br /><br /> Make sure you have completed the Knowledge Check AND that you have Test Credit. <br />To get Test Credit you must have 5 completed Referral or you can Buy a Test. ",
                         "red-600"
                     );
                     return;
