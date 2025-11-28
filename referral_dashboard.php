@@ -1481,7 +1481,7 @@ if ($user) {
                 if(!USER_KNOWLEDGE_TEST_COMPLETED || !USERCREDIT){                     
                     showDynamicModal(
                         "Not Ready",
-                        "You must complete the knowledge test and earn credits before continuing.",
+                        "Sorry you're not Ready for this. Make sure you have completed the Knowledge Check and that you have Test Credit. To get Test Credit you must have 5 completed referral or you can Buy a Test Credit",
                         "red-600"
                     );
                     return;
