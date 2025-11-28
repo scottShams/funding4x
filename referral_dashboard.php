@@ -480,35 +480,80 @@ if ($user) {
     <!-- Main Dashboard Content (only show if user is authenticated) -->
     <?php if ($user): ?>
 
-    <!-- Header & Navigation -->
-    <header class="header-bg text-white shadow-2xl sticky top-0 z-10">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-            <!-- Top Header -->
-            <div class="flex justify-between items-center mb-4">
-                <!-- Logo Section -->
-                <div class="flex items-center">
-                    <img src="assets/logo.png" alt="Funding4X Logo" class="h-10 w-10 mr-3 rounded-lg">
-                    <h1 class="text-2xl font-extrabold tracking-tight text-trophy-gold">REFERRAL DASHBOARD</h1>
+    <!-- HEADER -->
+    <header class="bg-black text-white shadow-lg sticky top-0 z-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            
+            <!-- TOP BAR -->
+            <div class="flex justify-between items-center py-4">
+
+                <!-- LOGO -->
+                <div class="flex items-center space-x-3">
+                    <img src="assets/logo.png" class="h-10 w-10 rounded-lg" alt="Logo">
+                    <h1 class="text-xl font-bold text-trophy-gold">
+                        REFERRAL DASHBOARD
+                    </h1>
                 </div>
-                <div class="flex items-center space-x-4">
-                    <span class="text-sm text-gray-300">Welcome, <?php echo htmlspecialchars($user['name']); ?></span>
-                    <a href="logout.php" class="text-sm text-white hover:text-trophy-gold transition duration-300">
-                        ← Logout
-                    </a>
+
+                <!-- WELCOME TEXT (DESKTOP ONLY) -->
+                <div class="hidden md:flex items-center space-x-6">
+                    <span class="text-sm text-gray-300">
+                        Welcome, <?php echo htmlspecialchars($user['name']); ?>
+                    </span>
                 </div>
+
+                <!-- MOBILE HAMBURGER -->
+                <button id="menuToggle" class="md:hidden p-2 rounded-lg border border-white/20">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 6h16M4 12h16M4 18h16"/>
+                    </svg>
+                </button>
             </div>
 
-            <!-- Navigation Menu -->
-            <nav class="border-t border-white/20 pt-3">
-                <ul class="flex space-x-8 justify-center">
+            <!-- NAVIGATION LINKS -->
+            <nav class="border-t border-white/20">
+                <!-- DESKTOP MENU -->
+                <ul class="hidden md:flex justify-center space-x-10 py-3">
                     <li>
-                        <a href="referral_dashboard.php" class="text-white hover:text-trophy-gold transition duration-300 text-sm font-medium">
-                            Dashboard
+                        <a href="referral_dashboard.php" 
+                        class="text-sm hover:text-trophy-gold transition font-medium">
+                        Dashboard
                         </a>
                     </li>
                     <li>
-                        <a href="rule.php" class="text-white hover:text-trophy-gold transition duration-300 text-sm font-medium">
-                            Rules
+                        <a href="rule.php" 
+                        class="text-sm hover:text-trophy-gold transition font-medium">
+                        Rules
+                        </a>
+                    </li>
+                    <li>
+                        <a href="logout.php" 
+                        class="text-sm text-red-400 hover:text-red-300 transition font-medium">
+                        Logout
+                        </a>
+                    </li>
+                </ul>
+
+                <!-- MOBILE MENU -->
+                <ul id="mobileMenu"
+                    class="md:hidden hidden flex-col py-3 space-y-2 bg-black border-t border-white/10">
+                    
+                    <li>
+                        <a href="referral_dashboard.php" 
+                        class="block py-2 px-4 hover:bg-white/10 rounded-lg">Dashboard</a>
+                    </li>
+
+                    <li>
+                        <a href="rule.php" 
+                        class="block py-2 px-4 hover:bg-white/10 rounded-lg">Rules</a>
+                    </li>
+
+                    <li class="pt-3 border-t border-white/10">
+                        <a href="logout.php" 
+                        class="block py-2 px-4 text-red-400 hover:bg-red-500/20 rounded-lg">
+                        Logout
                         </a>
                     </li>
                 </ul>
@@ -1069,6 +1114,15 @@ if ($user) {
     </div>
     <!-- JavaScript for Clipboard Functionality and Pie Chart -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- TOGGLE SCRIPT -->
+    <script>
+        const toggleBtn = document.getElementById("menuToggle");
+        const mobileMenu = document.getElementById("mobileMenu");
+
+        toggleBtn.addEventListener("click", () => {
+            mobileMenu.classList.toggle("hidden");
+        });
+    </script>
     <script>
         // Simple loader - NO SWEETALERT, JUST HTML LOADER
         <?php if (isset($emailVerificationNeeded) && $emailVerificationNeeded): ?>
