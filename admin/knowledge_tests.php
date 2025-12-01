@@ -164,6 +164,10 @@ ob_start();
                                     Actions
                                 </button>
                                 <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton<?php echo $user['id']; ?>">
+                                    <li><a class="dropdown-item" href="#" onclick="openEmailModal(<?php echo $user['id']; ?>, '<?php echo htmlspecialchars($user['name']); ?>', '<?php echo htmlspecialchars($user['email']); ?>')">
+                                        <i class="bi bi-envelope me-2"></i>Send Mail
+                                    </a></li>
+                                    <li><hr class="dropdown-divider"></li>
                                     <li><a class="dropdown-item" href="#" onclick="addCredit(<?php echo $user['id']; ?>, '<?php echo htmlspecialchars($user['name']); ?>')">
                                         <i class="bi bi-plus-circle me-2"></i>Add Credit
                                     </a></li>
