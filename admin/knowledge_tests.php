@@ -77,6 +77,7 @@ $query = "
         wu.credits,
         wu.knowledge_test_result,
         wu.user_credit,
+        wu.created_at,
         COALESCE(referral_counts.completed_referrals, 0) AS completed_referrals
     FROM waitlist_users wu
     LEFT JOIN (
@@ -122,7 +123,7 @@ ob_start();
                         <th>Total Referrals</th>
                         <th>Completed Referrals</th>
                         <th>% Referred</th>
-                        <th>Completed At</th>
+                        <th>Created At</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -156,7 +157,7 @@ ob_start();
                                 echo $percentage . '%';
                             ?>
                         </td>
-                        <td><?php echo $completed_at; ?></td>
+                        <td><?php echo date('M d, Y H:i', strtotime($user['created_at'])); ?></td>
                         <td>
                             <div class="dropdown">
                                 <button class="btn btn-secondary btn-sm dropdown-toggle" type="button" id="dropdownMenuButton<?php echo $user['id']; ?>" data-bs-toggle="dropdown" aria-expanded="false">
