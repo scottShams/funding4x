@@ -17,6 +17,9 @@ $knowledgeTestCount = $pdo->query("SELECT COUNT(*) FROM waitlist_users WHERE kno
 // Get MT5 Details count (users who have submitted MT5 details)
 $mt5DetailsCount = $pdo->query("SELECT COUNT(DISTINCT user_id) FROM mt5_details")->fetchColumn();
 
+// Get Payments count (completed payments without duplicates)
+$paymentsCount = $pdo->query("SELECT COUNT(*) FROM payments WHERE status = 'completed'")->fetchColumn();
+
 // Fetch counts in a single query
 $stmt = $pdo->query("
     SELECT
@@ -111,7 +114,16 @@ ob_start();
             <div class="card-body">
                 <h5 class="card-title">MT5 Details</h5>
                 <h2><?php echo $mt5DetailsCount; ?></h2>
-               
+
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="card text-white bg-info mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Payments</h5>
+                <h2><?php echo $paymentsCount; ?></h2>
+
             </div>
         </div>
     </div>
