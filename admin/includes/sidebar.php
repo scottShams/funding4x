@@ -45,7 +45,7 @@
             <li class="nav-item">
                 <a class="nav-link d-flex align-items-center <?php echo basename($_SERVER['PHP_SELF']) == 'mt5_details.php' ? 'active' : ''; ?>" href="mt5_details.php">
                     <i class="bi bi-briefcase me-2"></i>
-                    <span>MT5 Details</span>
+                    <span>Test 1 MT5 Details</span>
                 </a>
             </li>
             <li class="nav-item">

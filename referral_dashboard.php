@@ -14,7 +14,13 @@ $pdo = getPDO();
 $user = null;
 $referrals = [];
 $showEmailModal = false;
+$showPasswordSetupModal = false;
+$showPasswordModal = false;
 $emailError = '';
+$passwordError = '';
+$passwordSuccess = '';
+$userEmail = '';
+$userName = '';
 
 function getUserIP() {
     if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
@@ -50,11 +56,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['lookup_email'])) {
             }
             // Check if user is already verified
             elseif ($user['email_verified'] == 1) {
-                // Store referral code in session
-                $_SESSION['user_referral_code'] = $user['referral_code'];
-                $_SESSION['user_email'] = $user['email'];
-                // Set flag to hide modal since user is verified
-                $showEmailModal = false;
+                // Check if password is set
+                if (!empty($user['password'])) {
+                    // Password is set, show login form
+                    $showPasswordModal = true;
+                    $userEmail = $user['email'];
+                    $userName = $user['name'];
+                } else {
+                    // Password not set, show password setup form
+                    $showPasswordSetupModal = true;
+                    $userEmail = $user['email'];
+                    $userName = $user['name'];
+                }
             } else {
                 // User exists but not verified - check verification tokens
                 $tokenMissing = empty($user['verification_token']) || empty($user['verification_token_expires']);
@@ -87,6 +100,62 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['lookup_email'])) {
         }
     } else {
         $emailError = 'Please enter a valid email address.';
+    }
+}
+
+// Handle password setup
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['setup_password'])) {
+    $email = trim($_POST['email']);
+    $password = $_POST['password'];
+    $confirmPassword = $_POST['confirm_password'];
+
+    if ($password !== $confirmPassword) {
+        $passwordError = 'Passwords do not match.';
+        $showPasswordSetupModal = true;
+        $userEmail = $email;
+    } elseif (strlen($password) < 6) {
+        $passwordError = 'Password must be at least 6 characters long.';
+        $showPasswordSetupModal = true;
+        $userEmail = $email;
+    } else {
+        // Hash password and save
+        $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+        $stmt = $pdo->prepare("UPDATE waitlist_users SET password = ? WHERE email = ?");
+        $stmt->execute([$hashedPassword, $email]);
+
+        // Now show login form
+        $showPasswordModal = true;
+        $userEmail = $email;
+        $passwordSuccess = 'Password set successfully! Please login.';
+    }
+}
+
+// Handle password login
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login_password'])) {
+    $email = trim($_POST['email']);
+    $password = $_POST['password'];
+
+    $stmt = $pdo->prepare("SELECT * FROM waitlist_users WHERE email = ?");
+    $stmt->execute([$email]);
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if ($user && password_verify($password, $user['password'])) {
+        // Successful login
+        $userIP = getUserIP();
+        $updateIP = $pdo->prepare("UPDATE waitlist_users SET user_ip = ? WHERE id = ?");
+        $updateIP->execute([$userIP, $user['id']]);
+
+        // Store referral code in session
+        $_SESSION['user_referral_code'] = $user['referral_code'];
+        $_SESSION['user_email'] = $user['email'];
+        // Set flag to hide modal since user is authenticated
+        $showEmailModal = false;
+        $showPasswordModal = false;
+        $showPasswordSetupModal = false;
+    } else {
+        $passwordError = 'Invalid password.';
+        $showPasswordModal = true;
+        $userEmail = $email;
     }
 }
 
@@ -445,8 +514,130 @@ if ($user) {
     </div>
     <?php endif; ?>
 
+    <!-- Password Setup Modal -->
+    <?php if ($showPasswordSetupModal): ?>
+    <div id="password-setup-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full">
+            <div class="text-center mb-6">
+                <h2 class="text-2xl font-bold text-primary-purple mb-2">
+                    Set Up Your Password
+                </h2>
+                <p class="text-gray-600">
+                    Welcome back, <?php echo htmlspecialchars($userName); ?>! Please set up a password to secure your account.
+                </p>
+            </div>
+
+            <?php if (!empty($passwordError)): ?>
+            <div class="bg-red-100 border border-red-300 rounded-lg p-3 mb-4">
+                <p class="text-red-700 text-sm"><?php echo htmlspecialchars($passwordError); ?></p>
+            </div>
+            <?php endif; ?>
+
+            <form method="POST" class="space-y-4">
+                <input type="hidden" name="email" value="<?php echo htmlspecialchars($userEmail); ?>">
+
+                <div>
+                    <label for="password" class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                    <input type="password"
+                           id="password"
+                           name="password"
+                           required
+                           minlength="6"
+                           class="w-full p-3 border-2 border-gray-300 rounded-lg focus:ring-primary-purple focus:border-primary-purple transition duration-200"
+                           placeholder="Enter your password">
+                </div>
+
+                <div>
+                    <label for="confirm_password" class="block text-sm font-medium text-gray-700 mb-2">Confirm Password</label>
+                    <input type="password"
+                           id="confirm_password"
+                           name="confirm_password"
+                           required
+                           minlength="6"
+                           class="w-full p-3 border-2 border-gray-300 rounded-lg focus:ring-primary-purple focus:border-primary-purple transition duration-200"
+                           placeholder="Confirm your password">
+                </div>
+
+                <div class="flex space-x-3">
+                    <a href="index.php"
+                       class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-3 px-4 rounded-lg transition duration-300 text-center">
+                        Back to Home
+                    </a>
+                    <button type="submit"
+                            name="setup_password"
+                            class="flex-1 bg-primary-purple hover:bg-purple-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-300">
+                        Set Password
+                    </button>
+                </div>
+            </form>
+
+            <p class="text-xs text-gray-500 mt-4 text-center">
+                Your password will be used to access your referral dashboard securely.
+            </p>
+        </div>
+    </div>
+    <?php endif; ?>
+
+    <!-- Password Login Modal -->
+    <?php if ($showPasswordModal): ?>
+    <div id="password-login-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full">
+            <div class="text-center mb-6">
+                <h2 class="text-2xl font-bold text-primary-purple mb-2">
+                    Welcome Back, <?php echo htmlspecialchars($userName); ?>!
+                </h2>
+                <p class="text-gray-600">
+                    Please enter your password to access your referral dashboard.
+                </p>
+            </div>
+
+            <?php if (!empty($passwordSuccess)): ?>
+            <div class="bg-green-100 border border-green-300 rounded-lg p-3 mb-4">
+                <p class="text-green-700 text-sm"><?php echo htmlspecialchars($passwordSuccess); ?></p>
+            </div>
+            <?php endif; ?>
+
+            <?php if (!empty($passwordError)): ?>
+            <div class="bg-red-100 border border-red-300 rounded-lg p-3 mb-4">
+                <p class="text-red-700 text-sm"><?php echo htmlspecialchars($passwordError); ?></p>
+            </div>
+            <?php endif; ?>
+
+            <form method="POST" class="space-y-4">
+                <input type="hidden" name="email" value="<?php echo htmlspecialchars($userEmail); ?>">
+
+                <div>
+                    <label for="login_password" class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                    <input type="password"
+                           id="login_password"
+                           name="password"
+                           required
+                           class="w-full p-3 border-2 border-gray-300 rounded-lg focus:ring-primary-purple focus:border-primary-purple transition duration-200"
+                           placeholder="Enter your password">
+                </div>
+
+                <div class="flex space-x-3">
+                    <a href="index.php"
+                       class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-3 px-4 rounded-lg transition duration-300 text-center">
+                        Back to Home
+                    </a>
+                    <button type="submit"
+                            name="login_password"
+                            class="flex-1 bg-primary-purple hover:bg-purple-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-300">
+                        Login
+                    </button>
+                </div>
+            </form>
+
+            <p class="text-xs text-gray-500 mt-4 text-center">
+                Forgot your password? Contact our support team.
+            </p>
+        </div>
+    </div>
+    <?php endif; ?>
+
     <!-- Knowledge Quiz Modal (Green) -->
-    <?php if ($user && empty($user['quiz_result']) && !$showEmailModal): ?>
+    <?php if ($user && empty($user['quiz_result']) && !$showEmailModal && !$showPasswordModal && !$showPasswordSetupModal): ?>
     <div id="quiz-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4" style="display: none;">
         <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full border-t-4 border-green-500 relative">
             <!-- Close Button -->
@@ -1452,8 +1643,27 @@ if ($user) {
         });
         <?php endif; ?>
 
+        // Password validation for setup form
+        <?php if ($showPasswordSetupModal): ?>
+        document.addEventListener('DOMContentLoaded', function() {
+            const password = document.getElementById('password');
+            const confirmPassword = document.getElementById('confirm_password');
+
+            function validatePasswords() {
+                if (password.value !== confirmPassword.value) {
+                    confirmPassword.setCustomValidity('Passwords do not match');
+                } else {
+                    confirmPassword.setCustomValidity('');
+                }
+            }
+
+            password.addEventListener('input', validatePasswords);
+            confirmPassword.addEventListener('input', validatePasswords);
+        });
+        <?php endif; ?>
+
         // Knowledge Quiz Modal - Show after 20 seconds
-        <?php if ($user && empty($user['quiz_result']) && !$showEmailModal): ?>
+        <?php if ($user && empty($user['quiz_result']) && !$showEmailModal && !$showPasswordModal && !$showPasswordSetupModal): ?>
         document.addEventListener('DOMContentLoaded', function() {
             // Show quiz modal after 20 seconds
             setTimeout(function() {
