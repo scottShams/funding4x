@@ -8,3 +8,6 @@ CREATE TABLE mt5_details (
     submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES waitlist_users(id)
 );
+
+ALTER TABLE mt5_details
+ADD COLUMN instrument VARCHAR(255) NULL AFTER server;
