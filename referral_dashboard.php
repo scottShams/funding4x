@@ -245,6 +245,11 @@ if ($user) {
     $credits = $verifiedReferrals; // Only count verified users for credits
     $goalCredits = 5;
     $progressPercentage = min(($credits / $goalCredits) * 100, 100);
+
+    // Dynamic pricing for checkout
+    $checkoutPrice = 36;
+
+    $_SESSION['checkout_price'] = $checkoutPrice;
 }
 
 ?>
@@ -847,11 +852,15 @@ if ($user) {
                         </h2>
 
                         <!-- Benefit 1 -->
-                        <button onclick="document.getElementById('modal').classList.remove('hidden')" class="bg-trophy-gold p-4 rounded-xl shadow-lg border-b-4 border-yellow-700 cursor-pointer">
+                        <!-- <button onclick="document.getElementById('modal').classList.remove('hidden')" class="bg-trophy-gold p-4 rounded-xl shadow-lg border-b-4 border-yellow-700 cursor-pointer">
                             <p class="font-bold text-lg mb-1">Buy Now - 38% Off</p>
                             <p class="text-sm"><del>Normally $59</del>, now only $36 for First Comers</p>
+                        </button> -->
+                        
+                        <button onclick="window.location.href='checkout.php'" class="bg-trophy-gold p-4 rounded-xl shadow-lg border-b-4 border-yellow-700 cursor-pointer">
+                            <p class="font-bold text-lg mb-1">Buy Now - 38% Off</p>
+                            <p class="text-sm"><del>Normally $59</del>, now only $<?php echo $checkoutPrice; ?> for First Comers</p>
                         </button>
-
                     </div>
                 </div>
             </div>
