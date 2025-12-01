@@ -34,8 +34,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Broker Setup | Global Forex Trader Cup</title>
-    <!-- Favicon -->
+    <title>Funding4x Choose a Broker – Forex Prop Firm</title>
+    <meta name="description" content="Select the best broker to trade with your Funding4x funded account. Compare brokers, see spreads, and start trading with company capital.">
+    <meta name="keywords" content="forex broker, best broker for prop firm, funded account broker, choose broker, forex trading with company capital">
+
+
+	<!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
     <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32x32.png">

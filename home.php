@@ -10,8 +10,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Funded Trader Challenge - Claim Your FREE Spot Now!</title>
-    
+    <title>Funding4x – Get Funded to Trade Forex | Prop Firm</title>
+    <meta name="description" content="Funding4x offers funded trading accounts. Join our trial, pass the evaluation, and trade company capital with our forex prop firm.">
+    <meta name="keywords" content="funded trading account, forex prop firm, prop firm trial, forex funded account, prop firm challenge, trade company capital">
+
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
     <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
@@ -121,6 +123,8 @@
     <section class="py-16 sm:py-24 bg-bg-light">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             
+            <div style="display: flex; justify-content: center;"><img src="assets/logo.png" alt="Funding4X Logo" ></div>
+            
             <!-- Headline: Energetic & FOMO -->
             <h2 class="text-4xl sm:text-6xl font-extrabold tracking-tighter text-gray-900 leading-tight mb-4">
                 <span class="block text-success-green">STOP WAITING. START TRADING.</span>
@@ -184,7 +188,7 @@
                     <div id="progress-bar" class="bg-fomo-red h-3.5 rounded-full transition-all duration-1000" style="width: 38%;"></div>
                 </div>
                 <p class="text-sm text-gray-500 mt-3 font-semibold">
-                     (The price goes up to $47 after the timer runs out or spots are claimed!)
+                     (The price goes up to $59 after the timer runs out or spots are claimed!)
                 </p>
             </div>
 
@@ -192,9 +196,9 @@
             <div id="cta" class="mt-12">
                 <button onclick="document.getElementById('modal').classList.remove('hidden')" 
                         class="px-12 py-4 text-2xl font-bold text-white bg-fomo-red rounded-xl shadow-lg hover:bg-red-600 transition duration-300 transform hover:scale-105 active:scale-95 uppercase tracking-wider border-b-4 border-red-700">
-                    Claim Your Free Spot Now
+                    Start My Challenge Now!
                 </button>
-                <p class="mt-3 text-sm text-gray-500 font-medium">100% Free for the next <span class="text-fomo-red">620 traders!</span></p>
+                <!--<p class="mt-3 text-sm text-gray-500 font-medium">100% Free for the next <span class="text-fomo-red">620 traders!</span></p>-->
             </div>
         </div>
     </section>
@@ -207,14 +211,14 @@
             <div class="aspect-video bg-gray-200 rounded-xl shadow-2xl overflow-hidden">
                 <div class="flex items-center justify-center h-full">
                     <svg class="w-16 h-16 text-gray-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path></svg>
-                    <p class="ml-4 text-gray-500 font-semibold">Your CEO Explainer Video Placeholder</p>
+                    <p class="ml-4 text-gray-500 font-semibold">Video Coming Soon</p>
                 </div>
             </div>
 
             <!-- Value Proposition -->
             <div class="text-left">
                 <h3 class="text-3xl font-bold text-gray-900 mb-4">
-                    Why Traders Choose <span class="text-primary-indigo">PROP<span class="text-success-green">FUND</span></span>
+                    Why Traders Choose <span class="text-primary-indigo">FUNDING<span class="text-trophy-gold">4X</span></span>
                 </h3>
                 <p class="text-lg text-gray-600 mb-6">
                     Watch this short message from our founder explaining why we believe in your success. We are not looking for complex rules to trip you up—we are looking for <span class="font-extrabold text-success-green">consistent risk management</span>.
@@ -393,7 +397,7 @@
                 </p>
                 <button onclick="document.getElementById('modal').classList.remove('hidden')" 
                         class="px-12 py-4 text-2xl font-bold text-white bg-success-green rounded-xl shadow-lg hover:bg-emerald-600 transition duration-300 transform hover:scale-105 active:scale-95 uppercase tracking-wider border-b-4 border-emerald-700">
-                    Join the Free Challenge Now
+                    Get Your Trading Challenge Now
                 </button>
              </div>
         </div>

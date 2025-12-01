@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Official Rules | Global Forex Trader Cup</title>
+    <title>Trading Rules – Funding4x Prop Firm</title>
+    <meta name="description" content="Learn the trading rules for Funding4x funded accounts. Understand limits, risk management, and evaluation guidelines.">
+    <meta name="keywords" content="prop firm trading rules, funded account rules, trading limits, risk management, Funding4x evaluation guidelines">
 
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
@@ -73,6 +75,20 @@
             border-bottom: none;
         }
     </style>
+    
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-4F50HDQBDE"></script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-4F50HDQBDE');
+    </script>
+    
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1954105902455354"
+     crossorigin="anonymous"></script>
+     
+     
 </head>
 
 <body class="min-h-screen flex flex-col">
@@ -308,7 +324,7 @@ We have clear transparent and easy to follow rules to help you be profitable and
                     </div>
                     <div class="bg-bg-light p-4 rounded-lg">
                         <p class="font-semibold text-primary-purple">4.2 Payout Process</p>
-                        <p class="text-gray-700">Payouts will be verified and disbursed as soon as reasonably possible, subject to manual checks, and banking transaction times.  Winners must provide valid ID and a verified bank account for transfer. All Transactions costs and applicable taxes are the sole responsibility of the winner.</p>
+                        <p class="text-gray-700">Payouts will be verified and disbursed as soon as reasonably possible, subject to manual checks, and banking transaction times.  Winners must provide valid ID and a verified bank account or verified crypto wallet for transfer. All Transactions costs and applicable taxes are the sole responsibility of the winner.</p>
                     </div>
                 </div>
             </div>

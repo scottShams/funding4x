@@ -10,8 +10,16 @@ $recaptchaSiteKey = EnvLoader::get('RECAPTCHA_SITE_KEY', 'your_recaptcha_site_ke
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Funding4x - Exclusive Access Countdown</title>
     
+      <!-- Primary SEO Meta Tags -->
+      <title>Funding4x - Free Prop Firm Challenge - Exclusive Access Countdown</title>
+      <meta name="description" content="Funding4x is a forex prop firm that offers funded trading accounts. Join our trial or evaluation account, pass the challenge, and trade company capital.">
+      <meta name="keywords" content="funded trading account, prop firm, forex prop firm, funded trader program, free trial trading account, pass prop firm challenge, trading with company capital, forex trading">
+      <!-- Author -->
+      <meta name="author" content="Funding4x">
+      <!-- Robots -->
+      <meta name="robots" content="index, follow">
+        
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
     <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
@@ -76,9 +84,8 @@ $recaptchaSiteKey = EnvLoader::get('RECAPTCHA_SITE_KEY', 'your_recaptcha_site_ke
     gtag('config', 'G-4F50HDQBDE');
     </script>
 
-    <!-- adsense code-->
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8844859089842671"
-         crossorigin="anonymous"></script>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1954105902455354"
+     crossorigin="anonymous"></script>
 
      
      

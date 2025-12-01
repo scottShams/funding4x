@@ -190,8 +190,10 @@ if ($user) {
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Referral Dashboard - Get Funded for Free</title>
-    
+    <title>Fnding4x User Dashboard – Get Funded Account for Free</title>
+    <meta name="description" content="Access your Funding4x account dashboard. Track your trial, evaluations, and funded trading progress.">
+    <meta name="keywords" content="Funding4x dashboard, funded account dashboard, trading progress, prop firm account">
+
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
     <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
@@ -353,9 +355,9 @@ if ($user) {
     gtag('config', 'G-4F50HDQBDE');
     </script>
 
-    <!-- adsense code-->
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8844859089842671"
-         crossorigin="anonymous"></script>
+     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1954105902455354"
+     crossorigin="anonymous"></script>
+     
      
 </head>
 
@@ -626,7 +628,7 @@ if ($user) {
                         Next Steps...
                     </h2>
                     <p class="text-gray-600">
-                        Complete these Steps to reach the $5000 Funded Account.
+                        Complete these Steps to reach the $5000 Funded Account. <strong>Click on each item</strong>
                     </p>
                     <!-- Progress Bar -->
                     <div class="mt-4">
@@ -650,7 +652,7 @@ if ($user) {
                 <div class="mt-8 mb-10 p-8 sm:p-12 rounded-2xl bg-primary-purple text-white shadow-2xl transform hover:scale-[1.01] transition duration-300">
                     <div class="max-w-4xl mx-auto text-center">
                         <h2 class="text-4xl sm:text-5xl font-extrabold tracking-tight mb-4 text-white">
-                            Get Your Funded Account Test Now
+                            Buy Your Funded Account Test Now
                         </h2>
 
                         <!-- Benefit 1 -->
@@ -1539,7 +1541,7 @@ if ($user) {
             if (id === 1 || id === 2) {                 
                 showDynamicModal(
                     "Cannot Modify",
-                    "You cannot modify the checklist items. They are automatically updated based on your progress.",
+                    "This one is automatically updated based on your progress.",
                     "primary-purple"
                 );
                 return;
@@ -1564,7 +1566,7 @@ if ($user) {
                 if(!USER_KNOWLEDGE_TEST_COMPLETED || !USERCREDIT){
                     showDynamicModal(
                         "Not Ready Yet",
-                        "We will Review your account and update it SOON. Please check regularly daily. Thank You. <br /><br /> Make sure you have completed the Knowledge Check AND that you have Test Credit. <br />To get Test Credit you must have 5 completed Referral or you can Buy a Test. ",
+                        "We will Review your account and update it SOON. Please check regularly daily. Thank You. <br /><br /> Make sure you have completed the Knowledge Check AND that you have Test Credit. <br /><br /><strong>To get Trading Test Credit</strong> you must have 5 completed Referral or you can <strong>Buy a Trading Test</strong>",
                         "red-600"
                     );
                     return;

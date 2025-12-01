@@ -31,7 +31,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Broker Setup | Global Forex Trader Cup</title>
+   	<title>Funding4x Choose a Broker – Forex Prop Firm</title>
+    <meta name="description" content="Select the best broker to trade with your Funding4x funded account. Compare brokers, see spreads, and start trading with company capital.">
+    <meta name="keywords" content="forex broker, best broker for prop firm, funded account broker, choose broker, forex trading with company capital">
+
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
     <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
@@ -165,8 +168,10 @@
                             <div>
                                 <h3 class="font-bold text-xl text-header-dark mb-2">Open an Account</h3>
                                 <p class="text-gray-600 leading-relaxed">
-                                    Click the <span class="font-bold text-trophy-gold">Register Now</span> button for your chosen broker below. 
-                                    <br><span class="text-sm text-red-500 font-semibold italic">Important: You must use these buttons to ensure your account is linked to our tracking system.</span>
+                                    Click the <span class="font-bold text-trophy-gold">Register Now</span> button for your chosen broker below. <br />
+                                    You <strong>MUST</strong> use below buttons to open a New Account with the <strong>SAME Email Address</strong>
+                                    <br><span class="text-sm text-red-500 font-semibold italic">Note: Already Existing accounts will NOT be Accepted</span>
+                                    
                                 </p>
                             </div>
                         </div>

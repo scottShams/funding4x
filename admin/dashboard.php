@@ -72,19 +72,19 @@ ob_start();
             </div>
         </div>
     </div>
-    <div class="col-md-3 col-sm-6">
+    <!--<div class="col-md-3 col-sm-6">
         <div class="card text-white bg-info mb-3">
             <div class="card-body">
                 <h5 class="card-title">Total Referrals</h5>
                 <h2><?php echo $referralCount; ?></h2>
             </div>
         </div>
-    </div>
+    </div>-->
     <div class="col-md-3 col-sm-6">
         <div class="card text-white bg-success mb-3">
             <div class="card-body">
                 <h5 class="card-title">Quiz Pass</h5>
-                <p class="mb-1">Pass: <?php echo $passCount; ?></p>
+                <h2><?php echo $passCount; ?></h2>
             </div>
         </div>
     </div>
@@ -92,8 +92,8 @@ ob_start();
         <div class="card text-white bg-danger mb-3">
             <div class="card-body">
                 <h5 class="card-title">Quiz Fail</h5>
-                <p class="mb-1">Fail: <?php echo $failCount; ?></p>
-                <p class="mb-0">Not Attempted: <?php echo $notAttemptCount; ?></p>
+                <h2><?php echo $failCount; ?></h2>
+                
             </div>
         </div>
     </div>
@@ -102,7 +102,7 @@ ob_start();
             <div class="card-body">
                 <h5 class="card-title">Knowledge Tests</h5>
                 <h2><?php echo $knowledgeTestCount; ?></h2>
-                <p class="mb-0">Completed Tests</p>
+               
             </div>
         </div>
     </div>
@@ -111,7 +111,7 @@ ob_start();
             <div class="card-body">
                 <h5 class="card-title">MT5 Details</h5>
                 <h2><?php echo $mt5DetailsCount; ?></h2>
-                <p class="mb-0">Submissions</p>
+               
             </div>
         </div>
     </div>

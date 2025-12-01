@@ -34,7 +34,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trader Knowledge Assessment - Part 2</title>
+    <title>Forex Knowledge Check – Funding4x Prop Firm</title>
+    <meta name="description" content="Test your forex trading knowledge with Funding4x. Prepare for our evaluation and improve your chances of passing the funded trader challenge.">
+    <meta name="keywords" content="forex knowledge test, prop firm evaluation, funded trader challenge, forex quiz, trading skills test">
 
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
