@@ -54,6 +54,12 @@
                     <span>Knowledge Tests</span>
                 </a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link d-flex align-items-center <?php echo basename($_SERVER['PHP_SELF']) == 'payments.php' ? 'active' : ''; ?>" href="payments.php">
+                    <i class="bi bi-credit-card me-2"></i>
+                    <span>Payments</span>
+                </a>
+            </li>
 
             <!-- Logout Link -->
             <li class="nav-item mt-4">
