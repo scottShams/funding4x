@@ -75,29 +75,9 @@ function sendCustomEmail($to, $name, $subject, $body) {
         $body = str_replace('{name}', htmlspecialchars($name), $body);
         $body = str_replace('{email}', htmlspecialchars($to), $body);
 
-        // Create HTML email template
-        $htmlBody = "
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset='UTF-8'>
-            <title>{$subject}</title>
-        </head>
-        <body style='font-family: Arial, sans-serif; line-height: 1.6; color: #333;'>
-            <div style='max-width: 600px; margin: 0 auto; padding: 20px;'>
-                <h2 style='color: #4f009d;'>{$subject}</h2>
-                <div style='white-space: pre-line;'>
-                    {$body}
-                </div>
-                <hr style='border: none; border-top: 1px solid #eee; margin: 20px 0;'>
-                <p style='font-size: 12px; color: #666;'>
-                    This email was sent by Funding4x Admin.<br>
-                    If you have any questions, please contact our support team.
-                </p>
-            </div>
-        </body>
-        </html>
-        ";
+        // Load HTML email template
+        $htmlBody = file_get_contents('../../email_templates/custom_email_template.html');
+        $htmlBody = str_replace(['{$subject}', '{$body}'], [$subject, $body], $htmlBody);
 
         // Create PHPMailer instance
         $mail = new PHPMailer(true);
