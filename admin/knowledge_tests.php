@@ -74,6 +74,7 @@ $query = "
         wu.id,
         wu.name,
         wu.email,
+        wu.credits,
         wu.knowledge_test_result,
         wu.user_credit,
         COALESCE(referral_counts.completed_referrals, 0) AS completed_referrals
@@ -118,7 +119,9 @@ ob_start();
                         <th>Name</th>
                         <th>Email</th>
                         <th>Credits</th>
+                        <th>Total Referrals</th>
                         <th>Completed Referrals</th>
+                        <th>% Referred</th>
                         <th>Completed At</th>
                         <th>Actions</th>
                     </tr>
@@ -138,7 +141,21 @@ ob_start();
                         <td>
                             <span id="credit-<?php echo $user['id']; ?>"><?php echo $user['user_credit'] ?? 0; ?></span>
                         </td>
+                        <td><?php echo $user['credits']; ?></td>
                         <td><?php echo $user['completed_referrals']; ?></td>
+                        <td>
+                            <?php
+                                $total_referrals = $user['credits'] ?? 0;
+                                $completed_referrals = $user['completed_referrals'] ?? 0;
+                                
+                                // Calculate percentage; if total is 0, percentage is 0.
+                                $percentage = ($total_referrals > 0) 
+                                    ? round(($completed_referrals / $total_referrals) * 100, 2) 
+                                    : 0;
+                                    
+                                echo $percentage . '%';
+                            ?>
+                        </td>
                         <td><?php echo $completed_at; ?></td>
                         <td>
                             <div class="dropdown">
