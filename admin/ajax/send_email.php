@@ -99,9 +99,9 @@ function sendCustomEmail($to, $name, $subject, $body) {
         ];
 
         // Recipients
-        $mail->setFrom('noreply@funding4x.com', 'Funding4x');
+        $mail->setFrom(' support@funding4x.com', 'Funding4x Support');
         $mail->addAddress($to, $name);
-        $mail->addReplyTo('support@funding4x.com', 'Funding4x Support');
+        $mail->addReplyTo('noreply@funding4x.com', 'Funding4x');
 
         // Content
         $mail->isHTML(true);
