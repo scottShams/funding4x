@@ -47,7 +47,7 @@
                         <textarea class="form-control" id="emailBody" name="body" rows="8" required></textarea>
                     </div>
 
-                    <div class="mb-3">
+                    <!-- <div class="mb-3">
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" id="saveAsTemplate" name="save_template">
                             <label class="form-check-label" for="saveAsTemplate">
@@ -57,7 +57,7 @@
                         <div class="mt-2" id="templateNameDiv" style="display: none;">
                             <input type="text" class="form-control" id="templateName" name="template_name" placeholder="Template name">
                         </div>
-                    </div>
+                    </div> -->
                 </form>
             </div>
             <div class="modal-footer">
@@ -198,9 +198,9 @@ function openEmailModal(userId, userName, userEmail) {
     $('#emailSubject').val('');
     $('#emailBody').val('');
     $('#emailTemplate').val('');
-    $('#saveAsTemplate').prop('checked', false);
-    $('#templateNameDiv').hide();
-    $('#templateName').val('');
+    // $('#saveAsTemplate').prop('checked', false);
+    // $('#templateNameDiv').hide();
+    // $('#templateName').val('');
 
     const modal = new bootstrap.Modal(document.getElementById('emailModal'));
     modal.show();
@@ -210,10 +210,10 @@ function openEmailModal(userId, userName, userEmail) {
 $('#saveAsTemplate').change(function() {
     if ($(this).is(':checked')) {
         $('#templateNameDiv').show();
-        $('#templateName').attr('required', true);
+        // $('#templateName').attr('required', true);
     } else {
         $('#templateNameDiv').hide();
-        $('#templateName').removeAttr('required');
+        // $('#templateName').removeAttr('required');
     }
 });
 
