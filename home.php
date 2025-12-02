@@ -404,7 +404,7 @@
                     Don't Miss Out on FREE ACCESS!
                 </h3>
                 <p class="text-xl text-gray-600 mb-8">
-                    The next <span class="text-fomo-red font-extrabold">620 traders</span> get to prove their skills completely FREE. Secure your place before the counter hits 1,000!
+                    The next <span class="text-fomo-red font-extrabold"><?php echo 200 - (int)$current_users; ?> traders</span> get to prove their skills completely FREE. Secure your place before the counter hits 1,000!
                 </p>
                 <button onclick="document.getElementById('modal').classList.remove('hidden')" 
                         class="px-12 py-4 text-2xl font-bold text-white bg-success-green rounded-xl shadow-lg hover:bg-emerald-600 transition duration-300 transform hover:scale-105 active:scale-95 uppercase tracking-wider border-b-4 border-emerald-700">
