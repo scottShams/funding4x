@@ -4,6 +4,17 @@
 
     // Get reCAPTCHA site key from environment
     $recaptchaSiteKey = EnvLoader::get('RECAPTCHA_SITE_KEY', 'your_recaptcha_site_key_here');
+
+    // Get current users count from mt5_details table
+    require_once 'database.php';
+    try {
+        $pdo = getPDO();
+        $stmt = $pdo->query("SELECT COUNT(*) as count FROM mt5_details");
+        $result = $stmt->fetch();
+        $current_users = $result['count'];
+    } catch (Exception $e) {
+        $current_users = 100; // fallback to hardcoded value
+    }
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -157,7 +168,7 @@
             <!-- FOMO Counter, Countdown, & Progress Bar -->
             <div class="mt-10 p-6 bg-white border-2 border-fomo-red rounded-xl shadow-2xl max-w-lg mx-auto fomo-glow">
                 <p class="text-2xl font-bold text-fomo-red uppercase tracking-widest animate-pulse">
-                    <span id="fomo-count">380</span> / 1000 SPOTS TAKEN!
+                    <span id="fomo-count">380</span> / 200 SPOTS TAKEN!
                 </p>
                 <p class="text-sm text-gray-500 mt-1 mb-3 font-semibold">
                     <span class="text-lg font-extrabold text-success-green">FREE ACCESS ENDING IN:</span>
@@ -473,13 +484,16 @@
 
     <!-- JavaScript for FOMO Counter, Countdown Timer, and Comprehensive Form Handling -->
     <script>
-        // Data for the counter (380 current users out of 1000 free slots)
-        const CURRENT_USERS = 380;
-        const FREE_CAP = 1000;
+        // Data for the counter (dynamic current users out of 1000 free slots)
+        const CURRENT_USERS = <?php echo $current_users; ?>;
+        const FREE_CAP = 200;
         
-        // Target expiration time: 48 hours from script load
+        const startDate = new Date('2025-11-31T00:00:00').getTime();
+
+        // Add 30 days to it (constant for everyone)
+        const expirationTime = startDate + (30 * 24 * 60 * 60 * 1000);
         // In a real application, this time would be fetched from a server
-        const expirationTime = new Date().getTime() + (48 * 60 * 60 * 1000); 
+        // const expirationTime = new Date().getTime() + (48 * 60 * 60 * 1000); 
 
         // Function to update the countdown timer
         function updateCountdown() {
