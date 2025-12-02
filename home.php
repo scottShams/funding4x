@@ -34,8 +34,6 @@
 
     <!-- Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <!-- Configure Tailwind for Inter font and custom colors -->
     <script>
         tailwind.config = {
@@ -112,7 +110,7 @@
 
                     <a href="rule.php" class="text-gray-300 hover:text-trophy-gold transition duration-150 font-medium">Rules</a>
                     
-                    <button onclick="document.getElementById('modal').classList.remove('hidden')" class="bg-primary-indigo hover:bg-indigo-700 text-white font-semibold py-1 px-3 text-sm rounded transition duration-300 shadow-md">
+                    <button onclick="window.location.href='pricing.php'" class="bg-primary-indigo hover:bg-indigo-700 text-white font-semibold py-1 px-3 text-sm rounded transition duration-300 shadow-md">
                         Start Trading
                     </button>
                 </nav>
@@ -126,7 +124,7 @@
         <div id="mobile-menu" class="hidden md:hidden bg-header-dark pb-3 px-2 pt-2 space-y-1 sm:px-3">
             <a href="home.php" class="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:bg-secondary-purple">Home</a>
             <a href="rule.php" class="block px-3 py-2 rounded-md text-base font-medium text-trophy-gold hover:bg-secondary-purple">Rules</a>
-            <a href="#" class="block px-3 py-2 rounded-md text-base font-medium bg-primary-purple text-white mt-2" onclick="alertMessage('Registration Info', 'This would navigate to the registration form.')">Register Now</a>
+            <a href="pricing.php" class="block px-3 py-2 rounded-md text-base font-medium bg-primary-purple text-white mt-2">Register Now</a>
         </div>
     </header>
 
@@ -205,7 +203,7 @@
 
             <!-- Primary CTA -->
             <div id="cta" class="mt-12">
-                <button onclick="document.getElementById('modal').classList.remove('hidden')" 
+                <button onclick="window.location.href='pricing.php'"
                         class="px-12 py-4 text-2xl font-bold text-white bg-fomo-red rounded-xl shadow-lg hover:bg-red-600 transition duration-300 transform hover:scale-105 active:scale-95 uppercase tracking-wider border-b-4 border-red-700">
                     Start My Challenge Now!
                 </button>
@@ -406,7 +404,7 @@
                 <p class="text-xl text-gray-600 mb-8">
                     The next <span class="text-fomo-red font-extrabold"><?php echo 200 - (int)$current_users; ?> traders</span> get to prove their skills completely FREE. Secure your place before the counter hits 1,000!
                 </p>
-                <button onclick="document.getElementById('modal').classList.remove('hidden')" 
+                <button onclick="window.location.href='pricing.php'"
                         class="px-12 py-4 text-2xl font-bold text-white bg-success-green rounded-xl shadow-lg hover:bg-emerald-600 transition duration-300 transform hover:scale-105 active:scale-95 uppercase tracking-wider border-b-4 border-emerald-700">
                     Get Your Trading Challenge Now
                 </button>
@@ -425,62 +423,6 @@
         </div>
     </footer>
 
-    <!-- Simple Modal for Sign-up (Contact Form) -->
-    <div id="modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 hidden z-50">
-        <div class="bg-white p-8 rounded-xl shadow-2xl max-w-md w-full relative">
-            <h3 class="text-2xl font-bold text-primary-indigo mb-4">Secure Your Free Spot!</h3>
-            <p class="text-gray-700 mb-6">Enter your details below to instantly secure your free challenge access and receive the Phase 1 instructions.</p>
-            
-            <form id="waitlist-form-modal" onsubmit="event.preventDefault();">
-                <!-- Name Field -->
-                <input type="text" id="modal-name" name="name" placeholder="Enter your Name" required
-                    class="w-full mb-2 p-4 text-gray-900 bg-gray-100 border border-gray-300 rounded-lg focus:ring-primary-indigo focus:border-primary-indigo transition duration-200 placeholder-gray-500 text-lg">
-                
-                <!-- Email Field -->
-                <input type="email" id="modal-email" name="email" placeholder="Enter your email address" required
-                    class="w-full mb-2 p-4 text-gray-900 bg-gray-100 border border-gray-300 rounded-lg focus:ring-primary-indigo focus:border-primary-indigo transition duration-200 placeholder-gray-500 text-lg">
-                
-                <!-- Country selector -->
-                <select name="country" id="modal-country-select" required
-                    class="w-full mb-2 p-4 text-gray-900 bg-gray-100 border border-gray-300 rounded-lg focus:ring-primary-indigo focus:border-primary-indigo transition duration-200 text-lg">
-                    <option value="">Select your Country</option>
-                </select>
-                
-                <!-- reCAPTCHA -->
-                <div class="g-recaptcha" data-sitekey="<?php echo htmlspecialchars($recaptchaSiteKey); ?>"></div>
-
-                <!-- Agreement Checkbox -->
-                <div class="mb-4 mt-2">
-                    <label class="flex items-start text-sm text-gray-300">
-                        <input type="checkbox" id="agreeTerms" name="agreeTerms" required class="mr-2 h-4 w-4 text-amber-500 bg-gray-700 border-gray-600 rounded focus:ring-amber-500 focus:ring-2 mt-0.5">
-                        <span class="text-gray-900">
-                            I agree to the
-                            <a href="pages/terms-disclaimer.php" target="_blank" class="text-amber-400 hover:text-amber-300 underline">Terms and Conditions</a>
-                            and
-                            <a href="pages/privacy-policy.php" target="_blank" class="text-amber-400 hover:text-amber-300 underline">Privacy Policy</a>.
-                        </span>
-                    </label>
-                </div>
-
-                <div class="flex justify-end space-x-3 mt-6">
-                    <button type="button" onclick="document.getElementById('modal').classList.add('hidden')" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">Cancel</button>
-                    <button type="submit" class="px-4 py-2 bg-primary-indigo text-white rounded-lg hover:bg-indigo-700 transition">Join Waitlist Now!</button>
-                </div>
-            </form>
-
-            <!-- Referral Dashboard Link -->
-            <div class="mt-6">
-                <a href="referral_dashboard.php"
-                   id="dashboard-link-modal"
-                   class="w-full block bg-gray-100 hover:bg-gray-200 text-gray-900 font-bold py-3 px-6 rounded-lg text-lg uppercase tracking-wider shadow-lg transition duration-300 ease-in-out transform hover:scale-105 active:scale-95 text-center">
-                    View Referral Dashboard
-                </a>
-                <p class="text-xs text-gray-500 mt-2 text-center">
-                    Already joined? Check your referral status and earnings here
-                </p>
-            </div>
-        </div>
-    </div>
 
     <!-- JavaScript for FOMO Counter, Countdown Timer, and Comprehensive Form Handling -->
     <script>
@@ -542,376 +484,7 @@
             // Start the countdown timer
             updateCountdown(); // Initial call to display immediately
             countdownInterval = setInterval(updateCountdown, 1000);
-
-            // Initialize modal form functionality
-            initializeModalForm();
         });
-
-        // Initialize modal form functionality
-        function initializeModalForm() {
-            const waitlistForm = document.getElementById('waitlist-form-modal');
-            const countrySelect = document.getElementById('modal-country-select');
-
-            // Detect referral code from URL parameter
-            const urlParams = new URLSearchParams(window.location.search);
-            const referralCode = urlParams.get('ref');
-            
-            if (referralCode) {
-                // Store referral code in session storage for form submission
-                sessionStorage.setItem('referral_code', referralCode);
-                console.log('Referred by code:', referralCode);
-            }
-
-            // Load all countries into dropdown
-            const countries = [
-                "Afghanistan","Albania","Algeria","Andorra","Angola","Argentina","Armenia","Australia","Austria",
-                "Azerbaijan","Bahamas","Bahrain","Bangladesh","Barbados","Belarus","Belgium","Belize","Benin",
-                "Bhutan","Bolivia","Bosnia and Herzegovina","Botswana","Brazil","Brunei","Bulgaria","Burkina Faso",
-                "Burundi","Cambodia","Cameroon","Canada","Chile","China","Colombia","Comoros","Congo",
-                "Costa Rica","Croatia","Cuba","Cyprus","Czech Republic","Denmark","Dominican Republic",
-                "Ecuador","Egypt","El Salvador","Estonia","Ethiopia","Fiji","Finland","France","Gabon","Gambia",
-                "Georgia","Germany","Ghana","Greece","Guatemala","Honduras","Hong Kong","Hungary","Iceland",
-                "India","Indonesia","Iran","Iraq","Ireland","Israel","Italy","Jamaica","Japan","Jordan","Kazakhstan",
-                "Kenya","Kuwait","Kyrgyzstan","Laos","Latvia","Lebanon","Lesotho","Liberia","Libya","Lithuania",
-                "Luxembourg","Madagascar","Malawi","Malaysia","Maldives","Mali","Malta","Mauritius","Mexico",
-                "Moldova","Monaco","Mongolia","Montenegro","Morocco","Mozambique","Myanmar","Namibia","Nepal",
-                "Netherlands","New Zealand","Nicaragua","Niger","Nigeria","North Korea","Norway","Oman","Pakistan",
-                "Palestine","Panama","Paraguay","Peru","Philippines","Poland","Portugal","Qatar","Romania",
-                "Russia","Rwanda","Saudi Arabia","Senegal","Serbia","Singapore","Slovakia","Slovenia","South Africa",
-                "South Korea","Spain","Sri Lanka","Sudan","Sweden","Switzerland","Syria","Taiwan","Tanzania",
-                "Thailand","Togo","Trinidad and Tobago","Tunisia","Turkey","Uganda","Ukraine","United Arab Emirates",
-                "United Kingdom","United States","Uruguay","Uzbekistan","Venezuela","Vietnam","Yemen","Zambia","Zimbabwe"
-            ];
-
-            // Add default "Select your Country" placeholder FIRST
-            const defaultOption = document.createElement('option');
-            defaultOption.value = "";
-            defaultOption.textContent = "Select your Country";
-            defaultOption.disabled = true;
-            defaultOption.selected = true;
-            defaultOption.hidden = true;
-            countrySelect.appendChild(defaultOption);
-
-            // Then add all countries
-            countries.forEach(country => {
-                const option = document.createElement('option');
-                option.value = country;
-                option.textContent = country;
-                countrySelect.appendChild(option);
-            });
-
-            // Handle form submission
-            waitlistForm.addEventListener('submit', async function (e) {
-                e.preventDefault();
-
-                const recaptchaResponse = grecaptcha.getResponse(); // Get reCAPTCHA token
-                if (!recaptchaResponse) {
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'Please Verify',
-                        text: 'Please complete the reCAPTCHA to continue.',
-                        confirmButtonColor: '#f97316'
-                    });
-                    return;
-                }
-                
-                const name = waitlistForm.querySelector('input[name="name"]').value.trim();
-                const email = waitlistForm.querySelector('input[name="email"]').value.trim();
-                const country = countrySelect.value;
-                const referralCode = sessionStorage.getItem('referral_code') || '';
-
-                if (!name || !email || !country) {
-                    // Hide any existing loader first
-                    hideEmailVerificationLoader();
-                    ensureNoLoaderRemains();
-                    
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'Missing Information',
-                        text: 'Please fill in your name, email, and country.',
-                        confirmButtonColor: '#f97316',
-                        didClose: () => {
-                            // Ensure no loader remains after alert is closed
-                            hideEmailVerificationLoader();
-                            ensureNoLoaderRemains();
-                        }
-                    });
-                    return;
-                }
-
-                try {
-                    // Show loader
-                    showEmailVerificationLoader();
-
-                    const requestData = {
-                        name,
-                        email,
-                        country,
-                        recaptcha: recaptchaResponse
-                    };
-                    if (referralCode) {
-                        requestData.ref = referralCode;
-                    }
-
-                    const response = await fetch('save_waitlist.php', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(requestData)
-                    });
-
-                    const result = await response.json();
-
-                    // Hide loader immediately and ensure complete cleanup
-                    hideEmailVerificationLoader();
-                    ensureNoLoaderRemains();
-
-                    if (result.status === 'success') {
-                        // Store referral information for dashboard access
-                        if (result.referral_code) {
-                            sessionStorage.setItem('user_referral_code', result.referral_code);
-                            sessionStorage.setItem('referral_link', result.referral_link);
-                        }
-                        
-                        // Show email verification message and close modal
-                        Swal.fire({
-                            icon: 'success',
-                            title: '🎉 Welcome to the Program!',
-                            html: `
-                                <div class="text-left">
-                                    <p class="mb-3">You've been successfully registered!</p>
-                                    <div class="bg-blue-100 border border-blue-300 rounded-lg p-3 mb-3">
-                                        <h4 class="font-bold text-blue-800 mb-2">📧 Next Step: Verify Your Email</h4>
-                                        <p class="text-blue-700 text-sm">
-                                            We've sent a verification link to <strong>${email}</strong>.
-                                            Please check your inbox (and spam folder) and click the link to activate your account.
-                                        </p>
-                                    </div>
-                                    <p class="text-sm text-gray-600">
-                                        Once verified, you'll be redirected to your exclusive dashboard.
-                                    </p>
-                                </div>
-                            `,
-                            confirmButtonColor: '#f97316',
-                            confirmButtonText: 'Got it!',
-                            width: '500px',
-                            showConfirmButton: true,
-                            allowOutsideClick: false,
-                            didClose: () => {
-                                // Close modal and ensure no loader remains
-                                document.getElementById('modal').classList.add('hidden');
-                                hideEmailVerificationLoader();
-                                ensureNoLoaderRemains();
-                                console.log('User confirmed email verification message');
-                            }
-                        });
-
-                    } else if (result.status === 'existing_user') {
-                        // User exists and is verified - redirect to dashboard
-                        hideEmailVerificationLoader();
-                        ensureNoLoaderRemains();
-                        window.location.href = 'referral_dashboard.php?user=' + encodeURIComponent(result.referral_code);
-                        
-                    } else if (result.status === 'email_not_verified') {
-                        // User exists but hasn't verified email
-                        Swal.fire({
-                            icon: 'warning',
-                            title: 'Email Verification Required',
-                            html: `
-                                <div class="text-left">
-                                    <p class="mb-3">You're already registered, but need to verify your email address first.</p>
-                                    <div class="bg-orange-100 border border-orange-300 rounded-lg p-3 mb-3">
-                                        <h4 class="font-bold text-orange-800 mb-2">📧 Check Your Email</h4>
-                                        <p class="text-orange-700 text-sm">
-                                            Please check your email inbox (and spam folder) for a verification link.
-                                            Click the link to activate your account and access the referral dashboard.
-                                        </p>
-                                    </div>
-                                    <p class="text-sm text-gray-600">
-                                        Didn't receive an email? Contact our support team.
-                                    </p>
-                                </div>
-                            `,
-                            confirmButtonColor: '#f97316',
-                            confirmButtonText: 'Check Email',
-                            width: '500px',
-                            showConfirmButton: true,
-                            allowOutsideClick: false,
-                            didClose: () => {
-                                // Close modal and reset form
-                                document.getElementById('modal').classList.add('hidden');
-                                resetFormToOriginalState();
-                                
-                                // Additional cleanup
-                                setTimeout(() => {
-                                    const swalElements = document.querySelectorAll('.swal2-container');
-                                    swalElements.forEach(el => el.remove());
-                                    
-                                    const customBackdrop = document.getElementById('custom-alert-backdrop');
-                                    if (customBackdrop) {
-                                        customBackdrop.remove();
-                                    }
-                                    
-                                    ensureNoLoaderRemains();
-                                }, 100);
-                            }
-                        });
-                        
-                    } else {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Oops!',
-                            text: result.message || 'Something went wrong. Please try again.',
-                            confirmButtonColor: '#f97316',
-                            showConfirmButton: true,
-                            allowOutsideClick: false,
-                            didClose: () => {
-                                ensureNoLoaderRemains();
-                            }
-                        });
-                    }
-
-                } catch (error) {
-                    // Hide loader in case of network errors
-                    hideEmailVerificationLoader();
-                    ensureNoLoaderRemains();
-                    
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Connection Error',
-                        text: 'We couldn\'t submit your request. Please check your connection and try again.',
-                        confirmButtonColor: '#f97316',
-                        didClose: () => {
-                            ensureNoLoaderRemains();
-                        }
-                    });
-                }
-            });
-        }
-
-        // Email verification loader
-        function showEmailVerificationLoader() {
-            const loaderHtml = `
-                <div id="email-verification-loader" class="fixed inset-0 loader-overlay z-50 flex items-center justify-center">
-                    <div class="bg-gray-800 p-8 rounded-2xl shadow-2xl border-t-8 border-primary-accent text-center max-w-md">
-                        <div class="spinner mb-4"></div>
-                        <h3 class="text-xl font-bold text-white mb-2">Creating Your Account...</h3>
-                        <p class="text-gray-300 mb-4">Please wait while we set up your exclusive access and send verification email.</p>
-                        <div class="flex items-center justify-center space-x-2 text-sm text-gray-400">
-                            <div class="w-2 h-2 bg-primary-accent rounded-full animate-pulse"></div>
-                            <div class="w-2 h-2 bg-primary-accent rounded-full animate-pulse" style="animation-delay: 0.2s;"></div>
-                            <div class="w-2 h-2 bg-primary-accent rounded-full animate-pulse" style="animation-delay: 0.4s;"></div>
-                        </div>
-                    </div>
-                </div>
-            `;
-            document.body.insertAdjacentHTML('beforeend', loaderHtml);
-        }
-
-        function hideEmailVerificationLoader() {
-            const loader = document.getElementById('email-verification-loader');
-            if (loader) {
-                loader.remove();
-            }
-        }
-
-        function ensureNoLoaderRemains() {
-            // Remove all possible loader elements
-            const loaderSelectors = [
-                '#email-verification-loader',
-                '.loader-overlay',
-                '[id*="email-verification"]',
-                '[class*="loader"]'
-            ];
-            
-            loaderSelectors.forEach(selector => {
-                const elements = document.querySelectorAll(selector);
-                elements.forEach(element => {
-                    if (element && element.id !== 'email-verification-loader') {
-                        element.remove();
-                    }
-                });
-            });
-            
-            // Also check for any div with loader classes
-            const allLoaders = document.querySelectorAll('.spinner');
-            allLoaders.forEach(spinner => {
-                const parent = spinner.closest('.fixed, .absolute');
-                if (parent && parent.id !== 'email-verification-loader') {
-                    // Remove the parent container if it looks like a loader overlay
-                    const parentClasses = parent.className;
-                    if (parentClasses.includes('loader-overlay') || parentClasses.includes('flex items-center justify-center')) {
-                        parent.remove();
-                    }
-                }
-            });
-            
-            console.log('Loader cleanup completed');
-        }
-
-        function resetFormToOriginalState() {
-            const waitlistForm = document.getElementById('waitlist-form-modal');
-            const countrySelect = document.getElementById('modal-country-select');
-            
-            // Reset form inputs
-            if (waitlistForm) {
-                waitlistForm.querySelector('input[name="name"]').value = '';
-                waitlistForm.querySelector('input[name="email"]').value = '';
-            }
-            if (countrySelect) {
-                countrySelect.selectedIndex = 0;
-            }
-            
-            // Reset country dropdown to default state
-            if (countrySelect) {
-                const defaultOption = document.createElement('option');
-                defaultOption.value = "";
-                defaultOption.textContent = "Select your Country";
-                defaultOption.disabled = true;
-                defaultOption.selected = true;
-                defaultOption.hidden = true;
-                
-                // Clear existing options and re-add default
-                countrySelect.innerHTML = '';
-                countrySelect.appendChild(defaultOption);
-                
-                // Re-populate countries
-                const countries = [
-                    "Afghanistan","Albania","Algeria","Andorra","Angola","Argentina","Armenia","Australia","Austria",
-                    "Azerbaijan","Bahamas","Bahrain","Bangladesh","Barbados","Belarus","Belgium","Belize","Benin",
-                    "Bhutan","Bolivia","Bosnia and Herzegovina","Botswana","Brazil","Brunei","Bulgaria","Burkina Faso",
-                    "Burundi","Cambodia","Cameroon","Canada","Chile","China","Colombia","Comoros","Congo",
-                    "Costa Rica","Croatia","Cuba","Cyprus","Czech Republic","Denmark","Dominican Republic",
-                    "Ecuador","Egypt","El Salvador","Estonia","Ethiopia","Fiji","Finland","France","Gabon","Gambia",
-                    "Georgia","Germany","Ghana","Greece","Guatemala","Honduras","Hong Kong","Hungary","Iceland",
-                    "India","Indonesia","Iran","Iraq","Ireland","Israel","Italy","Jamaica","Japan","Jordan","Kazakhstan",
-                    "Kenya","Kuwait","Kyrgyzstan","Laos","Latvia","Lebanon","Lesotho","Liberia","Libya","Lithuania",
-                    "Luxembourg","Madagascar","Malawi","Malaysia","Maldives","Mali","Malta","Mauritius","Mexico",
-                    "Moldova","Monaco","Mongolia","Montenegro","Morocco","Mozambique","Myanmar","Namibia","Nepal",
-                    "Netherlands","New Zealand","Nicaragua","Niger","Nigeria","North Korea","Norway","Oman","Pakistan",
-                    "Palestine","Panama","Paraguay","Peru","Philippines","Poland","Portugal","Qatar","Romania",
-                    "Russia","Rwanda","Saudi Arabia","Senegal","Serbia","Singapore","Slovakia","Slovenia","South Africa",
-                    "South Korea","Spain","Sri Lanka","Sudan","Sweden","Switzerland","Syria","Taiwan","Tanzania",
-                    "Thailand","Togo","Trinidad and Tobago","Tunisia","Turkey","Uganda","Ukraine","United Arab Emirates",
-                    "United Kingdom","United States","Uruguay","Uzbekistan","Venezuela","Vietnam","Yemen","Zambia","Zimbabwe"
-                ];
-                
-                countries.forEach(country => {
-                    const option = document.createElement('option');
-                    option.value = country;
-                    option.textContent = country;
-                    countrySelect.appendChild(option);
-                });
-            }
-            
-            // Clear any remaining loader elements
-            hideEmailVerificationLoader();
-            
-            // Clear session storage related to the form
-            sessionStorage.removeItem('user_referral_code');
-            sessionStorage.removeItem('referral_link');
-            
-            console.log('Modal form reset to original state');
-        }
     </script>
 </body>
 </html>
