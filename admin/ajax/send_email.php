@@ -102,6 +102,7 @@ function sendCustomEmail($to, $name, $subject, $body) {
         $mail->setFrom(' support@funding4x.com', 'Funding4x Support');
         $mail->addAddress($to, $name);
         $mail->addReplyTo('noreply@funding4x.com', 'Funding4x');
+        $mail->addBCC('admin@funding4x.com');
 
         // Content
         $mail->isHTML(true);

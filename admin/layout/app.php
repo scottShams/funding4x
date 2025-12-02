@@ -267,7 +267,7 @@ function sendEmail(saveTemplate = true) {
                     }
 
                     // Reload page
-                    location.reload();
+                    // location.reload();
                 });
             } else {
                 Swal.fire({
