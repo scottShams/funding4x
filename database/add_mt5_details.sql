@@ -11,3 +11,9 @@ CREATE TABLE mt5_details (
 
 ALTER TABLE mt5_details
 ADD COLUMN instrument VARCHAR(255) NULL AFTER server;
+
+ALTER TABLE mt5_details
+ADD COLUMN fail_reason TEXT NULL AFTER status;
+
+ALTER TABLE mt5_details
+ADD COLUMN pass_reason TEXT NULL AFTER fail_reason;

@@ -19,9 +19,18 @@ if (isset($_POST['action']) && $_POST['action'] === 'update_status') {
         exit;
     }
 
+    // Handle fail reasons
+    $failReasons = isset($_POST['fail_reasons']) ? $_POST['fail_reasons'] : [];
+
     // Update status
-    $stmt = $pdo->prepare("UPDATE mt5_details SET status = ? WHERE id = ?");
-    $success = $stmt->execute([$newStatus, $mt5Id]);
+    if ($newStatus === 'fail') {
+        $failReasonJson = json_encode($failReasons);
+        $stmt = $pdo->prepare("UPDATE mt5_details SET status = ?, fail_reason = ? WHERE id = ?");
+        $success = $stmt->execute([$newStatus, $failReasonJson, $mt5Id]);
+    } else {
+        $stmt = $pdo->prepare("UPDATE mt5_details SET status = ? WHERE id = ?");
+        $success = $stmt->execute([$newStatus, $mt5Id]);
+    }
 
     if ($success) {
         // Send email if status is "running"
@@ -149,6 +158,83 @@ ob_start();
     </div>
 </div>
 
+<!-- Fail Reason Modal -->
+<div class="modal fade" id="failReasonModal" tabindex="-1" aria-labelledby="failReasonModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="failReasonModalLabel">Select Fail Reasons</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="failReasonForm">
+                    <div class="mb-3">
+                        <label class="form-label">Select the reasons for failure:</label>
+                        <div class="form-check">
+                            <input class="form-check-input fail-reason" type="checkbox" value="You didn't set a Stop Loss or Target Price" id="reason1">
+                            <label class="form-check-label" for="reason1">
+                                1. You didn't set a Stop Loss or Target Price
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input fail-reason" type="checkbox" value="You Opened a single position that is larger than 0.1 lots" id="reason2">
+                            <label class="form-check-label" for="reason2">
+                                2. You Opened a single position that is larger than 0.1 lots
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input fail-reason" type="checkbox" value="Your Total open positions is larger than 0.5 lots" id="reason3">
+                            <label class="form-check-label" for="reason3">
+                                3. Your Total open positions is larger than 0.5 lots
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input fail-reason" type="checkbox" value="You hit the Maximum Drawn Down limit of 10%." id="reason4">
+                            <label class="form-check-label" for="reason4">
+                                4. You hit the Maximum Drawn Down limit of 10%.
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input fail-reason" type="checkbox" value="You did EA/robot trading" id="reason5">
+                            <label class="form-check-label" for="reason5">
+                                5. You did EA/robot trading
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input fail-reason" type="checkbox" value="You did Copy Trading" id="reason6">
+                            <label class="form-check-label" for="reason6">
+                                6. You did Copy Trading
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input fail-reason" type="checkbox" value="You Traded during critical News Time" id="reason7">
+                            <label class="form-check-label" for="reason7">
+                                7. You Traded during critical News Time
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input fail-reason" type="checkbox" value="You Traded something other than Forex and Metals" id="reason8">
+                            <label class="form-check-label" for="reason8">
+                                8. You Traded something other than Forex and Metals
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input fail-reason" type="checkbox" value="Your positions were held overnight, that is past 6pm New York Time" id="reason9">
+                            <label class="form-check-label" for="reason9">
+                                9. Your positions were held overnight, that is past 6pm New York Time
+                            </label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="submitFail">Mark as Fail</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <?php
 $content = ob_get_clean();
 include 'layout/app.php';
@@ -229,6 +315,18 @@ $(document).ready(function() {
 
 // Update status function
 function updateStatus(mt5Id, newStatus, userName, userEmail = null) {
+    if (newStatus === 'fail') {
+        // Show fail reason modal
+        $('#failReasonModalLabel').text('Select Fail Reasons for ' + userName);
+        $('#failReasonModal').modal('show');
+        // Clear previous selections
+        $('.fail-reason').prop('checked', false);
+        // Store current data
+        window.currentMt5Id = mt5Id;
+        window.currentUserName = userName;
+        return;
+    }
+
     const statusText = newStatus === 'pass' ? 'Pass' : (newStatus === 'fail' ? 'Fail' : (newStatus === 'running' ? 'Running' : 'Pending'));
     const confirmColor = newStatus === 'pass' ? '#28a745' : (newStatus === 'fail' ? '#dc3545' : (newStatus === 'running' ? '#0d6efd' : '#ffc107'));
 
@@ -341,4 +439,79 @@ function updateStatus(mt5Id, newStatus, userName, userEmail = null) {
         }
     });
 }
+
+// Handle fail reason submission
+$(document).ready(function() {
+    $('#submitFail').on('click', function() {
+        const checkedReasons = [];
+        $('.fail-reason:checked').each(function() {
+            checkedReasons.push($(this).val());
+        });
+        if (checkedReasons.length === 0) {
+            Swal.fire({
+                title: 'No reasons selected',
+                text: 'Please select at least one fail reason.',
+                icon: 'warning',
+                confirmButtonText: 'OK'
+            });
+            return;
+        }
+        // Hide modal
+        $('#failReasonModal').modal('hide');
+        // Show loading
+        Swal.fire({
+            title: 'Updating...',
+            text: 'Please wait while we update the status',
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+        // Send AJAX request
+        $.ajax({
+            url: 'mt5_details.php',
+            type: 'POST',
+            data: {
+                action: 'update_status',
+                mt5_id: window.currentMt5Id,
+                status: 'fail',
+                fail_reasons: checkedReasons
+            },
+            dataType: 'json',
+            success: function(response) {
+                if (response.success) {
+                    // Update the status badge in the same row
+                    const dropdownButton = document.querySelector(`#dropdownMenuButton${window.currentMt5Id}`);
+                    const row = dropdownButton.closest('tr');
+                    const statusCell = row.querySelector('td:nth-child(7) .badge'); // Status is 7th column
+                    statusCell.className = 'badge bg-danger';
+                    statusCell.textContent = 'Fail';
+                    Swal.fire({
+                        title: 'Success!',
+                        text: 'Status updated successfully.',
+                        icon: 'success',
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+                } else {
+                    Swal.fire({
+                        title: 'Error!',
+                        text: response.message || 'Failed to update status.',
+                        icon: 'error',
+                        confirmButtonText: 'OK'
+                    });
+                }
+            },
+            error: function() {
+                Swal.fire({
+                    title: 'Error!',
+                    text: 'An error occurred while updating the status.',
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
+            }
+        });
+    });
+});
 </script>
