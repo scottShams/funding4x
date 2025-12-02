@@ -248,7 +248,7 @@
 
                     <!-- CTA Button -->
                     <button id="ctaButton" class="w-full py-3 bg-primary-purple text-card-white font-extrabold text-lg rounded-lg shadow-lg hover:bg-secondary-purple transition duration-300"
-                        onclick="showSignupModal()">
+                        onclick="showSignupModal('checkout')">
                         Get My Account Now!
                     </button>
 
@@ -333,6 +333,8 @@
             <p class="text-gray-700 mb-6">Enter your details below to start your trading journey.</p>
 
             <form id="signupForm" onsubmit="event.preventDefault();">
+                <!-- Hidden field for redirect destination -->
+                <input type="hidden" id="signup-redirect_destination" name="redirect_destination" value="">
                 <!-- Name Field -->
                 <input type="text" id="signup-name" name="name" placeholder="Enter your Name" required
                     class="w-full mb-2 p-4 text-gray-900 bg-gray-100 border border-gray-300 rounded-lg focus:ring-primary-purple focus:border-primary-purple transition duration-200 placeholder-gray-500 text-lg">
@@ -451,8 +453,6 @@
                 neutralClasses.forEach(cls => instantAccessCard.classList.remove('shadow-lg')); // Remove specific conflicting class
 
 
-                ctaButton.textContent = 'Purchase Phase 1 Access Now!';
-                ctaButton.onclick = () => alertMessage('Checkout Initiated', 'You are being redirected to a secure payment gateway to purchase instant access for the discounted price of $36.58.');
 
             } else {
                 // Full Price State: $59
@@ -468,8 +468,6 @@
                 neutralClasses.forEach(cls => instantAccessCard.classList.add(cls));
 
 
-                ctaButton.textContent = 'Purchase Phase 1 Access';
-                ctaButton.onclick = () => alertMessage('Checkout Initiated', 'You are being redirected to a secure payment gateway to purchase instant access for the full price of $59.');
             }
         }
 
@@ -630,14 +628,26 @@
                             sessionStorage.setItem('referral_link', result.referral_link);
                         }
 
-                        // Show success message and close modal
-                        alertMessage('Welcome to Funding4x!', `You've been successfully registered! Check your email for verification instructions.`);
+                        // Check redirect destination
+                        const redirectDestination = document.getElementById('signup-redirect_destination').value;
+                        if (redirectDestination === 'checkout') {
+                            // Redirect to checkout page
+                            window.location.href = 'checkout.php';
+                        } else {
+                            // Show success message and close modal
+                            alertMessage('Welcome to Funding4x!', `You've been successfully registered! Check your email for verification instructions.`);
+                        }
 
                     } else if (result.status === 'existing_user') {
-                        // User exists and is verified - redirect to dashboard
+                        // User exists and is verified - redirect based on destination
                         hideSignupLoader();
                         ensureNoSignupLoaderRemains();
-                        window.location.href = 'referral_dashboard.php?user=' + encodeURIComponent(result.referral_code);
+                        const redirectDestination = document.getElementById('signup-redirect_destination').value;
+                        if (redirectDestination === 'checkout') {
+                            window.location.href = 'checkout.php';
+                        } else {
+                            window.location.href = 'referral_dashboard.php?user=' + encodeURIComponent(result.referral_code);
+                        }
 
                     } else if (result.status === 'email_not_verified') {
                         // User exists but hasn't verified email
@@ -659,9 +669,13 @@
 
         function closeSignupModal() {
             document.getElementById('signupModal').classList.add('hidden');
+            // Reset redirect destination
+            document.getElementById('signup-redirect_destination').value = '';
         }
 
-        function showSignupModal() {
+        function showSignupModal(redirectDestination = '') {
+            // Set the redirect destination
+            document.getElementById('signup-redirect_destination').value = redirectDestination || '';
             document.getElementById('signupModal').classList.remove('hidden');
         }
 
