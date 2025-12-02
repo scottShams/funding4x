@@ -47,6 +47,12 @@
                         <textarea class="form-control" id="emailBody" name="body" rows="8" required></textarea>
                     </div>
 
+                    <div class="mb-3">
+                        <label for="emailAttachment" class="form-label">Attachment (Optional)</label>
+                        <input type="file" class="form-control" id="emailAttachment" name="attachment" accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.gif">
+                        <div class="form-text">Supported formats: PDF, DOC, DOCX, TXT, JPG, JPEG, PNG, GIF. Max size: 10MB</div>
+                    </div>
+
                     <!-- <div class="mb-3">
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" id="saveAsTemplate" name="save_template">
@@ -180,7 +186,7 @@ function loadTemplate() {
         dataType: 'json',
         success: function(template) {
             $('#emailSubject').val(template.subject);
-            $('#emailBody').val(template.body);
+            $('#emailBody').val(`Hello ${currentUserName},\n\n${template.body}`);
         },
         error: function() {
             console.error('Failed to load template');
@@ -196,8 +202,9 @@ function openEmailModal(userId, userName, userEmail) {
 
     $('#emailUserId').val(userId);
     $('#emailSubject').val('');
-    $('#emailBody').val('');
+    $('#emailBody').val(`Hello ${userName},\n\n`);
     $('#emailTemplate').val('');
+    $('#emailAttachment').val(''); // Clear file input
     // $('#saveAsTemplate').prop('checked', false);
     // $('#templateNameDiv').hide();
     // $('#templateName').val('');

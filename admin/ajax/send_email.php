@@ -46,8 +46,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         $stmt->execute([$subject, $subject, $body]);
     }
 
+    // Handle file attachment
+    $attachment = null;
+    if (isset($_FILES['attachment']) && $_FILES['attachment']['error'] === UPLOAD_ERR_OK) {
+        $attachment = $_FILES['attachment'];
+    }
+
     // Send email using PHPMailer with SMTP configuration
-    $emailSent = sendCustomEmail($user['email'], $user['name'], $subject, $body);
+    $emailSent = sendCustomEmail($user['email'], $user['name'], $subject, $body, $attachment);
 
     if ($emailSent) {
         // Log the email sent
@@ -62,7 +68,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 }
 
 // Custom email sending function using PHPMailer
-function sendCustomEmail($to, $name, $subject, $body) {
+function sendCustomEmail($to, $name, $subject, $body, $attachment = null) {
     try {
         // Get SMTP configuration from .env file (same as EmailVerification)
         $smtpHost = EnvLoader::get('SMTP_HOST', 'localhost');
@@ -109,6 +115,34 @@ function sendCustomEmail($to, $name, $subject, $body) {
         $mail->Subject = $subject;
         $mail->Body = $htmlBody;
         $mail->AltBody = strip_tags($body); // Plain text alternative
+
+        // Handle attachment
+        if ($attachment !== null) {
+            // Validate file size (max 10MB)
+            if ($attachment['size'] > 10 * 1024 * 1024) {
+                throw new Exception('Attachment file size exceeds 10MB limit');
+            }
+
+            // Validate file type
+            $allowedTypes = [
+                'application/pdf',
+                'application/msword',
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                'text/plain',
+                'image/jpeg',
+                'image/jpg',
+                'image/png',
+                'image/gif'
+            ];
+
+            $fileType = mime_content_type($attachment['tmp_name']);
+            if (!in_array($fileType, $allowedTypes)) {
+                throw new Exception('Invalid file type. Only PDF, DOC, DOCX, TXT, JPG, JPEG, PNG, GIF files are allowed');
+            }
+
+            // Add attachment
+            $mail->addAttachment($attachment['tmp_name'], $attachment['name']);
+        }
 
         // Send email
         $sent = $mail->send();
