@@ -31,7 +31,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'add_credit') {
     $userId = (int)$_POST['user_id'];
 
     // Increment user_credit by 1
-    $stmt = $pdo->prepare("UPDATE waitlist_users SET user_credit = user_credit + 1 WHERE id = ?");
+    $stmt = $pdo->prepare("UPDATE waitlist_users SET user_credit = user_credit + 1, credit_updated_at = NOW() WHERE id = ?");
     $success = $stmt->execute([$userId]);
 
     if ($success) {
@@ -53,7 +53,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'remove_credit') {
     $userId = (int)$_POST['user_id'];
 
     // Decrement user_credit by 1, but not below 0
-    $stmt = $pdo->prepare("UPDATE waitlist_users SET user_credit = GREATEST(0, user_credit - 1) WHERE id = ?");
+    $stmt = $pdo->prepare("UPDATE waitlist_users SET user_credit = GREATEST(0, user_credit - 1), credit_updated_at = NOW() WHERE id = ?");
     $success = $stmt->execute([$userId]);
 
     if ($success) {
