@@ -109,7 +109,7 @@
                     <a href="home.php" class="text-trophy-gold font-bold transition duration-150 border-b-2 border-trophy-gold">Home</a>
 
                     <a href="rule.php" class="text-gray-300 hover:text-trophy-gold transition duration-150 font-medium">Rules</a>
-                    
+                    <a href="referral_dashboard.php" class="text-gray-300 hover:text-trophy-gold transition duration-150 font-medium">Login</a>
                     <button onclick="window.location.href='pricing.php'" class="bg-primary-indigo hover:bg-indigo-700 text-white font-semibold py-1 px-3 text-sm rounded transition duration-300 shadow-md">
                         Start Trading
                     </button>

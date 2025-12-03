@@ -104,10 +104,13 @@
                 </div>
                 <!-- Desktop Nav -->
                 <nav class="hidden md:flex space-x-8">
-                    <a href="index.php" class="text-gray-300 hover:text-trophy-gold transition duration-150 font-medium">Home</a>
-                    <a href="referral_dashboard.php" class="text-gray-300 hover:text-trophy-gold transition duration-150 font-medium">Dashboard</a>
-                    <a href="rule.php" class="text-trophy-gold font-bold transition duration-150 border-b-2 border-trophy-gold">Rules</a>
-                    <a href="index.php" class="bg-primary-purple text-white px-4 py-1 rounded-full hover:bg-secondary-purple transition duration-150 font-semibold shadow-md">Sign Up Now</a>
+                    <a href="home.php" class="text-trophy-gold font-bold transition duration-150 border-b-2 border-trophy-gold">Home</a>
+
+                    <a href="rule.php" class="text-gray-300 hover:text-trophy-gold transition duration-150 font-medium">Rules</a>
+                    <a href="pricing.php" class="text-gray-300 hover:text-trophy-gold transition duration-150 font-medium">Login</a>
+                    <button onclick="window.location.href='pricing.php'" class="bg-primary-indigo hover:bg-indigo-700 text-white font-semibold py-1 px-3 text-sm rounded transition duration-300 shadow-md">
+                        Start Trading
+                    </button>
                 </nav>
                 <!-- Mobile Menu Button (Hamburger) -->
                 <button id="menu-button" class="md:hidden text-gray-300 hover:text-trophy-gold focus:outline-none">
@@ -117,10 +120,9 @@
         </div>
         <!-- Mobile Menu -->
         <div id="mobile-menu" class="hidden md:hidden bg-header-dark pb-3 px-2 pt-2 space-y-1 sm:px-3">
-            <a href="index.php" class="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:bg-secondary-purple">Home</a>
-            <a href="referral_dashboard.php" class="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:bg-secondary-purple">Dashboard</a>
-            <a href="#" class="block px-3 py-2 rounded-md text-base font-medium text-trophy-gold hover:bg-secondary-purple">Rules</a>
-            <a href="index.php" class="block px-3 py-2 rounded-md text-base font-medium bg-primary-purple text-white mt-2" onclick="alertMessage('Registration Info', 'This would navigate to the registration form.')">Register Now</a>
+            <a href="home.php" class="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:bg-secondary-purple">Home</a>
+            <a href="rule.php" class="block px-3 py-2 rounded-md text-base font-medium text-trophy-gold hover:bg-secondary-purple">Rules</a>
+            <a href="pricing.php" class="block px-3 py-2 rounded-md text-base font-medium bg-primary-purple text-white mt-2">Register Now</a>
         </div>
     </header>
 
