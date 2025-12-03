@@ -17,3 +17,6 @@ ADD COLUMN fail_reason TEXT NULL AFTER status;
 
 ALTER TABLE mt5_details
 ADD COLUMN pass_reason TEXT NULL AFTER fail_reason;
+
+ALTER TABLE mt5_details
+ADD COLUMN status_updated_at TIMESTAMP NULL AFTER pass_reason;
