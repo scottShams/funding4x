@@ -279,7 +279,11 @@ We have clear transparent and easy to follow rules to help you be profitable and
                         <p class="text-gray-700">**The use of any external copy trading service, signal provider, or automated replication of trades from another account is strictly prohibited.** All trades must be generated solely by the participant's strategy. The trades cannot be copied from another participant in Funding4x either.</p>
                     </div>
                     <div class="bg-yellow-50 p-4 rounded-lg border-l-4 border-yellow-500">
-                        <p class="font-semibold text-yellow-800">3.4 News Trading</p>
+                        <p class="font-semibold text-yellow-800">3.4 Risk Exposure</p>
+                        <p class="text-gray-700">Your Stop Loss should be such that you're maximum risk on a single trade is only 1% of the account balance. Opening trades with large risks will be a violation, and the Test will be Failed.</p>
+                    </div>
+                    <div class="bg-yellow-50 p-4 rounded-lg border-l-4 border-yellow-500">
+                        <p class="font-semibold text-yellow-800">3.5 News Trading</p>
                         <p class="text-gray-700">Trading within a 1 hour window (30 min before to 30 min after) any high-impact economic news release (marked as Red on major economic calendars) is **prohibited**. Trades must be placed outside of this volatility window.</p>
                     </div>
                 </div>
