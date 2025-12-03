@@ -21,9 +21,9 @@
     }
 
     // Check if MT5 details are already submitted
-    $stmt = $pdo->prepare("SELECT id FROM mt5_details WHERE user_id = ?");
-    $stmt->execute([$user['id']]);
-    $hasMT5Details = $stmt->fetch(PDO::FETCH_ASSOC);
+    // $stmt = $pdo->prepare("SELECT id FROM mt5_details WHERE user_id = ?");
+    // $stmt->execute([$user['id']]);
+    // $hasMT5Details = $stmt->fetch(PDO::FETCH_ASSOC);
 ?>
 
 <!DOCTYPE html>
