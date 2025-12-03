@@ -33,7 +33,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'update_status') {
     }
 
     if ($success) {
-        // Send email if status is "running"
+        // Send email if status is "running" or "fail"
         $emailSent = true;
         if ($newStatus === 'running') {
             // Get user email for sending notification
@@ -44,6 +44,17 @@ if (isset($_POST['action']) && $_POST['action'] === 'update_status') {
             if ($userData) {
                 require_once '../email_verification.php';
                 $emailSent = EmailVerification::sendAccountReadyEmail($userData['email'], $userData['name']);
+            }
+        } elseif ($newStatus === 'fail') {
+            // Get user email and fail reasons for sending notification
+            $userStmt = $pdo->prepare("SELECT u.email, u.name, m.fail_reason FROM mt5_details m JOIN waitlist_users u ON m.user_id = u.id WHERE m.id = ?");
+            $userStmt->execute([$mt5Id]);
+            $userData = $userStmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($userData) {
+                require_once '../email_verification.php';
+                $failReasons = json_decode($userData['fail_reason'], true) ?: [];
+                $emailSent = EmailVerification::sendFailEmail($userData['email'], $userData['name'], $failReasons);
             }
         }
 
@@ -391,8 +402,8 @@ function updateStatus(mt5Id, newStatus, userName, userEmail = null) {
                         statusCell.className = 'badge ' + badgeClass;
                         statusCell.textContent = badgeText;
 
-                        // Check if email was sent (for running status)
-                        if (newStatus === 'running') {
+                        // Check if email was sent (for running or fail status)
+                        if (newStatus === 'running' || newStatus === 'fail') {
                             if (response.email_sent) {
                                 Swal.fire({
                                     title: 'Success!',
@@ -410,13 +421,22 @@ function updateStatus(mt5Id, newStatus, userName, userEmail = null) {
                                 });
                             }
                         } else {
-                            Swal.fire({
-                                title: 'Success!',
-                                text: 'Status updated successfully.',
-                                icon: 'success',
-                                timer: 1500,
-                                showConfirmButton: false
-                            });
+                            if (response.email_sent) {
+                                Swal.fire({
+                                    title: 'Success!',
+                                    text: 'Status updated and email sent successfully.',
+                                    icon: 'success',
+                                    timer: 2000,
+                                    showConfirmButton: false
+                                });
+                            } else {
+                                Swal.fire({
+                                    title: 'Status Updated',
+                                    text: 'Status updated but email sending failed.',
+                                    icon: 'warning',
+                                    confirmButtonText: 'OK'
+                                });
+                            }
                         }
                     } else {
                         Swal.fire({

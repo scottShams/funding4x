@@ -274,6 +274,72 @@ class EmailVerification {
     }
 
     /**
+     * Send trading test failed email
+     * @param string $email User email
+     * @param string $name User name
+     * @param array $failReasons Array of fail reasons
+     * @return bool Success status
+     */
+    public static function sendFailEmail($email, $name, $failReasons = []) {
+        try {
+            // Get SMTP config
+            $smtpHost = EnvLoader::get('SMTP_HOST', 'localhost');
+            $smtpUsername = EnvLoader::get('SMTP_USERNAME', '');
+            $smtpPassword = EnvLoader::get('SMTP_PASSWORD', '');
+            $smtpPort = EnvLoader::get('SMTP_PORT', 587);
+            $smtpEncryption = EnvLoader::get('SMTP_ENCRYPTION', 'tls');
+
+            // Load custom email template (HTML)
+            $templatePath = __DIR__ . "/email_templates/custom_email_template.html";
+            $body = file_exists($templatePath) ? file_get_contents($templatePath) : "";
+
+            // Create fail message body
+            $failMessage = "<p>Dear " . htmlspecialchars($name) . ",</p>\n\n";
+            $failMessage .= "<p>We regret to inform you that you have failed the Trading Test for the following reasons:</p>\n\n";
+            $failMessage .= "<ul>\n";
+            foreach ($failReasons as $reason) {
+                $failMessage .= "<li>" . htmlspecialchars($reason) . "</li>\n";
+            }
+            $failMessage .= "</ul>\n\n";
+            $failMessage .= "<p>Please review the rules carefully and consider trying again in the future. You can find all the trading rules on our website.</p>\n\n";
+            $failMessage .= "<p>If you have any questions, please contact our support team.</p>\n\n";
+            $failMessage .= "<p>Best regards,<br>Funding4x Team</p>";
+
+            // Replace placeholders
+            $body = str_replace("{\$subject}", "Trading Test Failed - Funding4x", $body);
+            $body = str_replace("{\$body}", $failMessage, $body);
+
+            $subject = "Trading Test Failed - Funding4x";
+
+            // PHPMailer
+            $mail = new PHPMailer(true);
+
+            $mail->isSMTP();
+            $mail->Host = $smtpHost;
+            $mail->SMTPAuth = !empty($smtpUsername);
+            $mail->Username = $smtpUsername;
+            $mail->Password = $smtpPassword;
+            $mail->SMTPSecure = $smtpEncryption;
+            $mail->Port = (int)$smtpPort;
+
+            $mail->setFrom('noreply@funding4x.com', 'Funding4x');
+            $mail->addAddress($email, $name);
+            $mail->addReplyTo('support@funding4x.com', 'Funding4x Support');
+
+            $mail->isHTML(true);
+            $mail->Subject = $subject;
+            $mail->Body = $body;
+            $mail->AltBody = strip_tags(str_replace(['<br>', '</p>', '</div>', '<ul>', '</ul>', '<li>', '</li>'], ["\n", "\n\n", "\n", "\n", "\n", "• ", "\n"], $failMessage));
+
+            return $mail->send();
+
+        } catch (Exception $e) {
+            error_log("Fail Email failed for $email: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
      * Get email template
      * @param string $name User name
      * @param string $email User email
