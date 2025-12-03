@@ -69,7 +69,7 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-primary" onclick="sendEmail(false)">Send</button>
-                <button type="button" class="btn btn-success" onclick="sendEmail(true)">Save and Send</button>
+                <button type="button" class="btn btn-secondary" onclick="sendEmail(true)">Save and Send</button>
             </div>
         </div>
     </div>
