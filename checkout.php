@@ -7,7 +7,14 @@
     $pdo = getPDO();
     $email = $_SESSION['user_email'];
     // Get price from URL parameter, default to 59 if not set
-    $checkoutPrice = isset($_SESSION['checkout_price']) ? (int)$_SESSION['checkout_price'] : 59;
+    $checkoutPrice = 59; // default
+
+    if (isset($_SESSION['checkout_price'])) {
+        $checkoutPrice = (int) $_SESSION['checkout_price'];
+    } elseif (isset($_GET['price'])) {
+        $checkoutPrice = (int) $_GET['price'];
+    }
+
     if(empty($email)){
         header("Location: index.php");
         exit;

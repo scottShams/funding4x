@@ -289,27 +289,25 @@ class EmailVerification {
             $smtpPort = EnvLoader::get('SMTP_PORT', 587);
             $smtpEncryption = EnvLoader::get('SMTP_ENCRYPTION', 'tls');
 
-            // Load custom email template (HTML)
-            $templatePath = __DIR__ . "/email_templates/custom_email_template.html";
+            // Load fail email template (HTML)
+            $templatePath = __DIR__ . "/email_templates/fail_email_template.html";
             $body = file_exists($templatePath) ? file_get_contents($templatePath) : "";
 
-            // Create fail message body
-            $failMessage = "<p>Dear " . htmlspecialchars($name) . ",</p>\n\n";
-            $failMessage .= "<p>We regret to inform you that you have failed the Trading Test for the following reasons:</p>\n\n";
-            $failMessage .= "<ul>\n";
+            // Generate dynamic rules table
+            $rulesTable = '<table width="100%" border="0" cellspacing="0" cellpadding="0" style="font-size: 15px;">';
             foreach ($failReasons as $reason) {
-                $failMessage .= "<li>" . htmlspecialchars($reason) . "</li>\n";
+                $rulesTable .= '<tr>';
+                $rulesTable .= '<td width="30" valign="top" style="padding-bottom: 10px; color: #dc2626; font-size: 18px; font-weight: 900;">&#10004;</td>';
+                $rulesTable .= '<td style="padding-bottom: 10px;">' . htmlspecialchars($reason) . '</td>';
+                $rulesTable .= '</tr>';
             }
-            $failMessage .= "</ul>\n\n";
-            $failMessage .= "<p>Please review the rules carefully and consider trying again in the future. You can find all the trading rules on our website.</p>\n\n";
-            $failMessage .= "<p>If you have any questions, please contact our support team.</p>\n\n";
-            $failMessage .= "<p>Best regards,<br>Funding4x Team</p>";
+            $rulesTable .= '</table>';
 
             // Replace placeholders
-            $body = str_replace("{\$subject}", "Trading Test Failed - Funding4x", $body);
-            $body = str_replace("{\$body}", $failMessage, $body);
+            $body = str_replace("Hello FNAME,", "Hello " . htmlspecialchars($name) . ",", $body);
+            $body = str_replace('{RULES_TABLE}', $rulesTable, $body);
 
-            $subject = "Trading Test Failed - Funding4x";
+            $subject = "Trading Test 1 Result - Important Update";
 
             // PHPMailer
             $mail = new PHPMailer(true);
@@ -329,7 +327,7 @@ class EmailVerification {
             $mail->isHTML(true);
             $mail->Subject = $subject;
             $mail->Body = $body;
-            $mail->AltBody = strip_tags(str_replace(['<br>', '</p>', '</div>', '<ul>', '</ul>', '<li>', '</li>'], ["\n", "\n\n", "\n", "\n", "\n", "• ", "\n"], $failMessage));
+            $mail->AltBody = strip_tags(str_replace(['<br>', '</p>', '</div>'], ["\n", "\n\n", "\n"], $body));
 
             return $mail->send();
 
