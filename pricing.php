@@ -329,7 +329,8 @@
     <!-- Signup Modal -->
     <div id="signupModal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 hidden z-50">
         <div class="bg-white p-8 rounded-xl shadow-2xl max-w-md w-full relative">
-            <h3 class="text-2xl font-bold text-primary-purple mb-4">Join Funding4x</h3>
+                <button onclick="closeSignupModal()" class="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-3xl">&times;</button>
+                <h3 class="text-2xl font-bold text-primary-purple mb-4">Join Funding4x</h3>
             <p class="text-gray-700 mb-6">Enter your details below to start your trading journey.</p>
 
             <form id="signupForm" onsubmit="event.preventDefault();">
@@ -365,23 +366,10 @@
                     </label>
                 </div>
 
-                <div class="flex justify-end space-x-3 mt-6">
-                    <button type="button" onclick="closeSignupModal()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">Cancel</button>
-                    <button type="submit" class="px-4 py-2 bg-primary-purple text-white rounded-lg hover:bg-secondary-purple transition">Join Waitlist Now!</button>
+                <div class="flex justify-center mt-6">
+                    <button type="submit" class="w-64 px-6 py-3 bg-primary-purple text-white font-semibold text-lg rounded-lg shadow-lg hover:bg-secondary-purple transition duration-300">Join Waitlist Now!</button>
                 </div>
             </form>
-
-            <!-- Referral Dashboard Link -->
-            <div class="mt-6">
-                <a href="referral_dashboard.php"
-                   id="dashboard-link-modal"
-                   class="w-full block bg-gray-100 hover:bg-gray-200 text-gray-900 font-bold py-3 px-6 rounded-lg text-lg uppercase tracking-wider shadow-lg transition duration-300 ease-in-out transform hover:scale-105 active:scale-95 text-center">
-                    View Referral Dashboard
-                </a>
-                <p class="text-xs text-gray-500 mt-2 text-center">
-                    Already joined? Check your referral status and earnings here
-                </p>
-            </div>
         </div>
     </div>
 
