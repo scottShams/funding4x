@@ -1,7 +1,3 @@
-<?php
-    session_start();
-    $email = $_SESSION['user_email'];
-?>
 <!-- Header & Navigation -->
 <header class="sticky top-0 z-20 bg-header-dark shadow-xl">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

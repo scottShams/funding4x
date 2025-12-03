@@ -1,4 +1,6 @@
 <?php
+    session_start();
+    $email = $_SESSION['user_email'];
     // Load environment variables
     require_once __DIR__ . '/env_loader.php';
 
