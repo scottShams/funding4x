@@ -5,26 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Welcome to Funding4x - Waiting List Confirmed</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
-            background-color: #f9fafb;
-            color: #333;
             line-height: 1.6;
+            color: #333;
+            background-color: #f9fafb;
+            margin: 0;
+            padding: 20px;
         }
-        
         .email-container {
             max-width: 600px;
             margin: 0 auto;
             background-color: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
         }
-        
-        /* Header */
         .header {
             background: linear-gradient(135deg, #4f009d 0%, #240046 100%);
             color: white;
@@ -32,44 +28,36 @@
             text-align: center;
             border-bottom: 4px solid #b49852;
         }
-        
         .header-logo {
             display: inline-block;
             margin-bottom: 15px;
         }
-        
         .header-logo img {
             height: 50px;
             width: auto;
         }
-        
         .header h1 {
             font-size: 28px;
             font-weight: 700;
             margin: 0;
             color: #b49852;
         }
-        
-        /* Main Content */
         .content {
             padding: 40px 30px;
             background-color: #f9fafb;
         }
-        
         .greeting {
             font-size: 18px;
             font-weight: 600;
             color: #4f009d;
             margin-bottom: 20px;
         }
-        
         .confirmation-text {
             font-size: 16px;
             color: #555;
             margin-bottom: 25px;
             line-height: 1.8;
         }
-        
         /* Hero Section */
         .hero-section {
             background: linear-gradient(135deg, #4f009d 0%, #240046 100%);
@@ -79,7 +67,6 @@
             margin: 30px 0;
             text-align: center;
         }
-        
         .hero-section .subtitle {
             font-size: 12px;
             color: #b49852;
@@ -88,25 +75,21 @@
             letter-spacing: 1px;
             margin-bottom: 15px;
         }
-        
         .hero-section h2 {
             font-size: 32px;
             font-weight: 700;
             margin-bottom: 15px;
             line-height: 1.3;
         }
-        
         .hero-section .gold-text {
             color: #b49852;
         }
-        
         .hero-section p {
             font-size: 14px;
             color: #e0e0e0;
             margin-bottom: 15px;
             line-height: 1.7;
         }
-        
         .hero-section .highlight {
             background-color: rgba(180, 152, 82, 0.2);
             padding: 15px;
@@ -116,7 +99,6 @@
             font-size: 13px;
             border-radius: 4px;
         }
-        
         /* Referral Link Section */
         .referral-section {
             background-color: #ffffff;
@@ -126,14 +108,12 @@
             border-top: 4px solid #b49852;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
         }
-        
         .referral-section h3 {
             font-size: 18px;
             font-weight: 700;
             color: #4f009d;
             margin-bottom: 15px;
         }
-        
         .referral-link-box {
             background-color: #f5f5f5;
             border: 2px solid #e0e0e0;
@@ -145,7 +125,6 @@
             word-break: break-all;
             margin-bottom: 15px;
         }
-        
         /* CTA Button */
         .cta-button {
             display: inline-block;
@@ -160,21 +139,17 @@
             text-align: center;
             transition: transform 0.3s ease;
         }
-        
         .cta-button:hover {
             transform: translateY(-2px);
         }
-        
         .cta-button-container {
             text-align: center;
             margin: 30px 0;
         }
-        
         /* Steps Section */
         .steps-section {
             margin: 30px 0;
         }
-        
         .steps-title {
             font-size: 18px;
             font-weight: 700;
@@ -182,14 +157,12 @@
             margin-bottom: 20px;
             text-align: center;
         }
-        
         .steps-container {
             display: flex;
             justify-content: space-between;
             gap: 15px;
             margin-bottom: 30px;
         }
-        
         .step {
             flex: 1;
             background-color: #ffffff;
@@ -199,43 +172,35 @@
             border-bottom: 4px solid #4f009d;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
         }
-        
         .step:nth-child(2) {
             border-bottom-color: #b49852;
         }
-        
         .step:nth-child(3) {
             border-bottom-color: #ef4444;
         }
-        
         .step-number {
             font-size: 28px;
             font-weight: 700;
             color: #4f009d;
             margin-bottom: 10px;
         }
-        
         .step:nth-child(2) .step-number {
             color: #b49852;
         }
-        
         .step:nth-child(3) .step-number {
             color: #ef4444;
         }
-        
         .step-title {
             font-size: 14px;
             font-weight: 600;
             color: #333;
             margin-bottom: 8px;
         }
-        
         .step-description {
             font-size: 12px;
             color: #666;
             line-height: 1.6;
         }
-        
         /* Info Box */
         .info-box {
             background-color: #f0f4ff;
@@ -247,12 +212,9 @@
             color: #333;
             line-height: 1.7;
         }
-        
         .info-box strong {
             color: #4f009d;
         }
-        
-        /* Footer */
         .footer {
             background-color: #240046;
             color: #b49852;
@@ -261,47 +223,65 @@
             font-size: 12px;
             border-top: 4px solid #b49852;
         }
-        
         .footer p {
             margin: 8px 0;
         }
-        
-        .footer-links {
+        .social-media {
+            margin-top: 20px;
+        }
+        .social-links {
+            display: inline-flex;
+            gap: 15px;
             margin-top: 15px;
         }
-        
-        .footer-links a {
+        .social-link {
             color: #b49852;
             text-decoration: none;
-            margin: 0 10px;
-            font-size: 11px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid #b49852;
+            transition: all 0.3s ease;
+            font-size: 18px;
         }
-        
-        .footer-links a:hover {
-            text-decoration: underline;
+        .social-link:hover {
+            background-color: #b49852;
+            color: #240046;
+            transform: scale(1.1);
         }
-        
         /* Responsive */
         @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
             .content {
                 padding: 25px 15px;
             }
-            
+            .header {
+                padding: 20px 15px;
+            }
+            .header h1 {
+                font-size: 22px;
+            }
             .hero-section {
                 padding: 30px 20px;
             }
-            
             .hero-section h2 {
                 font-size: 24px;
             }
-            
             .steps-container {
                 flex-direction: column;
                 gap: 15px;
             }
-            
-            .header h1 {
-                font-size: 22px;
+            .footer {
+                padding: 20px 15px;
+            }
+            .social-links {
+                flex-direction: column;
+                gap: 10px;
             }
         }
     </style>
@@ -315,17 +295,17 @@
             </div>
             <h1>Welcome to Funding4x!</h1>
         </div>
-        
+
         <!-- Main Content -->
         <div class="content">
             <p class="greeting">Hi FNAME,</p>
-            
+
             <p class="confirmation-text">
                 <strong>Congratulations!</strong> You've successfully confirmed your spot on the Waiting List for the <strong>$5,000 Funded Account</strong>.
-As we mentioned in the website, we are working on preparing everything before Trading can start, please be patient and we will update you regularly. <br>
-          </p>
+    As we mentioned in the website, we are working on preparing everything before Trading can start, please be patient and we will update you regularly. <br>
+            </p>
             <p class="confirmation-text">You can also join the Telegram Group to get instant updates by clicking here: <a href="https://t.me/funding4x">https://t.me/funding4x</a></p>
-            
+
             <!-- Hero Section -->
             <div class="hero-section">
                 <div class="subtitle">The Ultimate Partner Program</div>
@@ -337,7 +317,7 @@ As we mentioned in the website, we are working on preparing everything before Tr
                     <strong>Pro Tip:</strong> Collect 5 credits to bypass the competition and get FREE Entry for the Test to get your Funded Account (usually costs $59)!
                 </div>
             </div>
-            
+
             <!-- Referral Link Section -->
             <div class="referral-section">
                 <h3>Your Unique Referral Link</h3>
@@ -348,20 +328,44 @@ As we mentioned in the website, we are working on preparing everything before Tr
                     https://funding4x.com/index.php?ref=REFERRAL_CODE
                 </div>
             </div>
-            
+
             <!-- CTA Button -->
             <div class="cta-button-container">
                 <a href="https://funding4x.com/referral_dashboard.php" class="cta-button">
                     Go to My Referral Dashboard
                 </a>
             </div>
-            
+
             <!-- Steps Section -->
             <div class="steps-section">
                 <div class="steps-title">To make sure you receive my Important Emails, we recommend these quick steps</div>
             </div>
         </div>
-        
+
+        <!-- Footer -->
+        <div class="footer">
+            <div class="social-media">
+                <p>Follow us on social media:</p>
+                <div class="social-links">
+                    <a href="https://www.youtube.com/channel/UCkosETo_p1wOaAx2g2B0jLA" class="social-link" target="_blank" title="YouTube">
+                        <img src="https://funding4x.com/assets/icon/youtube.png"
+                            width="24" height="24" alt="YouTube" style="display: block;">
+                    </a>
+
+                    <a href="https://t.me/funding4x" class="social-link" target="_blank" title="Telegram">
+                        <img src="https://funding4x.com/assets/icon/telegram.png"
+                            width="24" height="24" alt="Telegram" style="display: block;">
+                    </a>
+
+                    <a href="https://x.com/NasirFXTrader" class="social-link" target="_blank" title="X (Twitter)">
+                        <img src="https://funding4x.com/assets/icon/images.png"
+                            width="24" height="24" alt="X (Twitter)" style="display: block;">
+                    </a>
+                </div>
+            </div>
+
+            <p>&copy; 2024 Funding4x. All rights reserved.</p>
+        </div>
     </div>
 </body>
 </html>

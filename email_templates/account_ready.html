@@ -6,55 +6,140 @@
     <title>Your Account is Ready for Trading</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
             line-height: 1.6;
             color: #333;
+            background-color: #f9fafb;
+            margin: 0;
+            padding: 20px;
+        }
+        .email-container {
             max-width: 600px;
             margin: 0 auto;
-            padding: 20px;
-            background-color: #f4f4f4;
-        }
-        .container {
             background-color: #ffffff;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
         }
         .header {
-            text-align: center;
-            background: linear-gradient(135deg, #4f009d, #7b2cbf);
+            background: linear-gradient(135deg, #4f009d 0%, #240046 100%);
             color: white;
-            padding: 20px;
-            border-radius: 10px 10px 0 0;
-            margin: -30px -30px 20px -30px;
+            padding: 30px 20px;
+            text-align: center;
+            border-bottom: 4px solid #b49852;
+        }
+        .header-logo {
+            display: inline-block;
+            margin-bottom: 15px;
+        }
+        .header-logo img {
+            height: 50px;
+            width: auto;
+        }
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin: 0;
+            color: #b49852;
+        }
+        .header h2 {
+            font-size: 18px;
+            font-weight: 400;
+            margin: 5px 0 0 0;
+            color: white;
+        }
+        .header p {
+            font-size: 14px;
+            margin: 10px 0 0 0;
+            color: #e0e0e0;
         }
         .content {
-            margin: 20px 0;
-        }
-        .footer {
-            text-align: center;
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid #eee;
-            font-size: 12px;
-            color: #666;
+            padding: 40px 30px;
+            background-color: #f9fafb;
         }
         .highlight {
             background-color: #f0f8ff;
-            padding: 15px;
+            padding: 20px;
             border-left: 4px solid #4f009d;
-            margin: 20px 0;
+            margin: 25px 0;
+            border-radius: 6px;
+        }
+        .highlight strong {
+            color: #4f009d;
+        }
+        .footer {
+            background-color: #240046;
+            color: #b49852;
+            padding: 30px 20px;
+            text-align: center;
+            font-size: 12px;
+            border-top: 4px solid #b49852;
+        }
+        .footer p {
+            margin: 8px 0;
+        }
+        .social-media {
+            margin-top: 20px;
+        }
+        .social-links {
+            display: inline-flex;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .social-link {
+            color: #b49852;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid #b49852;
+            transition: all 0.3s ease;
+            font-size: 18px;
+        }
+        .social-link:hover {
+            background-color: #b49852;
+            color: #240046;
+            transform: scale(1.1);
+        }
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            .content {
+                padding: 25px 15px;
+            }
+            .header {
+                padding: 20px 15px;
+            }
+            .header h1 {
+                font-size: 22px;
+            }
+            .footer {
+                padding: 20px 15px;
+            }
+            .social-links {
+                flex-direction: column;
+                gap: 10px;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="email-container">
+        <!-- Header -->
         <div class="header">
+            <div class="header-logo">
+                <img src="https://funding4x.com/assets/logo.png" alt="Funding4x Logo">
+            </div>
             <h1>Your Account is Ready!</h1>
             <h2>Funding4x</h2>
             <p>Start Trading Now</p>
         </div>
 
+        <!-- Main Content -->
         <div class="content">
             <h2>Hello USER_NAME,</h2>
 
@@ -69,38 +154,57 @@
                     <li>Do no do Huge Trades.</li>
                     <li>10% Profit Target</li>
                     <li>Max Drawdown is 10%.</li>
-                    
                 </ul>
             </div>
-            
-            <br />
+
             <div class="highlight">
                 <h3><strong>IMPORTANT</strong></h3>
-                <p>1. If you Break any rule that is low risk -> you will get only 1 chance and forgiveness, and you will be able to continue. 
+                <p>1. If you Break any rule that is low risk -> you will get only 1 chance and forgiveness, and you will be able to continue.
                 <br />
                 <p><strong>In this case :</strong> your Account will be BLOCKED from Trading for 1 Day - you will be able to Trade the Next Day</p>
-                
+
                 2. If you repeat the mistakes again you will be DISQUALIFIED and you will Fail the Trading Test.
                 <br />
-                
-                3. If you Break a rule that has high risk -> you will be disqualified Immediately and automatically. 
+
+                3. If you Break a rule that has high risk -> you will be disqualified Immediately and automatically.
                 <br />
-                
+
                 <strong>Make sure you follow the rules - we created very simple rules, that are easier than any prop firm in this world.</strong>
             </div>
 
             <p>A real person will be monitoring your Trading from our side to ensure you are Trading Safely and within the right parameters.</p>
-            
-            <p class="text-red-700"><strong>Any queries or question should be on the Website Online Chat - NOT on telegram or Youtube.</strong></p>
-            
+
+            <p style="color: #dc2626;"><strong>Any queries or question should be on the Website Online Chat - NOT on telegram or Youtube.</strong></p>
 
             <p>We wish you Success, Good Luck and God Bless.</p>
 
             <p><strong>Funding4x</strong></p>
         </div>
 
+        <!-- Footer -->
         <div class="footer">
             <p>This email was sent to USER_EMAIL</p>
+
+            <div class="social-media">
+                <p>Follow us on social media:</p>
+                <div class="social-links">
+                    <a href="https://www.youtube.com/channel/UCkosETo_p1wOaAx2g2B0jLA" class="social-link" target="_blank" title="YouTube">
+                        <img src="https://funding4x.com/assets/icon/youtube.png"
+                            width="24" height="24" alt="YouTube" style="display: block;">
+                    </a>
+
+                    <a href="https://t.me/funding4x" class="social-link" target="_blank" title="Telegram">
+                        <img src="https://funding4x.com/assets/icon/telegram.png"
+                            width="24" height="24" alt="Telegram" style="display: block;">
+                    </a>
+
+                    <a href="https://x.com/NasirFXTrader" class="social-link" target="_blank" title="X (Twitter)">
+                        <img src="https://funding4x.com/assets/icon/images.png"
+                            width="24" height="24" alt="X (Twitter)" style="display: block;">
+                    </a>
+                </div>
+            </div>
+
             <p>&copy; 2024 Funding4x. All rights reserved.</p>
         </div>
     </div>
