@@ -25,10 +25,10 @@ if (isset($_POST['action']) && $_POST['action'] === 'update_status') {
     // Update status
     if ($newStatus === 'fail') {
         $failReasonJson = json_encode($failReasons);
-        $stmt = $pdo->prepare("UPDATE mt5_details SET status = ?, fail_reason = ? WHERE id = ?");
+        $stmt = $pdo->prepare("UPDATE mt5_details SET status = ?, fail_reason = ?, status_updated_at = NOW() WHERE id = ?");
         $success = $stmt->execute([$newStatus, $failReasonJson, $mt5Id]);
     } else {
-        $stmt = $pdo->prepare("UPDATE mt5_details SET status = ? WHERE id = ?");
+        $stmt = $pdo->prepare("UPDATE mt5_details SET status = ?, status_updated_at = NOW() WHERE id = ?");
         $success = $stmt->execute([$newStatus, $mt5Id]);
     }
 
