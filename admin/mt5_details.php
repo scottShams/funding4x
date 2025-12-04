@@ -69,12 +69,57 @@ if (isset($_POST['action']) && $_POST['action'] === 'update_status') {
     exit;
 }
 
+// Handle add credit action
+if (isset($_POST['action']) && $_POST['action'] === 'add_credit') {
+    header('Content-Type: application/json');
+
+    $userId = (int)$_POST['user_id'];
+
+    // Increment user_credit by 1
+    $stmt = $pdo->prepare("UPDATE waitlist_users SET user_credit = user_credit + 1, credit_updated_at = NOW() WHERE id = ?");
+    $success = $stmt->execute([$userId]);
+
+    if ($success) {
+        // Get new credit value
+        $stmt = $pdo->prepare("SELECT user_credit FROM waitlist_users WHERE id = ?");
+        $stmt->execute([$userId]);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        echo json_encode(['success' => true, 'message' => 'Credit added successfully', 'new_credit' => $result['user_credit']]);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Failed to add credit']);
+    }
+    exit;
+}
+
+// Handle remove credit action
+if (isset($_POST['action']) && $_POST['action'] === 'remove_credit') {
+    header('Content-Type: application/json');
+
+    $userId = (int)$_POST['user_id'];
+
+    // Decrement user_credit by 1, but not below 0
+    $stmt = $pdo->prepare("UPDATE waitlist_users SET user_credit = GREATEST(0, user_credit - 1), credit_updated_at = NOW() WHERE id = ?");
+    $success = $stmt->execute([$userId]);
+
+    if ($success) {
+        // Get new credit value
+        $stmt = $pdo->prepare("SELECT user_credit FROM waitlist_users WHERE id = ?");
+        $stmt->execute([$userId]);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        echo json_encode(['success' => true, 'message' => 'Credit removed successfully', 'new_credit' => $result['user_credit']]);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Failed to remove credit']);
+    }
+    exit;
+}
+
 // Get MT5 details with user info
 $query = "
     SELECT
         m.*,
         u.name,
-        u.email
+        u.email,
+        u.user_credit
     FROM mt5_details m
     JOIN waitlist_users u ON m.user_id = u.id
     ORDER BY m.submitted_at DESC
@@ -100,6 +145,7 @@ ob_start();
                         <th>ID</th>
                         <th>User Name</th>
                         <th>User Email</th>
+                        <th>Credits</th>
                         <th>MT5 Username</th>
                         <th>MT5 Password</th>
                         <th>Server</th>
@@ -114,6 +160,9 @@ ob_start();
                         <td><?php echo $detail['id']; ?></td>
                         <td><?php echo htmlspecialchars($detail['name']); ?></td>
                         <td><?php echo htmlspecialchars($detail['email']); ?></td>
+                        <td>
+                            <span id="credit-<?php echo $detail['user_id']; ?>"><?php echo $detail['user_credit'] ?? 0; ?></span>
+                        </td>
                         <td><?php echo htmlspecialchars($detail['username']); ?></td>
                         <td><?php echo htmlspecialchars($detail['password']); ?></td>
                         <td><?php echo htmlspecialchars($detail['server']); ?></td>
@@ -144,6 +193,13 @@ ob_start();
                                 <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton<?php echo $detail['id']; ?>">
                                     <li><a class="dropdown-item" href="#" onclick="openEmailModal(<?php echo $detail['user_id']; ?>, '<?php echo htmlspecialchars($detail['name']); ?>', '<?php echo htmlspecialchars($detail['email']); ?>')">
                                         <i class="bi bi-envelope me-2"></i>Send Mail
+                                    </a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="#" onclick="addCredit(<?php echo $detail['user_id']; ?>, '<?php echo htmlspecialchars($detail['name']); ?>')">
+                                        <i class="bi bi-plus-circle me-2"></i>Add Credit
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="#" onclick="removeCredit(<?php echo $detail['user_id']; ?>, '<?php echo htmlspecialchars($detail['name']); ?>')">
+                                        <i class="bi bi-dash-circle me-2"></i>Remove Credit
                                     </a></li>
                                     <li><hr class="dropdown-divider"></li>
                                     <li><a class="dropdown-item text-success" href="#" onclick="updateStatus(<?php echo $detail['id']; ?>, 'pass', '<?php echo htmlspecialchars($detail['name']); ?>')">
@@ -313,7 +369,7 @@ $(document).ready(function() {
         responsive: true,
         columnDefs: [
             {
-                targets: [8], // Actions column
+                targets: [9], // Actions column
                 orderable: false
             }
         ],
@@ -383,7 +439,7 @@ function updateStatus(mt5Id, newStatus, userName, userEmail = null) {
                         // Find the row containing this dropdown
                         const dropdownButton = document.querySelector(`#dropdownMenuButton${mt5Id}`);
                         const row = dropdownButton.closest('tr');
-                        const statusCell = row.querySelector('td:nth-child(7) .badge'); // Status is 7th column
+                        const statusCell = row.querySelector('td:nth-child(8) .badge'); // Status is 8th column
 
                         // Update badge class and text
                         let badgeClass = 'bg-warning';
@@ -504,7 +560,7 @@ $(document).ready(function() {
                     // Update the status badge in the same row
                     const dropdownButton = document.querySelector(`#dropdownMenuButton${window.currentMt5Id}`);
                     const row = dropdownButton.closest('tr');
-                    const statusCell = row.querySelector('td:nth-child(7) .badge'); // Status is 7th column
+                    const statusCell = row.querySelector('td:nth-child(8) .badge'); // Status is 8th column
                     statusCell.className = 'badge bg-danger';
                     statusCell.textContent = 'Fail';
                     Swal.fire({
@@ -534,4 +590,122 @@ $(document).ready(function() {
         });
     });
 });
+
+// Add credit function
+function addCredit(userId, userName) {
+    Swal.fire({
+        title: 'Add Credit',
+        text: `Add 1 credit to "${userName}"?`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#28a745',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Yes, add credit!',
+        cancelButtonText: 'Cancel',
+        customClass: {
+            confirmButton: 'btn btn-success',
+            cancelButton: 'btn btn-secondary'
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Send AJAX request to add credit
+            $.ajax({
+                url: 'mt5_details.php',
+                type: 'POST',
+                data: {
+                    action: 'add_credit',
+                    user_id: userId
+                },
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        // Update the credit display
+                        $('#credit-' + userId).text(response.new_credit);
+                        Swal.fire({
+                            title: 'Success!',
+                            text: 'Credit added successfully.',
+                            icon: 'success',
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+                    } else {
+                        Swal.fire({
+                            title: 'Error!',
+                            text: response.message || 'Failed to add credit.',
+                            icon: 'error',
+                            confirmButtonText: 'OK'
+                        });
+                    }
+                },
+                error: function() {
+                    Swal.fire({
+                        title: 'Error!',
+                        text: 'An error occurred while adding credit.',
+                        icon: 'error',
+                        confirmButtonText: 'OK'
+                    });
+                }
+            });
+        }
+    });
+}
+
+// Remove credit function
+function removeCredit(userId, userName) {
+    Swal.fire({
+        title: 'Remove Credit',
+        text: `Remove 1 credit from "${userName}"?`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Yes, remove credit!',
+        cancelButtonText: 'Cancel',
+        customClass: {
+            confirmButton: 'btn btn-danger',
+            cancelButton: 'btn btn-secondary'
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Send AJAX request to remove credit
+            $.ajax({
+                url: 'mt5_details.php',
+                type: 'POST',
+                data: {
+                    action: 'remove_credit',
+                    user_id: userId
+                },
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        // Update the credit display
+                        $('#credit-' + userId).text(response.new_credit);
+                        Swal.fire({
+                            title: 'Success!',
+                            text: 'Credit removed successfully.',
+                            icon: 'success',
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+                    } else {
+                        Swal.fire({
+                            title: 'Error!',
+                            text: response.message || 'Failed to remove credit.',
+                            icon: 'error',
+                            confirmButtonText: 'OK'
+                        });
+                    }
+                },
+                error: function() {
+                    Swal.fire({
+                        title: 'Error!',
+                        text: 'An error occurred while removing credit.',
+                        icon: 'error',
+                        confirmButtonText: 'OK'
+                    });
+                }
+            });
+        }
+    });
+}
 </script>
