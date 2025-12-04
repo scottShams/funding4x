@@ -78,7 +78,8 @@ $query = "
         wu.knowledge_test_result,
         wu.user_credit,
         wu.created_at,
-        COALESCE(referral_counts.completed_referrals, 0) AS completed_referrals
+        COALESCE(referral_counts.completed_referrals, 0) AS completed_referrals,
+        m.status AS mt5_status
     FROM waitlist_users wu
     LEFT JOIN (
         SELECT
@@ -94,6 +95,7 @@ $query = "
         GROUP BY child.parent_user_id
     ) referral_counts
     ON wu.id = referral_counts.parent_user_id
+    LEFT JOIN mt5_details m ON wu.id = m.user_id
     WHERE wu.knowledge_test_result IS NOT NULL
     ORDER BY wu.id DESC;
 
@@ -124,6 +126,7 @@ ob_start();
                         <th>Completed Referrals</th>
                         <th>% Referred</th>
                         <th>Created At</th>
+                        <th>MT5 Status</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -158,6 +161,28 @@ ob_start();
                             ?>
                         </td>
                         <td><?php echo date('M d, Y H:i', strtotime($user['created_at'])); ?></td>
+                        <td>
+                            <?php
+                            $mt5_status = $user['mt5_status'] ?? null;
+                            if ($mt5_status) {
+                                $badgeClass = 'bg-warning';
+                                $statusText = 'Pending';
+                                if ($mt5_status === 'pass') {
+                                    $badgeClass = 'bg-success';
+                                    $statusText = 'Pass';
+                                } elseif ($mt5_status === 'fail') {
+                                    $badgeClass = 'bg-danger';
+                                    $statusText = 'Fail';
+                                } elseif ($mt5_status === 'running') {
+                                    $badgeClass = 'bg-primary';
+                                    $statusText = 'Running';
+                                }
+                                echo "<span class='badge $badgeClass'>$statusText</span>";
+                            } else {
+                                echo '<span class="text-muted">Not Submitted</span>';
+                            }
+                            ?>
+                        </td>
                         <td>
                             <div class="dropdown">
                                 <button class="btn btn-secondary btn-sm dropdown-toggle" type="button" id="dropdownMenuButton<?php echo $user['id']; ?>" data-bs-toggle="dropdown" aria-expanded="false">
@@ -262,7 +287,7 @@ $(document).ready(function() {
         responsive: true,
         columnDefs: [
             {
-                targets: [6], // Actions column
+                targets: [9], // Actions column
                 orderable: false
             }
         ],
