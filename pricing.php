@@ -218,10 +218,9 @@
                     </ul>
 
                     <!-- CTA Button -->
-                    <button id="ctaButton" class="w-full py-3 bg-primary-purple text-card-white font-extrabold text-lg rounded-lg shadow-lg hover:bg-secondary-purple transition duration-300"
-                        onclick="showSignupModal('checkout')">
-                        Get My Account Now!
-                    </button>
+                    <a href="login.php" class="w-full py-3 bg-primary-purple text-card-white font-extrabold text-lg rounded-lg shadow-lg hover:bg-secondary-purple transition duration-300 text-center block">
+                        Log In to Get Started
+                    </a>
 
                 </div>
 
@@ -276,10 +275,9 @@
                     </ul>
 
                     <!-- CTA Button -->
-                    <button class="w-full py-3 bg-trophy-gold text-header-dark font-extrabold text-lg rounded-lg shadow-lg hover:bg-cta-hover transition duration-300"
-                        onclick="showSignupModal()">
-                        Sign Up Now
-                    </button>
+                    <a href="login.php" class="w-full py-3 bg-trophy-gold text-header-dark font-extrabold text-lg rounded-lg shadow-lg hover:bg-cta-hover transition duration-300 text-center block">
+                        Log In Now
+                    </a>
                     
                 </div>
 
@@ -297,52 +295,6 @@
         </div>
     </footer>
 
-    <!-- Signup Modal -->
-    <div id="signupModal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 hidden z-50">
-        <div class="bg-white p-8 rounded-xl shadow-2xl max-w-md w-full relative">
-                <button onclick="closeSignupModal()" class="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-3xl">&times;</button>
-                <h3 class="text-2xl font-bold text-primary-purple mb-4">Join Funding4x</h3>
-            <p class="text-gray-700 mb-6">Enter your details below to start your trading journey.</p>
-
-            <form id="signupForm" onsubmit="event.preventDefault();">
-                <!-- Hidden field for redirect destination -->
-                <input type="hidden" id="signup-redirect_destination" name="redirect_destination" value="">
-                <!-- Name Field -->
-                <input type="text" id="signup-name" name="name" placeholder="Enter your Name" required
-                    class="w-full mb-2 p-4 text-gray-900 bg-gray-100 border border-gray-300 rounded-lg focus:ring-primary-purple focus:border-primary-purple transition duration-200 placeholder-gray-500 text-lg">
-
-                <!-- Email Field -->
-                <input type="email" id="signup-email" name="email" placeholder="Enter your email address" required
-                    class="w-full mb-2 p-4 text-gray-900 bg-gray-100 border border-gray-300 rounded-lg focus:ring-primary-purple focus:border-primary-purple transition duration-200 placeholder-gray-500 text-lg">
-
-                <!-- Country selector -->
-                <select name="country" id="signup-country-select" required
-                    class="w-full mb-2 p-4 text-gray-900 bg-gray-100 border border-gray-300 rounded-lg focus:ring-primary-purple focus:border-primary-purple transition duration-200 text-lg">
-                    <option value="">Select your Country</option>
-                </select>
-
-                <!-- reCAPTCHA -->
-                <div class="g-recaptcha mb-4" data-sitekey="<?php echo htmlspecialchars($recaptchaSiteKey); ?>"></div>
-
-                <!-- Agreement Checkbox -->
-                <div class="mb-4 mt-2">
-                    <label class="flex items-start text-sm">
-                        <input type="checkbox" id="signup-agreeTerms" name="agreeTerms" required class="mr-2 h-4 w-4 text-amber-500 bg-gray-700 border-gray-600 rounded focus:ring-amber-500 focus:ring-2 mt-0.5">
-                        <span class="text-gray-900">
-                            I agree to the
-                            <a href="pages/terms-disclaimer.php" target="_blank" class="text-amber-400 hover:text-amber-300 underline">Terms and Conditions</a>
-                            and
-                            <a href="pages/privacy-policy.php" target="_blank" class="text-amber-400 hover:text-amber-300 underline">Privacy Policy</a>.
-                        </span>
-                    </label>
-                </div>
-
-                <div class="flex justify-center mt-6">
-                    <button type="submit" class="w-64 px-6 py-3 bg-primary-purple text-white font-semibold text-lg rounded-lg shadow-lg hover:bg-secondary-purple transition duration-300">Join Waitlist Now!</button>
-                </div>
-            </form>
-        </div>
-    </div>
 
 
     <script>
@@ -363,22 +315,6 @@
         let offerEndTime;
         let timerInterval;
 
-        // Function to handle custom UI alerts instead of window.alert()
-        function alertMessage(title, message) {
-            const container = document.createElement('div');
-            container.className = 'fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50';
-            
-            container.innerHTML = `
-                <div class="bg-white p-6 rounded-lg shadow-2xl w-full max-w-sm transform transition-all scale-100 duration-300">
-                    <h4 class="text-xl font-bold text-primary-purple mb-3">${title}</h4>
-                    <p class="text-gray-700 mb-6">${message}</p>
-                    <button onclick="document.body.removeChild(this.parentNode.parentNode)" class="w-full py-2 bg-primary-purple text-white rounded-lg font-semibold hover:bg-trophy-gold hover:text-header-dark transition">
-                        Close
-                    </button>
-                </div>
-            `;
-            document.body.appendChild(container);
-        }
 
         // Updates all visual elements based on whether the discount is active
         function updatePriceDisplay(isDiscounted) {
@@ -481,227 +417,6 @@
             startCountdown();
         };
 
-        // Signup modal functionality
-        function initializeSignupModal() {
-            const signupForm = document.getElementById('signupForm');
-            const countrySelect = document.getElementById('signup-country-select');
-
-            // Detect referral code from URL parameter
-            const urlParams = new URLSearchParams(window.location.search);
-            const referralCode = urlParams.get('ref');
-
-            if (referralCode) {
-                // Store referral code in session storage for form submission
-                sessionStorage.setItem('referral_code', referralCode);
-                console.log('Referred by code:', referralCode);
-            }
-
-            // Load all countries into dropdown
-            const countries = [
-                "Afghanistan","Albania","Algeria","Andorra","Angola","Argentina","Armenia","Australia","Austria",
-                "Azerbaijan","Bahamas","Bahrain","Bangladesh","Barbados","Belarus","Belgium","Belize","Benin",
-                "Bhutan","Bolivia","Bosnia and Herzegovina","Botswana","Brazil","Brunei","Bulgaria","Burkina Faso",
-                "Burundi","Cambodia","Cameroon","Canada","Chile","China","Colombia","Comoros","Congo",
-                "Costa Rica","Croatia","Cuba","Cyprus","Czech Republic","Denmark","Dominican Republic",
-                "Ecuador","Egypt","El Salvador","Estonia","Ethiopia","Fiji","Finland","France","Gabon","Gambia",
-                "Georgia","Germany","Ghana","Greece","Guatemala","Honduras","Hong Kong","Hungary","Iceland",
-                "India","Indonesia","Iran","Iraq","Ireland","Israel","Italy","Jamaica","Japan","Jordan","Kazakhstan",
-                "Kenya","Kuwait","Kyrgyzstan","Laos","Latvia","Lebanon","Lesotho","Liberia","Libya","Lithuania",
-                "Luxembourg","Madagascar","Malawi","Malaysia","Maldives","Mali","Malta","Mauritius","Mexico",
-                "Moldova","Monaco","Mongolia","Montenegro","Morocco","Mozambique","Myanmar","Namibia","Nepal",
-                "Netherlands","New Zealand","Nicaragua","Niger","Nigeria","North Korea","Norway","Oman","Pakistan",
-                "Palestine","Panama","Paraguay","Peru","Philippines","Poland","Portugal","Qatar","Romania",
-                "Russia","Rwanda","Saudi Arabia","Senegal","Serbia","Singapore","Slovakia","Slovenia","South Africa",
-                "South Korea","Spain","Sri Lanka","Sudan","Sweden","Switzerland","Syria","Taiwan","Tanzania",
-                "Thailand","Togo","Trinidad and Tobago","Tunisia","Turkey","Uganda","Ukraine","United Arab Emirates",
-                "United Kingdom","United States","Uruguay","Uzbekistan","Venezuela","Vietnam","Yemen","Zambia","Zimbabwe"
-            ];
-
-            // Add default "Select your Country" placeholder FIRST
-            const defaultOption = document.createElement('option');
-            defaultOption.value = "";
-            defaultOption.textContent = "Select your Country";
-            defaultOption.disabled = true;
-            defaultOption.selected = true;
-            defaultOption.hidden = true;
-            countrySelect.appendChild(defaultOption);
-
-            // Then add all countries
-            countries.forEach(country => {
-                const option = document.createElement('option');
-                option.value = country;
-                option.textContent = country;
-                countrySelect.appendChild(option);
-            });
-
-            // Handle form submission
-            signupForm.addEventListener('submit', async function (e) {
-                e.preventDefault();
-
-                const recaptchaResponse = grecaptcha.getResponse(); // Get reCAPTCHA token
-                if (!recaptchaResponse) {
-                    alertMessage('Please Verify', 'Please complete the reCAPTCHA to continue.');
-                    return;
-                }
-
-                const name = signupForm.querySelector('input[name="name"]').value.trim();
-                const email = signupForm.querySelector('input[name="email"]').value.trim();
-                const country = countrySelect.value;
-                const referralCode = sessionStorage.getItem('referral_code') || '';
-
-                if (!name || !email || !country) {
-                    alertMessage('Missing Information', 'Please fill in your name, email, and country.');
-                    return;
-                }
-
-                try {
-                    // Show loader
-                    showSignupLoader();
-
-                    const requestData = {
-                        name,
-                        email,
-                        country,
-                        recaptcha: recaptchaResponse
-                    };
-                    if (referralCode) {
-                        requestData.ref = referralCode;
-                    }
-
-                    const response = await fetch('save_waitlist.php', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(requestData)
-                    });
-
-                    const result = await response.json();
-
-                    // Hide loader immediately and ensure complete cleanup
-                    hideSignupLoader();
-                    ensureNoSignupLoaderRemains();
-
-                    if (result.status === 'success') {
-                        // Store referral information for dashboard access
-                        if (result.referral_code) {
-                            sessionStorage.setItem('user_referral_code', result.referral_code);
-                            sessionStorage.setItem('referral_link', result.referral_link);
-                        }
-
-                        // Check redirect destination
-                        const redirectDestination = document.getElementById('signup-redirect_destination').value;
-                        if (redirectDestination === 'checkout') {
-                            // Redirect to checkout page
-                            window.location.href = 'checkout.php';
-                        } else {
-                            // Show success message and close modal
-                            alertMessage('Welcome to Funding4x!', `You've been successfully registered! Check your email for verification instructions.`);
-                        }
-
-                    } else if (result.status === 'existing_user') {
-                        // User exists and is verified - redirect based on destination
-                        hideSignupLoader();
-                        ensureNoSignupLoaderRemains();
-                        const redirectDestination = document.getElementById('signup-redirect_destination').value;
-                        if (redirectDestination === 'checkout') {
-                            window.location.href = 'checkout.php';
-                        } else {
-                            window.location.href = 'referral_dashboard.php?user=' + encodeURIComponent(result.referral_code);
-                        }
-
-                    } else if (result.status === 'email_not_verified') {
-                        // User exists but hasn't verified email
-                        alertMessage('Email Verification Required', 'You\'re already registered, but need to verify your email address first. Please check your email inbox.');
-
-                    } else {
-                        alertMessage('Oops!', result.message || 'Something went wrong. Please try again.');
-                    }
-
-                } catch (error) {
-                    // Hide loader in case of network errors
-                    hideSignupLoader();
-                    ensureNoSignupLoaderRemains();
-
-                    alertMessage('Connection Error', 'We couldn\'t submit your request. Please check your connection and try again.');
-                }
-            });
-        }
-
-        function closeSignupModal() {
-            document.getElementById('signupModal').classList.add('hidden');
-            // Reset redirect destination
-            document.getElementById('signup-redirect_destination').value = '';
-        }
-
-        function showSignupModal(redirectDestination = '') {
-            // Set the redirect destination
-            document.getElementById('signup-redirect_destination').value = redirectDestination || '';
-            document.getElementById('signupModal').classList.remove('hidden');
-        }
-
-        // Signup loader
-        function showSignupLoader() {
-            const loaderHtml = `
-                <div id="signup-loader" class="fixed inset-0 loader-overlay z-50 flex items-center justify-center">
-                    <div class="bg-gray-800 p-8 rounded-2xl shadow-2xl border-t-8 border-trophy-gold text-center max-w-md">
-                        <div class="spinner mb-4"></div>
-                        <h3 class="text-xl font-bold text-white mb-2">Creating Your Account...</h3>
-                        <p class="text-gray-300 mb-4">Please wait while we set up your exclusive access and send verification email.</p>
-                        <div class="flex items-center justify-center space-x-2 text-sm text-gray-400">
-                            <div class="w-2 h-2 bg-trophy-gold rounded-full animate-pulse"></div>
-                            <div class="w-2 h-2 bg-trophy-gold rounded-full animate-pulse" style="animation-delay: 0.2s;"></div>
-                            <div class="w-2 h-2 bg-trophy-gold rounded-full animate-pulse" style="animation-delay: 0.4s;"></div>
-                        </div>
-                    </div>
-                </div>
-            `;
-            document.body.insertAdjacentHTML('beforeend', loaderHtml);
-        }
-
-        function hideSignupLoader() {
-            const loader = document.getElementById('signup-loader');
-            if (loader) {
-                loader.remove();
-            }
-        }
-
-        function ensureNoSignupLoaderRemains() {
-            // Remove all possible loader elements
-            const loaderSelectors = [
-                '#signup-loader',
-                '.loader-overlay',
-                '[id*="signup"]',
-                '[class*="loader"]'
-            ];
-
-            loaderSelectors.forEach(selector => {
-                const elements = document.querySelectorAll(selector);
-                elements.forEach(element => {
-                    if (element && element.id !== 'signup-loader') {
-                        element.remove();
-                    }
-                });
-            });
-
-            // Also check for any div with loader classes
-            const allLoaders = document.querySelectorAll('.spinner');
-            allLoaders.forEach(spinner => {
-                const parent = spinner.closest('.fixed, .absolute');
-                if (parent && parent.id !== 'signup-loader') {
-                    // Remove the parent container if it looks like a loader overlay
-                    const parentClasses = parent.className;
-                    if (parentClasses.includes('loader-overlay') || parentClasses.includes('flex items-center justify-center')) {
-                        parent.remove();
-                    }
-                }
-            });
-
-            console.log('Signup loader cleanup completed');
-        }
-
-        // Initialize signup modal when page loads
-        document.addEventListener('DOMContentLoaded', () => {
-            initializeSignupModal();
-        });
     </script>
 </body>
 </html>
