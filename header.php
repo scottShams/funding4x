@@ -15,7 +15,7 @@
                 <?php if(isset($_SESSION['user_email'])): ?>
                     <a href="referral_dashboard.php" class="text-gray-300 hover:text-trophy-gold transition duration-150 font-medium">Dashboard</a>
                 <?php else: ?>
-                    <a href="referral_dashboard.php" class="text-gray-300 hover:text-trophy-gold transition duration-150 font-medium">Login</a>
+                    <a href="login.php" class="text-gray-300 hover:text-trophy-gold transition duration-150 font-medium">Login</a>
                 <?php endif; ?>
                 <button onclick="window.location.href='pricing.php'" class="bg-primary-indigo hover:bg-indigo-700 text-white font-semibold py-1 px-3 text-sm rounded transition duration-300 shadow-md">
                     Start Trading
@@ -33,8 +33,10 @@
         <a href="rule.php" class="block px-3 py-2 rounded-md text-base font-medium text-trophy-gold hover:bg-secondary-purple">Rules</a>
         <?php if(isset($_SESSION['user_email'])): ?>
             <a href="referral_dashboard.php" class="block px-3 py-2 rounded-md text-base font-medium bg-primary-purple text-white mt-2">Dashboard</a>
+            <a href="logout.php" class="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:bg-secondary-purple">Logout</a>
         <?php else: ?>
-            <a href="pricing.php" class="block px-3 py-2 rounded-md text-base font-medium bg-primary-purple text-white mt-2">Login</a>
+            <a href="login.php" class="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:bg-secondary-purple">Login</a>
+            <a href="signup.php" class="block px-3 py-2 rounded-md text-base font-medium bg-primary-purple text-white mt-2">Sign Up</a>
         <?php endif; ?>
     </div>
 </header>
