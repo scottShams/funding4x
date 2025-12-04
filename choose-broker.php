@@ -21,9 +21,14 @@
     }
 
     // Check if MT5 details are already submitted
-    // $stmt = $pdo->prepare("SELECT id FROM mt5_details WHERE user_id = ?");
-    // $stmt->execute([$user['id']]);
-    // $hasMT5Details = $stmt->fetch(PDO::FETCH_ASSOC);
+    $stmt = $pdo->prepare("SELECT * FROM mt5_details WHERE user_id = ?");
+    $stmt->execute([$user['id']]);
+    $mt5Details = $stmt->fetch(PDO::FETCH_ASSOC);
+    $hasMT5Details = $mt5Details ? true : false;
+
+    // Check if update is allowed via REF=mt5s parameter
+    $allowUpdate = isset($_GET['REF']) && $_GET['REF'] === 'mt5s';
+    $isUpdateMode = $allowUpdate && $hasMT5Details;
 ?>
 
 <!DOCTYPE html>
@@ -298,44 +303,48 @@
 
                 <!-- RIGHT COLUMN: MT5 Login Form (Step 4) -->
                 <div class="bg-white p-8 rounded-2xl shadow-2xl border-2 border-primary-purple h-fit lg:sticky lg:top-24">
-                    <h2 class="text-2xl font-bold text-primary-purple mb-2">Step 4: Account Submission</h2>
+                    <h2 class="text-2xl font-bold text-primary-purple mb-2">Step 4: <?php echo $isUpdateMode ? 'Update Account Details' : 'Account Submission'; ?></h2>
                     <p class="text-sm text-gray-600 mb-6">
-                        Enter the **Demo Account** details you created in Step 2. We will set up the trade monitoring for the competition.
+                        <?php if ($isUpdateMode): ?>
+                            Update your **Demo Account** details. We will update the trade monitoring for your account.
+                        <?php else: ?>
+                            Enter the **Demo Account** details you created in Step 2. We will set up the trade monitoring for the competition.
+                        <?php endif; ?>
                     </p>
 
                     <form id="mt5-form" onsubmit="handleFormSubmit(event)">
                         
                         <div class="mb-4">
                             <label for="username" class="block text-sm font-semibold text-gray-700 mb-1">MT5 Login ID</label>
-                            <input type="text" id="username" name="username" required 
+                            <input type="text" id="username" name="username" required
                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-primary-purple focus:border-primary-purple transition duration-150 ease-in-out bg-gray-50"
-                                   placeholder="e.g. 50123456">
+                                   placeholder="e.g. 50123456" value="<?php echo $isUpdateMode ? htmlspecialchars($mt5Details['username']) : ''; ?>">
                         </div>
 
                         <div class="mb-4">
                             <label for="password" class="block text-sm font-semibold text-gray-700 mb-1">Trader Password</label>
-                            <input type="text" id="password" name="password" required 
+                            <input type="text" id="password" name="password" required
                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-primary-purple focus:border-primary-purple transition duration-150 ease-in-out bg-gray-50"
-                                   placeholder="password">
+                                   placeholder="password" value="<?php echo $isUpdateMode ? htmlspecialchars($mt5Details['password']) : ''; ?>">
                         </div>
 
                         <div class="mb-6">
                             <label for="server" class="block text-sm font-semibold text-gray-700 mb-1">Broker Server Name</label>
-                            <input type="text" id="server" name="server" required 
+                            <input type="text" id="server" name="server" required
                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-primary-purple focus:border-primary-purple transition duration-150 ease-in-out bg-gray-50"
-                                   placeholder="e.g., Exness-Trial9">
+                                   placeholder="e.g., Exness-Trial9" value="<?php echo $isUpdateMode ? htmlspecialchars($mt5Details['server']) : ''; ?>">
                         </div>
 
                         <div class="mb-6">
                             <label for="instrument" class="block text-sm font-semibold text-gray-700 mb-1">Which instrument will you be trading Mainly?</label>
-                            <input type="text" id="instrument" name="instrument" required 
+                            <input type="text" id="instrument" name="instrument" required
                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-primary-purple focus:border-primary-purple transition duration-150 ease-in-out bg-gray-50"
-                                   placeholder="e.g., Apple Stock, Gold Futures, EUR/USD">
+                                   placeholder="e.g., Apple Stock, Gold Futures, EUR/USD" value="<?php echo $isUpdateMode ? htmlspecialchars($mt5Details['instrument']) : ''; ?>">
                         </div>
 
-                        <button type="submit" 
+                        <button type="submit"
                                 class="w-full px-4 py-4 bg-primary-purple text-white font-bold rounded-lg shadow-lg hover:bg-header-dark transition duration-300 uppercase tracking-wide">
-                            Submit for Monitoring
+                            <?php echo $isUpdateMode ? 'Update Details' : 'Submit for Monitoring'; ?>
                         </button>
                     </form>
 
@@ -370,9 +379,13 @@
                     </svg>
                 </div>
 
-                <h2 class="text-3xl font-extrabold text-primary-purple mb-4">Thank You <?php echo htmlspecialchars($user['name']); ?>!</h2>
+                <h2 class="text-3xl font-extrabold text-primary-purple mb-4"><?php echo $isUpdateMode ? 'Details Updated' : 'Thank You'; ?> <?php echo htmlspecialchars($user['name']); ?>!</h2>
                 <p class="text-gray-700 mb-8 leading-relaxed text-lg">
-                    We got your details. Please wait for us to setup your account on our Servers. We will update you by Email within few hours. We are so Excited to see you in action!
+                    <?php if ($isUpdateMode): ?>
+                        Your MT5 details have been updated successfully. Our team will review the changes and update you by email within a few hours.
+                    <?php else: ?>
+                        We got your details. Please wait for us to setup your account on our Servers. We will update you by Email within few hours. We are so Excited to see you in action!
+                    <?php endif; ?>
                 </p>
 
                 <div class="flex justify-center space-x-4">
@@ -385,7 +398,7 @@
     </div>
 
     <!-- Already Submitted Modal -->
-    <div id="already-submitted-modal" class="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-50 <?php echo $hasMT5Details ? '' : 'hidden'; ?> animate-fade-in">
+    <div id="already-submitted-modal" class="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-50 <?php echo ($hasMT5Details && !$allowUpdate) ? '' : 'hidden'; ?> animate-fade-in">
         <div class="bg-white p-10 rounded-3xl shadow-2xl max-w-lg mx-4 border-t-4 border-primary-purple transform scale-95 animate-modal-appear">
             <div class="text-center">
                 <!-- Info Icon -->
