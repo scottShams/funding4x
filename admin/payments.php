@@ -50,10 +50,23 @@ if (isset($_POST['action']) && $_POST['action'] === 'remove_credit') {
     exit;
 }
 
+// Handle delete action
+if (isset($_GET['delete']) && is_numeric($_GET['delete'])) {
+    $paymentId = (int) $_GET['delete'];
+
+    // Delete the payment
+    $deleteStmt = $pdo->prepare("DELETE FROM payments WHERE id = ?");
+    $deleteStmt->execute([$paymentId]);
+
+    // Redirect back
+    header('Location: payments.php?deleted=1');
+    exit;
+}
+
 // Get payments data with user information
 $query = "
-    SELECT 
-        p.id AS payment_id,
+    SELECT
+        p.id as payment_id,
         p.user_id,
         p.payment_method,
         p.amount,
@@ -63,20 +76,14 @@ $query = "
         p.crypto_network,
         p.wallet_address,
         p.transaction_hash,
-        p.created_at AS payment_date,
+        p.created_at as payment_date,
         wu.name,
         wu.email,
         wu.user_credit
     FROM payments p
     LEFT JOIN waitlist_users wu ON p.user_id = wu.id
-    INNER JOIN (
-        SELECT user_id, MAX(created_at) AS latest_payment
-        FROM payments
-        WHERE status = 'completed'
-        GROUP BY user_id
-    ) latest ON p.user_id = latest.user_id AND p.created_at = latest.latest_payment
     WHERE p.status = 'completed'
-    ORDER BY p.created_at DESC;
+    ORDER BY p.created_at DESC
 ";
 
 $stmt = $pdo->prepare($query);
@@ -157,6 +164,10 @@ ob_start();
                                     </a></li>
                                     <li><a class="dropdown-item" href="#" onclick="removeCredit(<?php echo $payment['user_id']; ?>, '<?php echo htmlspecialchars($payment['name']); ?>')">
                                         <i class="bi bi-dash-circle me-2"></i>Remove Credit
+                                    </a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="#" onclick="deletePayment(<?php echo $payment['payment_id']; ?>)">
+                                        <i class="bi bi-trash me-2"></i>Delete Payment
                                     </a></li>
                                 </ul>
                             </div>
@@ -406,4 +417,39 @@ function removeCredit(userId, userName) {
         }
     });
 }
+
+// Delete payment function with SweetAlert confirmation
+function deletePayment(paymentId) {
+    Swal.fire({
+        title: 'Are you sure?',
+        text: 'You want to delete this payment? This action cannot be undone!',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Yes, delete payment!',
+        cancelButtonText: 'Cancel',
+        customClass: {
+            confirmButton: 'btn btn-danger',
+            cancelButton: 'btn btn-secondary'
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = `payments.php?delete=${paymentId}`;
+        }
+    });
+}
+
+// Show success message if payment was deleted
+<?php if (isset($_GET['deleted']) && $_GET['deleted'] == 1): ?>
+$(document).ready(function() {
+    Swal.fire({
+        title: 'Deleted!',
+        text: 'Payment has been deleted successfully.',
+        icon: 'success',
+        timer: 2000,
+        showConfirmButton: false
+    });
+});
+<?php endif; ?>
 </script>
