@@ -52,8 +52,8 @@ if (isset($_POST['action']) && $_POST['action'] === 'remove_credit') {
 
 // Get payments data with user information
 $query = "
-    SELECT
-        p.id as payment_id,
+    SELECT 
+        p.id AS payment_id,
         p.user_id,
         p.payment_method,
         p.amount,
@@ -63,14 +63,20 @@ $query = "
         p.crypto_network,
         p.wallet_address,
         p.transaction_hash,
-        p.created_at as payment_date,
+        p.created_at AS payment_date,
         wu.name,
         wu.email,
         wu.user_credit
     FROM payments p
     LEFT JOIN waitlist_users wu ON p.user_id = wu.id
+    INNER JOIN (
+        SELECT user_id, MAX(created_at) AS latest_payment
+        FROM payments
+        WHERE status = 'completed'
+        GROUP BY user_id
+    ) latest ON p.user_id = latest.user_id AND p.created_at = latest.latest_payment
     WHERE p.status = 'completed'
-    ORDER BY p.created_at DESC
+    ORDER BY p.created_at DESC;
 ";
 
 $stmt = $pdo->prepare($query);
@@ -103,9 +109,11 @@ ob_start();
                     </tr>
                 </thead>
                 <tbody>
-                    <?php foreach ($payments as $payment): ?>
+                    <?php 
+                    $loop = 0; 
+                    foreach ($payments as $payment): ?>
                     <tr>
-                        <td><?php echo $payment['payment_id']; ?></td>
+                        <td><?= ++$loop ?></td>
                         <td><a href="user_referral_details.php?id=<?php echo $payment['user_id']; ?>" class="text-decoration-none"><?php echo ucfirst(htmlspecialchars($payment['name'])); ?></a></td>
                         <td><?php echo htmlspecialchars($payment['email']); ?></td>
                         <td>
