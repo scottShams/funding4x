@@ -1,22 +1,86 @@
 <?php
     session_start();
-    // Include database connection
     require_once 'database.php';
 
-    // Get database connection
+    // DB connection
     $pdo = getPDO();
-    $email = $_SESSION['user_email'];
-    // Get price from URL parameter, default to 59 if not set
-    $checkoutPrice = 59; // default
 
+    // Email
+    $email = $_SESSION['user_email'] ?? null;
+
+    // Default checkout price
+    $checkoutPrice = 59;
+
+    // If session has price → use it (highest priority)
     if (isset($_SESSION['checkout_price'])) {
+
         $checkoutPrice = (int) $_SESSION['checkout_price'];
-    } elseif (isset($_GET['price'])) {
+
+        // Store it in cookie for 7 days
+        setcookie('checkout_price', $checkoutPrice, time() + (7 * 24 * 60 * 60), "/");
+
+    }
+    // If GET has price → use it
+    elseif (isset($_GET['price'])) {
+
         $checkoutPrice = (int) $_GET['price'];
+
+        // Store in session & cookie
+        $_SESSION['checkout_price'] = $checkoutPrice;
+        setcookie('checkout_price', $checkoutPrice, time() + (7 * 24 * 60 * 60), "/");
+
+    }
+    // If cookie exists → use it (when session is empty)
+    elseif (isset($_COOKIE['checkout_price'])) {
+
+        $checkoutPrice = (int) $_COOKIE['checkout_price'];
+
+        // Restore into session
+        $_SESSION['checkout_price'] = $checkoutPrice;
     }
 
+
     if(empty($email)){
-        header("Location: index.php");
+        ?>
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Please Login</title>
+            <script src="https://cdn.tailwindcss.com"></script>
+            <script>
+                tailwind.config = {
+                    theme: {
+                        extend: {
+                            colors: {
+                                'primary-purple': '#4f009d',
+                                'header-dark': '#240046',
+                            }
+                        }
+                    }
+                }
+            </script>
+        </head>
+        <body class="min-h-screen flex items-center justify-center bg-gray-100">
+            <div class="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-50">
+                <div class="bg-white p-10 rounded-3xl shadow-2xl max-w-lg mx-4 border-t-4 border-primary-purple">
+                    <div class="text-center">
+                        <h2 class="text-3xl font-extrabold text-primary-purple mb-4">Please Login First</h2>
+                        <p class="text-gray-700 mb-8 leading-relaxed text-lg">
+                            You need to be logged in to access this page.
+                        </p>
+                        <div class="flex justify-center space-x-4">
+                            <a href="login.php" class="px-8 py-4 bg-primary-purple text-white font-bold rounded-xl shadow-lg hover:bg-header-dark transition-all duration-300 transform hover:scale-105">
+                                Login Now
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </body>
+        </html>
+        <?php
         exit;
     }
     $stmt = $pdo->prepare("SELECT * FROM waitlist_users WHERE email = ?");
