@@ -64,41 +64,7 @@ try {
 
     // Send email to support if it was an update
     if ($isUpdate) {
-        $supportEmail = 'support@funding4x.com';
-        $subject = 'MT5 Details Updated by User';
-        $body = 'MT5 details updated by user, MT5 account number: ' . $mt5Details['username'];
-
-        // Use PHPMailer to send email
-        $mail = new PHPMailer\PHPMailer\PHPMailer(true);
-
-        // SMTP configuration
-        $smtpHost = EnvLoader::get('SMTP_HOST', 'localhost');
-        $smtpUsername = EnvLoader::get('SMTP_USERNAME', '');
-        $smtpPassword = EnvLoader::get('SMTP_PASSWORD', '');
-        $smtpPort = EnvLoader::get('SMTP_PORT', 587);
-        $smtpEncryption = EnvLoader::get('SMTP_ENCRYPTION', 'tls');
-
-        $mail->isSMTP();
-        $mail->Host = $smtpHost;
-        $mail->SMTPAuth = !empty($smtpUsername);
-        $mail->Username = $smtpUsername;
-        $mail->Password = $smtpPassword;
-        $mail->SMTPSecure = $smtpEncryption;
-        $mail->Port = (int)$smtpPort;
-
-        $mail->setFrom('noreply@funding4x.com', 'Funding4x');
-        $mail->addAddress($supportEmail, 'Support Team');
-
-        $mail->isHTML(false);
-        $mail->Subject = $subject;
-        $mail->Body = $body;
-
-        try {
-            $mail->send();
-        } catch (Exception $e) {
-            // Log error but don't fail the request
-            error_log('Failed to send MT5 update email: ' . $e->getMessage());
-        }
+        EmailVerification::sendMT5UpdateEmail($mt5Details['username']);
     }
 
     echo json_encode([
