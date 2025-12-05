@@ -97,7 +97,7 @@ $query = "
     ON wu.id = referral_counts.parent_user_id
     LEFT JOIN mt5_details m ON wu.id = m.user_id
     WHERE wu.knowledge_test_result IS NOT NULL
-    ORDER BY wu.id DESC;
+    ORDER BY wu.created_at DESC;
 
 ";
 $stmt = $pdo->prepare($query);

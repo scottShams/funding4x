@@ -98,7 +98,7 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
         LEFT JOIN waitlist_users r ON u.id = r.parent_user_id
         WHERE u.email != 'admin@gmail.com' AND u.email_verified = 1
         GROUP BY u.id
-        ORDER BY u.id DESC
+        ORDER BY u.created_at DESC
     ";
     $export_stmt = $pdo->prepare($export_query);
     $export_stmt->execute();
