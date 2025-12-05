@@ -12,6 +12,9 @@
 
     // Get reCAPTCHA site key from environment
     $recaptchaSiteKey = EnvLoader::get('RECAPTCHA_SITE_KEY', 'your_recaptcha_site_key_here');
+
+    // Get referral code from session or cookie
+    $referralCode = $_SESSION['referral_code'] ?? $_COOKIE['referral_code'] ?? '';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -170,9 +173,8 @@
             const signupForm = document.getElementById('signupForm');
             const countrySelect = document.getElementById('signup-country-select');
 
-            // Detect referral code from URL parameter
-            const urlParams = new URLSearchParams(window.location.search);
-            const referralCode = urlParams.get('ref');
+            // Get referral code from PHP (session/cookie)
+            const referralCode = '<?php echo htmlspecialchars($referralCode); ?>';
 
             if (referralCode) {
                 // Store referral code in session storage for form submission
@@ -298,6 +300,9 @@
                             title: 'Welcome to Funding4x!',
                             text: 'Account created successfully! Please check your email to verify your account.',
                             confirmButtonColor: '#4f009d'
+                        }).then(() => {
+                            const hasCheckoutPrice = document.cookie.split(';').some(c => c.trim().startsWith('checkout_price='));
+                            window.location.href = hasCheckoutPrice ? 'checkout.php' : 'referral_dashboard.php';
                         });
 
                     } else if (result.status === 'existing_user') {

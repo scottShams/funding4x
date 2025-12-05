@@ -2,6 +2,16 @@
 // Load environment variables
 require_once __DIR__ . '/env_loader.php';
 
+if (isset($_GET['ref'])) {
+    $ref = $_GET['ref'];
+
+    // Save to session
+    $_SESSION['referral_code'] = $ref;
+
+    // Save to cookie for 30 days
+    setcookie("referral_code", $ref, time() + (30 * 24 * 60 * 60), "/");
+}
+
 // Get reCAPTCHA site key from environment
 $recaptchaSiteKey = EnvLoader::get('RECAPTCHA_SITE_KEY', 'your_recaptcha_site_key_here');
 ?>
