@@ -56,7 +56,12 @@ try {
     $_SESSION['user_email'] = $user['email'];
     $_SESSION['user_name'] = $user['name'];
 
-    $redirect = isset($_COOKIE['checkout_price']) ? 'checkout.php' : 'referral_dashboard.php';
+    // Determine redirect based on user type and cookies
+    if (isset($user['paid_user']) && (int)$user['paid_user'] === 1) {
+        $redirect = 'my_dashboard.php';
+    } else {
+        $redirect = isset($_COOKIE['checkout_price']) ? 'checkout.php' : 'referral_dashboard.php';
+    }
 
     echo json_encode([
         'status' => 'success',
