@@ -449,6 +449,50 @@ class EmailVerification {
     }
     
     /**
+     * Send MT5 details update email to support
+     * @param string $mt5Username MT5 account username
+     * @return bool Success status
+     */
+    public static function sendMT5UpdateEmail($mt5Username) {
+        try {
+            // Get SMTP configuration
+            $smtpHost = EnvLoader::get('SMTP_HOST', 'localhost');
+            $smtpUsername = EnvLoader::get('SMTP_USERNAME', '');
+            $smtpPassword = EnvLoader::get('SMTP_PASSWORD', '');
+            $smtpPort = EnvLoader::get('SMTP_PORT', 587);
+            $smtpEncryption = EnvLoader::get('SMTP_ENCRYPTION', 'tls');
+
+            // Create PHPMailer instance
+            $mail = new PHPMailer(true);
+
+            // Server settings
+            $mail->isSMTP();
+            $mail->Host = $smtpHost;
+            $mail->SMTPAuth = !empty($smtpUsername);
+            $mail->Username = $smtpUsername;
+            $mail->Password = $smtpPassword;
+            $mail->SMTPSecure = $smtpEncryption;
+            $mail->Port = (int)$smtpPort;
+
+            // Recipients
+            $mail->setFrom('noreply@funding4x.com', 'Funding4x');
+            $mail->addAddress('support@funding4x.com', 'Support Team');
+
+            // Content
+            $mail->isHTML(false);
+            $mail->Subject = 'MT5 Details Updated by User';
+            $mail->Body = 'MT5 details updated by user, MT5 account number: ' . $mt5Username;
+
+            // Send email
+            return $mail->send();
+
+        } catch (Exception $e) {
+            error_log('Failed to send MT5 update email: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
      * Get site URL
      * @return string Site URL
      */
