@@ -6,19 +6,77 @@ require_once '../database.php';
 // Get database connection
 $pdo = getPDO();
 
+// ----------------------
+// CSV EXPORT
+// ----------------------
+if (isset($_GET['export']) && $_GET['export'] === 'csv') {
+    // Prepare query to fetch all referrals
+    $export_query = "
+        SELECT
+            u.id as referral_id,
+            u.created_at,
+            ru.name as referrer_name,
+            ru.email as referrer_email,
+            u.name as referred_name,
+            u.email as referred_email,
+            u.email_verified as referred_verified
+        FROM waitlist_users u
+        JOIN waitlist_users ru ON u.parent_user_id = ru.id
+        WHERE u.parent_user_id IS NOT NULL
+        AND u.email != 'admin@gmail.com'
+        ORDER BY u.created_at DESC
+    ";
+    $export_stmt = $pdo->prepare($export_query);
+    $export_stmt->execute();
+    $export_referrals = $export_stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Set CSV headers
+    header('Content-Type: text/csv; charset=utf-8');
+    header('Content-Disposition: attachment; filename=referrals_' . date('Y-m-d_H-i-s') . '.csv');
+    header('Pragma: no-cache');
+    header('Expires: 0');
+
+    // Open output stream
+    $output = fopen('php://output', 'w');
+
+    // Add UTF-8 BOM for Excel compatibility
+    fprintf($output, chr(0xEF) . chr(0xBB) . chr(0xBF));
+
+    // CSV headers
+    fputcsv($output, ['Referral ID', 'Referrer Name', 'Referrer Email', 'Referred Name', 'Referred Email', 'Referred Verified', 'Created At']);
+
+    // Loop through referrals and write rows
+    foreach ($export_referrals as $referral) {
+        fputcsv($output, [
+            $referral['referral_id'] ?? 'N/A',
+            $referral['referrer_name'] ?? 'N/A',
+            $referral['referrer_email'] ?? 'N/A',
+            $referral['referred_name'] ?? 'N/A',
+            $referral['referred_email'] ?? 'N/A',
+            ($referral['referred_verified'] == 1) ? 'Yes' : 'No',
+            !empty($referral['created_at'])
+                ? date('d/m/Y H:i:s', strtotime($referral['created_at']))
+                : 'N/A'
+        ]);
+    }
+
+    fclose($output);
+    exit;
+}
+
 // Get all referrals with user details (using parent_user_id relationship)
 $stmt = $pdo->prepare("
-    SELECT 
-        u.id as referral_id, 
+    SELECT
+        u.id as referral_id,
         u.created_at,
-        ru.name as referrer_name, 
+        ru.name as referrer_name,
         ru.email as referrer_email,
-        u.name as referred_name, 
+        u.name as referred_name,
         u.email as referred_email,
         u.email_verified as referred_verified
     FROM waitlist_users u
     JOIN waitlist_users ru ON u.parent_user_id = ru.id
-    WHERE u.parent_user_id IS NOT NULL 
+    WHERE u.parent_user_id IS NOT NULL
     AND u.email != 'admin@gmail.com'
     ORDER BY u.created_at DESC
 ");
@@ -31,6 +89,13 @@ ob_start();
 ?>
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
     <h1 class="h2">Referral Management</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+            <a href="?export=csv" class="btn btn-sm btn-success">
+                <i class="fas fa-download"></i> Export to CSV
+            </a>
+        </div>
+    </div>
 </div>
 
 <div class="card">

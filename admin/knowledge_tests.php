@@ -68,6 +68,86 @@ if (isset($_POST['action']) && $_POST['action'] === 'remove_credit') {
     exit;
 }
 
+// ----------------------
+// CSV EXPORT
+// ----------------------
+if (isset($_GET['export']) && $_GET['export'] === 'csv') {
+    // Prepare query to fetch all knowledge test users
+    $export_query = "
+        SELECT
+            wu.id,
+            wu.name,
+            wu.email,
+            wu.credits,
+            wu.knowledge_test_result,
+            wu.user_credit,
+            wu.created_at,
+            COALESCE(referral_counts.completed_referrals, 0) AS completed_referrals,
+            m.status AS mt5_status
+        FROM waitlist_users wu
+        LEFT JOIN (
+            SELECT
+                child.parent_user_id,
+                COUNT(*) AS completed_referrals
+            FROM waitlist_users child
+            JOIN waitlist_users parent
+                ON parent.id = child.parent_user_id
+            WHERE child.parent_user_id IS NOT NULL
+            AND child.email_verified = 1
+            AND child.quiz_result IS NOT NULL
+            AND child.user_ip != parent.user_ip
+            GROUP BY child.parent_user_id
+        ) referral_counts
+        ON wu.id = referral_counts.parent_user_id
+        LEFT JOIN mt5_details m ON wu.id = m.user_id
+        WHERE wu.knowledge_test_result IS NOT NULL
+        ORDER BY wu.created_at DESC
+    ";
+    $export_stmt = $pdo->prepare($export_query);
+    $export_stmt->execute();
+    $export_users = $export_stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Set CSV headers
+    header('Content-Type: text/csv; charset=utf-8');
+    header('Content-Disposition: attachment; filename=knowledge_tests_' . date('Y-m-d_H-i-s') . '.csv');
+    header('Pragma: no-cache');
+    header('Expires: 0');
+
+    // Open output stream
+    $output = fopen('php://output', 'w');
+
+    // Add UTF-8 BOM for Excel compatibility
+    fprintf($output, chr(0xEF) . chr(0xBB) . chr(0xBF));
+
+    // CSV headers
+    fputcsv($output, ['ID', 'Name', 'Email', 'Credits', 'Total Referrals', 'Completed Referrals', 'MT5 Status', 'Created At']);
+
+    // Loop through users and write rows
+    foreach ($export_users as $user) {
+        $result = json_decode($user['knowledge_test_result'], true);
+        $completed_at = $result['completed_at'] ?? 'N/A';
+        if ($completed_at !== 'N/A') {
+            $completed_at = date('d/m/Y H:i:s', strtotime($completed_at));
+        }
+
+        fputcsv($output, [
+            $user['id'] ?? 'N/A',
+            $user['name'] ?? 'N/A',
+            $user['email'] ?? 'N/A',
+            $user['credits'] ?? 0,
+            $user['credits'] ?? 0,
+            $user['completed_referrals'] ?? 0,
+            $user['mt5_status'] ?? 'Not Submitted',
+            !empty($user['created_at'])
+                ? date('d/m/Y H:i:s', strtotime($user['created_at']))
+                : 'N/A'
+        ]);
+    }
+
+    fclose($output);
+    exit;
+}
+
 // Get users who have completed knowledge test
 $query = "
     SELECT
@@ -110,6 +190,13 @@ ob_start();
 ?>
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
     <h1 class="h2">Knowledge Tests Summary</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+            <a href="?export=csv" class="btn btn-sm btn-success">
+                <i class="fas fa-download"></i> Export to CSV
+            </a>
+        </div>
+    </div>
 </div>
 
 <div class="card">

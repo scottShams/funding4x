@@ -113,6 +113,61 @@ if (isset($_POST['action']) && $_POST['action'] === 'remove_credit') {
     exit;
 }
 
+// ----------------------
+// CSV EXPORT
+// ----------------------
+if (isset($_GET['export']) && $_GET['export'] === 'csv') {
+    // Prepare query to fetch all MT5 details
+    $export_query = "
+        SELECT
+            m.*,
+            u.name,
+            u.email,
+            u.user_credit
+        FROM mt5_details m
+        JOIN waitlist_users u ON m.user_id = u.id
+        ORDER BY m.submitted_at DESC
+    ";
+    $export_stmt = $pdo->prepare($export_query);
+    $export_stmt->execute();
+    $export_mt5_details = $export_stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Set CSV headers
+    header('Content-Type: text/csv; charset=utf-8');
+    header('Content-Disposition: attachment; filename=mt5_details_' . date('Y-m-d_H-i-s') . '.csv');
+    header('Pragma: no-cache');
+    header('Expires: 0');
+
+    // Open output stream
+    $output = fopen('php://output', 'w');
+
+    // Add UTF-8 BOM for Excel compatibility
+    fprintf($output, chr(0xEF) . chr(0xBB) . chr(0xBF));
+
+    // CSV headers
+    fputcsv($output, ['ID', 'User Name', 'User Email', 'MT5 Username', 'MT5 Password', 'Server', 'Instrument', 'Status', 'Submitted At']);
+
+    // Loop through MT5 details and write rows
+    foreach ($export_mt5_details as $detail) {
+        fputcsv($output, [
+            $detail['id'] ?? 'N/A',
+            $detail['name'] ?? 'N/A',
+            $detail['email'] ?? 'N/A',
+            $detail['username'] ?? 'N/A',
+            $detail['password'] ?? 'N/A',
+            $detail['server'] ?? 'N/A',
+            $detail['instrument'] ?? 'N/A',
+            $detail['status'] ?? 'pending',
+            !empty($detail['submitted_at'])
+                ? date('d/m/Y H:i:s', strtotime($detail['submitted_at']))
+                : 'N/A'
+        ]);
+    }
+
+    fclose($output);
+    exit;
+}
+
 // Get MT5 details with user info
 $query = "
     SELECT
@@ -134,6 +189,13 @@ ob_start();
 ?>
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
     <h1 class="h2">MT5 Details Summary</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+            <a href="?export=csv" class="btn btn-sm btn-success">
+                <i class="fas fa-download"></i> Export to CSV
+            </a>
+        </div>
+    </div>
 </div>
 
 <div class="card">

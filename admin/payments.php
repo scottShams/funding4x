@@ -63,6 +63,72 @@ if (isset($_GET['delete']) && is_numeric($_GET['delete'])) {
     exit;
 }
 
+// ----------------------
+// CSV EXPORT
+// ----------------------
+if (isset($_GET['export']) && $_GET['export'] === 'csv') {
+    // Prepare query to fetch all payments with user information
+    $export_query = "
+        SELECT
+            p.id as payment_id,
+            p.user_id,
+            p.payment_method,
+            p.amount,
+            p.currency,
+            p.status,
+            p.crypto_type,
+            p.crypto_network,
+            p.wallet_address,
+            p.transaction_hash,
+            p.created_at as payment_date,
+            wu.name,
+            wu.email,
+            wu.user_credit
+        FROM payments p
+        LEFT JOIN waitlist_users wu ON p.user_id = wu.id
+        WHERE p.status = 'completed'
+        ORDER BY p.created_at DESC
+    ";
+    $export_stmt = $pdo->prepare($export_query);
+    $export_stmt->execute();
+    $export_payments = $export_stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Set CSV headers
+    header('Content-Type: text/csv; charset=utf-8');
+    header('Content-Disposition: attachment; filename=payments_' . date('Y-m-d_H-i-s') . '.csv');
+    header('Pragma: no-cache');
+    header('Expires: 0');
+
+    // Open output stream
+    $output = fopen('php://output', 'w');
+
+    // Add UTF-8 BOM for Excel compatibility
+    fprintf($output, chr(0xEF) . chr(0xBB) . chr(0xBF));
+
+    // CSV headers
+    fputcsv($output, ['Payment ID', 'User Name', 'User Email', 'Amount', 'Currency', 'Payment Method', 'Crypto Type', 'Transaction Hash', 'Payment Date']);
+
+    // Loop through payments and write rows
+    foreach ($export_payments as $payment) {
+        fputcsv($output, [
+            $payment['payment_id'] ?? 'N/A',
+            $payment['name'] ?? 'N/A',
+            $payment['email'] ?? 'N/A',
+            $payment['amount'] ?? 'N/A',
+            $payment['currency'] ?? 'N/A',
+            $payment['payment_method'] ?? 'N/A',
+            $payment['crypto_type'] ?? 'N/A',
+            $payment['transaction_hash'] ?? 'N/A',
+            !empty($payment['payment_date'])
+                ? date('d/m/Y H:i:s', strtotime($payment['payment_date']))
+                : 'N/A'
+        ]);
+    }
+
+    fclose($output);
+    exit;
+}
+
 // Get payments data with user information
 $query = "
     SELECT
@@ -96,6 +162,13 @@ ob_start();
 ?>
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
     <h1 class="h2">Payments Summary</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+            <a href="?export=csv" class="btn btn-sm btn-success">
+                <i class="fas fa-download"></i> Export to CSV
+            </a>
+        </div>
+    </div>
 </div>
 
 <div class="card">
