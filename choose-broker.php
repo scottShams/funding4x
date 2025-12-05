@@ -6,7 +6,8 @@
     // Get database connection
     $pdo = getPDO();
     $email = $_SESSION['user_email'];
-    if(empty($email)){
+    $userId = $_SESSION['user_id'];
+    if(empty($email) && empty($userId)){
         ?>
         <!DOCTYPE html>
         <html lang="en">
@@ -49,8 +50,9 @@
         <?php
         exit;
     }
-    $stmt = $pdo->prepare("SELECT * FROM waitlist_users WHERE email = ?");
-    $stmt->execute([$email]);
+    ;
+    $stmt = $pdo->prepare("SELECT * FROM waitlist_users WHERE id = ?");
+    $stmt->execute([$userId]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
     // Check if knowledge test is already completed
