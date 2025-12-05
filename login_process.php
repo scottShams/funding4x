@@ -69,10 +69,12 @@ try {
     $_SESSION['user_email'] = $user['email'];
     $_SESSION['user_name'] = $user['name'];
 
+    $redirect = isset($_COOKIE['checkout_price']) ? 'checkout.php' : 'referral_dashboard.php';
+
     echo json_encode([
         'status' => 'success',
         'message' => 'Login successful!',
-        'redirect' => 'referral_dashboard.php'
+        'redirect' => $redirect
     ]);
 
 } catch (Exception $e) {
