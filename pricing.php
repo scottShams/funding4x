@@ -217,7 +217,7 @@
                     </ul>
 
                     <!-- CTA Button -->
-                    <a href="login.php" class="w-full py-3 bg-primary-purple text-card-white font-extrabold text-lg rounded-lg shadow-lg hover:bg-secondary-purple transition duration-300 text-center block">
+                    <a href="login.php?paid=1" class="w-full py-3 bg-primary-purple text-card-white font-extrabold text-lg rounded-lg shadow-lg hover:bg-secondary-purple transition duration-300 text-center block">
                         Log In to Get Started
                     </a>
 

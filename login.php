@@ -7,6 +7,11 @@
         exit;
     }
 
+    // Set paid user cookie if coming from pricing page
+    if (isset($_GET['paid']) && $_GET['paid'] == '1') {
+        setcookie('paid_user', '1', time() + (1 * 24 * 60 * 60), '/'); // 1 days
+    }
+
     // Load environment variables
     require_once __DIR__ . '/env_loader.php';
 

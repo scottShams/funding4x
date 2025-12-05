@@ -53,3 +53,6 @@ ADD COLUMN user_credit INT DEFAULT 0 AFTER knowledge_test_result;
 
 ALTER TABLE waitlist_users
 ADD COLUMN credit_updated_at TIMESTAMP NULL AFTER user_credit;
+
+ALTER TABLE waitlist_users
+ADD COLUMN paid_user TINYINT(1) DEFAULT 0 AFTER credit_updated_at;

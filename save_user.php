@@ -202,12 +202,15 @@ try {
     // Hash password
     $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 
+    // Check if user is paid
+    $paidUser = isset($_COOKIE['paid_user']) && $_COOKIE['paid_user'] == '1' ? 1 : 0;
+
     // Insert new user
     $stmt = $pdo->prepare("
-        INSERT INTO waitlist_users (name, email, password, country, user_ip, referral_code, parent_user_id, email_verified)
-        VALUES (?, ?, ?, ?, ?, ?, ?, 0)
+        INSERT INTO waitlist_users (name, email, password, country, user_ip, referral_code, parent_user_id, email_verified, paid_user)
+        VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?)
     ");
-    $stmt->execute([$name, $email, $hashedPassword, $country, $userIP, $userReferralCode, $parentUserId]);
+    $stmt->execute([$name, $email, $hashedPassword, $country, $userIP, $userReferralCode, $parentUserId, $paidUser]);
 
     $userId = $pdo->lastInsertId();
 
