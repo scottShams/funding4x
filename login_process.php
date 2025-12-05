@@ -11,6 +11,7 @@ try {
     // Get POST data
     $email = trim($_POST['email'] ?? '');
     $password = $_POST['password'] ?? '';
+    $recaptcha = $_POST['recaptcha'] ?? '';
 
     // Validate required fields
     if (empty($email) || empty($password)) {
@@ -23,23 +24,9 @@ try {
     }
 
     // Verify reCAPTCHA
-    $recaptchaSecret = getenv('RECAPTCHA_SECRET_KEY') ?: 'your_recaptcha_secret_key_here';
-    $recaptchaUrl = 'https://www.google.com/recaptcha/api/siteverify';
-    $recaptchaData = [
-        'secret' => $recaptchaSecret,
-        'response' => $recaptcha
-    ];
-
-    $recaptchaOptions = [
-        'http' => [
-            'header' => "Content-type: application/x-www-form-urlencoded\r\n",
-            'method' => 'POST',
-            'content' => http_build_query($recaptchaData)
-        ]
-    ];
-
-    $recaptchaContext = stream_context_create($recaptchaOptions);
-    $recaptchaResult = file_get_contents($recaptchaUrl, false, $recaptchaContext);
+    $recaptchaSecret = EnvLoader::get('RECAPTCHA_SECRET_KEY', 'your_recaptcha_secret_key_here');
+    $recaptchaUrl = "https://www.google.com/recaptcha/api/siteverify?secret=$recaptchaSecret&response=$recaptcha";
+    $recaptchaResult = file_get_contents($recaptchaUrl);
     $recaptchaResponse = json_decode($recaptchaResult, true);
 
     if (!$recaptchaResponse['success']) {
