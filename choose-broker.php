@@ -377,8 +377,21 @@
                         <div class="mb-6">
                             <label for="instrument" class="block text-sm font-semibold text-gray-700 mb-1">Which instrument will you be trading Mainly?</label>
                             <input type="text" id="instrument" name="instrument" required
-                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-primary-purple focus:border-primary-purple transition duration-150 ease-in-out bg-gray-50"
-                                   placeholder="e.g., Apple Stock, Gold Futures, EUR/USD" value="<?php echo $isUpdateMode ? htmlspecialchars($mt5Details['instrument']) : ''; ?>">
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-primary-purple focus:border-primary-purple transition duration-150 ease-in-out bg-gray-50"
+                                    placeholder="e.g., Apple Stock, Gold Futures, EUR/USD" value="<?php echo $isUpdateMode ? htmlspecialchars($mt5Details['instrument']) : ''; ?>">
+                        </div>
+
+                        <!-- Agreement Checkbox -->
+                        <div class="mb-6">
+                            <label class="flex items-start text-sm">
+                                <input type="checkbox" id="agreeTerms" name="agreeTerms" required class="mr-2 h-4 w-4 text-primary-purple bg-gray-100 border-gray-300 rounded focus:ring-primary-purple focus:ring-2 mt-0.5">
+                                <span class="text-gray-700">
+                                    I agree to the
+                                    <a href="pages/terms-disclaimer.php" target="_blank" class="text-primary-purple hover:text-secondary-purple underline">Terms and Conditions</a>
+                                    and
+                                    <a href="rule.php" target="_blank" class="text-primary-purple hover:text-secondary-purple underline">Trading Rules</a>.
+                                </span>
+                            </label>
                         </div>
 
                         <button type="submit"
