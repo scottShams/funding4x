@@ -16,8 +16,8 @@
 
         $checkoutPrice = (int) $_SESSION['checkout_price'];
 
-        // Store it in cookie for 7 days
-        setcookie('checkout_price', $checkoutPrice, time() + (7 * 24 * 60 * 60), "/");
+        // Store it in cookie for 1 days
+        setcookie('checkout_price', $checkoutPrice, time() + (1 * 24 * 60 * 60), "/");
 
     }
     // If GET has price → use it
@@ -27,7 +27,7 @@
 
         // Store in session & cookie
         $_SESSION['checkout_price'] = $checkoutPrice;
-        setcookie('checkout_price', $checkoutPrice, time() + (7 * 24 * 60 * 60), "/");
+        setcookie('checkout_price', $checkoutPrice, time() + (1 * 24 * 60 * 60), "/");
 
     }
     // If cookie exists → use it (when session is empty)
