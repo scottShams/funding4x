@@ -11,7 +11,7 @@ try {
     // Get POST data
     $email = trim($_POST['email'] ?? '');
     $password = $_POST['password'] ?? '';
-    $recaptcha = $_POST['recaptcha'] ?? '';
+    // $recaptcha = $_POST['recaptcha'] ?? '';
 
     // Validate required fields
     if (empty($email) || empty($password)) {
@@ -24,14 +24,14 @@ try {
     }
 
     // Verify reCAPTCHA
-    $recaptchaSecret = EnvLoader::get('RECAPTCHA_SECRET_KEY', 'your_recaptcha_secret_key_here');
-    $recaptchaUrl = "https://www.google.com/recaptcha/api/siteverify?secret=$recaptchaSecret&response=$recaptcha";
-    $recaptchaResult = file_get_contents($recaptchaUrl);
-    $recaptchaResponse = json_decode($recaptchaResult, true);
+    // $recaptchaSecret = EnvLoader::get('RECAPTCHA_SECRET_KEY', 'your_recaptcha_secret_key_here');
+    // $recaptchaUrl = "https://www.google.com/recaptcha/api/siteverify?secret=$recaptchaSecret&response=$recaptcha";
+    // $recaptchaResult = file_get_contents($recaptchaUrl);
+    // $recaptchaResponse = json_decode($recaptchaResult, true);
 
-    if (!$recaptchaResponse['success']) {
-        throw new Exception('reCAPTCHA verification failed');
-    }
+    // if (!$recaptchaResponse['success']) {
+    //     throw new Exception('reCAPTCHA verification failed');
+    // }
 
     // Check if user exists and is verified
     $stmt = $pdo->prepare("SELECT id, name, email, password, email_verified FROM waitlist_users WHERE email = ?");

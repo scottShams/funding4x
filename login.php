@@ -16,7 +16,7 @@
     require_once __DIR__ . '/env_loader.php';
 
     // Get reCAPTCHA site key from environment
-    $recaptchaSiteKey = EnvLoader::get('RECAPTCHA_SITE_KEY', 'your_recaptcha_site_key_here');
+    // $recaptchaSiteKey = EnvLoader::get('RECAPTCHA_SITE_KEY', 'your_recaptcha_site_key_here');
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -35,7 +35,7 @@
     <!-- Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    <!-- <script src="https://www.google.com/recaptcha/api.js" async defer></script> -->
     <script>
         // Theme configuration reused for consistency
         tailwind.config = {
@@ -124,7 +124,7 @@
                         class="w-full mb-4 p-4 text-gray-900 bg-gray-100 border border-gray-300 rounded-lg focus:ring-primary-purple focus:border-primary-purple transition duration-200 placeholder-gray-500 text-lg">
 
                     <!-- reCAPTCHA -->
-                    <div class="g-recaptcha mb-4" data-sitekey="<?php echo htmlspecialchars($recaptchaSiteKey); ?>"></div>
+                    <!-- <div class="g-recaptcha mb-4" data-sitekey="<?php echo htmlspecialchars($recaptchaSiteKey); ?>"></div> -->
 
                     <div class="flex justify-center">
                         <button type="submit" class="w-64 px-6 py-3 bg-primary-purple text-white font-semibold text-lg rounded-lg shadow-lg hover:bg-secondary-purple transition duration-300">Log In</button>
@@ -159,16 +159,16 @@
             loginForm.addEventListener('submit', async function (e) {
                 e.preventDefault();
 
-                const recaptchaResponse = grecaptcha.getResponse(); // Get reCAPTCHA token
-                if (!recaptchaResponse) {
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'Please Verify',
-                        text: 'Please complete the reCAPTCHA to continue.',
-                        confirmButtonColor: '#4f009d'
-                    });
-                    return;
-                }
+                // const recaptchaResponse = grecaptcha.getResponse(); // Get reCAPTCHA token
+                // if (!recaptchaResponse) {
+                //     Swal.fire({
+                //         icon: 'warning',
+                //         title: 'Please Verify',
+                //         text: 'Please complete the reCAPTCHA to continue.',
+                //         confirmButtonColor: '#4f009d'
+                //     });
+                //     return;
+                // }
 
                 const email = loginForm.querySelector('input[name="email"]').value.trim();
                 const password = loginForm.querySelector('input[name="password"]').value.trim();
@@ -190,7 +190,7 @@
                     const formData = new FormData();
                     formData.append('email', email);
                     formData.append('password', password);
-                    formData.append('recaptcha', recaptchaResponse);
+                    // formData.append('recaptcha', recaptchaResponse);
 
                     const response = await fetch(window.location.origin + '/login_process.php', {
                         method: 'POST',
@@ -221,7 +221,7 @@
                             text: result.message || 'Invalid email or password.',
                             confirmButtonColor: '#4f009d'
                         });
-                        grecaptcha.reset();
+                        // grecaptcha.reset();
                     }
 
                 } catch (error) {
@@ -235,7 +235,7 @@
                         text: 'We couldn\'t submit your request. Please check your connection and try again.',
                         confirmButtonColor: '#4f009d'
                     });
-                    grecaptcha.reset();
+                    // grecaptcha.reset();
                 }
             });
         });
