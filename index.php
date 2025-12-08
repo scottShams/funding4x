@@ -187,8 +187,13 @@ $recaptchaSiteKey = EnvLoader::get('RECAPTCHA_SITE_KEY', 'your_recaptcha_site_ke
 
                 <div class="max-w-lg mx-auto">
                     <a href="login.php"
-                       class="w-full block bg-primary-accent hover:bg-yellow-600 text-gray-900 font-bold py-4 px-6 rounded-lg text-xl md:text-2xl uppercase tracking-wider shadow-2xl shadow-primary-accent/50 transition duration-300 ease-in-out transform hover:scale-105 active:scale-95 text-center">
+                       class="mb-3 w-full block bg-primary-accent hover:bg-yellow-600 text-gray-900 font-bold py-4 px-6 rounded-lg text-xl md:text-2xl uppercase tracking-wider shadow-2xl shadow-primary-accent/50 transition duration-300 ease-in-out transform hover:scale-105 active:scale-95 text-center">
                         Log In to Your Account
+                    </a>
+                    <!-- SIGNUP BUTTON -->
+                    <a href="signup.php"
+                    class="w-full block bg-gray-800 hover:bg-gray-700 text-white font-bold py-4 px-6 rounded-lg text-xl md:text-2xl uppercase tracking-wider shadow-xl transition duration-300 ease-in-out transform hover:scale-105 active:scale-95 text-center border border-gray-700">
+                        Sign Up
                     </a>
                     <p class="text-sm text-gray-300 mt-4">
                         Access your dashboard and start trading with Funding4x
