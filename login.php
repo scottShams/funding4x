@@ -221,6 +221,7 @@
                             text: result.message || 'Invalid email or password.',
                             confirmButtonColor: '#4f009d'
                         });
+                        grecaptcha.reset();
                     }
 
                 } catch (error) {
@@ -234,6 +235,7 @@
                         text: 'We couldn\'t submit your request. Please check your connection and try again.',
                         confirmButtonColor: '#4f009d'
                     });
+                    grecaptcha.reset();
                 }
             });
         });
