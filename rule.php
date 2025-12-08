@@ -113,10 +113,10 @@ We have clear transparent and easy to follow rules to help you be profitable and
 			<br />
                 <!-- CTA -->
             <div class="mt-12 text-center">
-                <p class="text-xl text-gray-300"><span class="text-xl text-gray-300 mb-12">You must AGREE to all the Rules to Continue..</p>
-                <button class="bg-trophy-gold text-header-dark font-bold py-3 px-8 rounded-full text-lg shadow-lg hover:bg-cta-hover transition" onclick="alertMessage('Registration', 'Proceeding to fair competition registration.')">
+                <p class="text-xl text-gray-300 mb-5"><span class="text-xl text-gray-300 mb-12">You must AGREE to all the Rules to Continue..</p>
+                <a href="#detailed-rules" class="bg-trophy-gold text-header-dark font-bold py-3 px-8 rounded-full text-lg shadow-lg hover:bg-cta-hover transition">
                     Read All The Rules Below
-                </button>
+                </a>
             </div>
 
 
@@ -194,7 +194,7 @@ We have clear transparent and easy to follow rules to help you be profitable and
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
 
 
- <!-- NEW SECTION: The Fairness Commitment (What We DON'T Include) -->
+            <!-- NEW SECTION: The Fairness Commitment (What We DON'T Include) -->
             <div class="mb-12 pt-6">
                 <h2 class="text-3xl font-extrabold mb-8 text-success-green">The Fairness Commitment: What We Don't Do</h2>
                 <p class="text-gray-600 mb-6">We are committed to providing a transparent and trader-friendly environment. Our rules are designed for clear risk management, not for trapping traders.</p>
@@ -227,12 +227,12 @@ We have clear transparent and easy to follow rules to help you be profitable and
             </div>
             
             
-             <div class="mb-12 border-t-4 border-success-green pt-6"></div>
+            <div class="mb-12 border-t-4 border-success-green pt-6"></div>
              
             <h2 class="text-3xl font-extrabold mb-10 text-header-dark border-b pb-3 border-trophy-gold">Comprehensive Trading Guidelines</h2>
 
             <!-- SECTION: Eligibility and Registration -->
-            <div class="mb-12">
+            <div class="mb-12" id="detailed-rules">
                 <h3>1. Eligibility and Registration</h3>
                 <div class="space-y-4">
                     <div class="bg-bg-light p-4 rounded-lg">
@@ -320,9 +320,9 @@ We have clear transparent and easy to follow rules to help you be profitable and
             <!-- CTA -->
             <div class="mt-12 text-center">
                 <p class="text-xl font-semibold text-primary-purple mb-4">You must AGREE to all the Rules to Continue..</p>
-                <button class="bg-trophy-gold text-header-dark font-bold py-3 px-8 rounded-full text-lg shadow-lg hover:bg-cta-hover transition" onclick="alertMessage('Registration', 'Proceeding to fair competition registration.')">
+                <a href="choose-broker.php" class="bg-trophy-gold text-header-dark font-bold py-3 px-8 rounded-full text-lg shadow-lg hover:bg-cta-hover transition">
                     Yes I Agree to all the Rules
-                </button>
+                </a>
             </div>
 
         </div>
