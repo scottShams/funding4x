@@ -135,9 +135,9 @@
                     Don't have an account? <a href="signup.php" class="text-primary-purple hover:text-secondary-purple underline">Sign up here</a>
                 </p>
 
-                <!-- <p class="text-center text-sm text-gray-500 mt-2">
+                <p class="text-center text-sm text-gray-500 mt-2">
                     <a href="forgot_password.php" class="text-primary-purple hover:text-secondary-purple underline">Forgot your password?</a>
-                </p> -->
+                </p>
 
             </div>
         </div>
