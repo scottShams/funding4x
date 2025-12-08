@@ -449,6 +449,61 @@ class EmailVerification {
     }
     
     /**
+     * Send password reset email
+     * @param string $email User email
+     * @param string $name User name
+     * @param string $resetLink Password reset link
+     * @return bool Success status
+     */
+    public static function sendPasswordResetEmail($email, $name, $resetLink) {
+        try {
+            // Get SMTP config
+            $smtpHost = EnvLoader::get('SMTP_HOST', 'localhost');
+            $smtpUsername = EnvLoader::get('SMTP_USERNAME', '');
+            $smtpPassword = EnvLoader::get('SMTP_PASSWORD', '');
+            $smtpPort = EnvLoader::get('SMTP_PORT', 587);
+            $smtpEncryption = EnvLoader::get('SMTP_ENCRYPTION', 'tls');
+
+            // Load password reset email template (HTML)
+            $templatePath = __DIR__ . "/email_templates/password_reset.html";
+            $body = file_exists($templatePath) ? file_get_contents($templatePath) : "";
+
+            // Replace placeholders
+            $body = str_replace("USER_NAME", htmlspecialchars($name), $body);
+            $body = str_replace("USER_EMAIL", htmlspecialchars($email), $body);
+            $body = str_replace("RESET_LINK", $resetLink, $body);
+
+            $subject = "Reset Your Password - Funding4x";
+
+            // PHPMailer
+            $mail = new PHPMailer(true);
+
+            $mail->isSMTP();
+            $mail->Host = $smtpHost;
+            $mail->SMTPAuth = !empty($smtpUsername);
+            $mail->Username = $smtpUsername;
+            $mail->Password = $smtpPassword;
+            $mail->SMTPSecure = $smtpEncryption;
+            $mail->Port = (int)$smtpPort;
+
+            $mail->setFrom('noreply@funding4x.com', 'Funding4x');
+            $mail->addAddress($email, $name);
+            $mail->addReplyTo('support@funding4x.com', 'Funding4x Support');
+
+            $mail->isHTML(true);
+            $mail->Subject = $subject;
+            $mail->Body = $body;
+            $mail->AltBody = strip_tags(str_replace(['<br>', '</p>', '</div>'], ["\n", "\n\n", "\n"], $body));
+
+            return $mail->send();
+
+        } catch (Exception $e) {
+            error_log("Password reset email failed for $email: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
      * Send MT5 details update email to support
      * @param string $mt5Username MT5 account username
      * @return bool Success status
