@@ -382,30 +382,22 @@
             // Remove all possible loader elements
             const loaderSelectors = [
                 '#signup-loader',
-                '.loader-overlay',
-                '[id*="signup"]',
-                '[class*="loader"]'
+                '.loader-overlay'
             ];
 
             loaderSelectors.forEach(selector => {
                 const elements = document.querySelectorAll(selector);
                 elements.forEach(element => {
-                    if (element && element.id !== 'signup-loader') {
-                        element.remove();
-                    }
+                    element.remove();
                 });
             });
 
-            // Also check for any div with loader classes
-            const allLoaders = document.querySelectorAll('.spinner');
-            allLoaders.forEach(spinner => {
+            // Also check for any orphaned spinner elements
+            const allSpinners = document.querySelectorAll('.spinner');
+            allSpinners.forEach(spinner => {
                 const parent = spinner.closest('.fixed, .absolute');
-                if (parent && parent.id !== 'signup-loader') {
-                    // Remove the parent container if it looks like a loader overlay
-                    const parentClasses = parent.className;
-                    if (parentClasses.includes('loader-overlay') || parentClasses.includes('flex items-center justify-center')) {
-                        parent.remove();
-                    }
+                if (parent && parent.classList.contains('loader-overlay')) {
+                    parent.remove();
                 }
             });
 

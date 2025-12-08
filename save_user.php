@@ -27,10 +27,31 @@ $recaptcha = $data['recaptcha'] ?? '';
 
 $secretKey = EnvLoader::get('RECAPTCHA_SECRET_KEY', 'your_recaptcha_secret_key_here');
 
-$response = file_get_contents("https://www.google.com/recaptcha/api/siteverify?secret=$secretKey&response=$recaptcha");
+// Use cURL instead of file_get_contents for better compatibility
+$ch = curl_init();
+curl_setopt($ch, CURLOPT_URL, "https://www.google.com/recaptcha/api/siteverify");
+curl_setopt($ch, CURLOPT_POST, 1);
+curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([
+    'secret' => $secretKey,
+    'response' => $recaptcha
+]));
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+// curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // For development, remove in production
+$response = curl_exec($ch);
+$curlError = curl_error($ch);
+curl_close($ch);
+
+if ($curlError) {
+    echo json_encode([
+        'status' => 'error',
+        'message' => 'reCAPTCHA verification failed: ' . $curlError
+    ]);
+    exit;
+}
+
 $responseData = json_decode($response, true);
 
-if (!$responseData['success']) {
+if (!$responseData || !$responseData['success']) {
     echo json_encode([
         'status' => 'error',
         'message' => 'reCAPTCHA verification failed.'
