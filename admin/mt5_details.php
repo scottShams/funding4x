@@ -168,6 +168,17 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
     exit;
 }
 
+// Get MT5 status counts
+$mt5Stats = $pdo->query("
+    SELECT
+        SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) AS pending_count,
+        SUM(CASE WHEN status = 'running' THEN 1 ELSE 0 END) AS running_count,
+        SUM(CASE WHEN status = 'pass' THEN 1 ELSE 0 END) AS pass_count,
+        SUM(CASE WHEN status = 'fail' THEN 1 ELSE 0 END) AS fail_count,
+        COUNT(*) AS total_count
+    FROM mt5_details
+")->fetch(PDO::FETCH_ASSOC);
+
 // Get MT5 details with user info
 $query = "
     SELECT
@@ -194,6 +205,46 @@ ob_start();
             <a href="?export=csv" class="btn btn-sm btn-success">
                 <i class="fas fa-download"></i> Export to CSV
             </a>
+        </div>
+    </div>
+</div>
+
+<!-- MT5 Status Cards -->
+<div class="row mb-4">
+    <div class="col-md-3 col-sm-6">
+        <div class="card text-white bg-warning mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Pending</h5>
+                <h2><?php echo $mt5Stats['pending_count'] ?? 0; ?></h2>
+                <small>Waiting for review</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="card text-white bg-primary mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Running</h5>
+                <h2><?php echo $mt5Stats['running_count'] ?? 0; ?></h2>
+                <small>Currently active</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="card text-white bg-success mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Pass</h5>
+                <h2><?php echo $mt5Stats['pass_count'] ?? 0; ?></h2>
+                <small>Successfully completed</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="card text-white bg-danger mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Fail</h5>
+                <h2><?php echo $mt5Stats['fail_count'] ?? 0; ?></h2>
+                <small>Did not meet requirements</small>
+            </div>
         </div>
     </div>
 </div>
