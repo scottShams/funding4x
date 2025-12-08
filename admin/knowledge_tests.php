@@ -126,7 +126,6 @@ if (isset($_POST['action']) && $_POST['action'] === 'decline_test') {
     header('Content-Type: application/json');
 
     $userId = (int)$_POST['user_id'];
-    $declinedReason = trim($_POST['declined_reason'] ?? '');
 
     // Get admin user ID from session email
     $adminEmail = $_SESSION['admin_email'] ?? '';
@@ -139,34 +138,29 @@ if (isset($_POST['action']) && $_POST['action'] === 'decline_test') {
         $adminId = $adminUser ? $adminUser['id'] : null;
     }
 
-    if (empty($declinedReason)) {
-        echo json_encode(['success' => false, 'message' => 'Decline reason is required']);
-        exit;
-    }
-
     try {
         // Update or insert approval status
         if ($adminId) {
             $stmt = $pdo->prepare("
-                INSERT INTO knowledge_test_approvals (user_id, approval_status, approved_by, declined_reason)
-                VALUES (?, 'declined', ?, ?)
+                INSERT INTO knowledge_test_approvals (user_id, approval_status, approved_by)
+                VALUES (?, 'declined', ?)
                 ON DUPLICATE KEY UPDATE
                 approval_status = 'declined',
                 approved_by = VALUES(approved_by),
                 approved_at = NULL,
-                declined_reason = VALUES(declined_reason)
+                declined_reason = NULL
             ");
-            $success = $stmt->execute([$userId, $adminId, $declinedReason]);
+            $success = $stmt->execute([$userId, $adminId]);
         } else {
             $stmt = $pdo->prepare("
-                INSERT INTO knowledge_test_approvals (user_id, approval_status, declined_reason)
-                VALUES (?, 'declined', ?)
+                INSERT INTO knowledge_test_approvals (user_id, approval_status)
+                VALUES (?, 'declined')
                 ON DUPLICATE KEY UPDATE
                 approval_status = 'declined',
                 approved_at = NULL,
-                declined_reason = VALUES(declined_reason)
+                declined_reason = NULL
             ");
-            $success = $stmt->execute([$userId, $declinedReason]);
+            $success = $stmt->execute([$userId]);
         }
 
         if ($success) {
@@ -866,13 +860,7 @@ function approveTest(userId, userName) {
 function declineTest(userId, userName) {
     Swal.fire({
         title: 'Decline Knowledge Test',
-        html: `
-            <p>Are you sure you want to decline the knowledge test for "${userName}"?</p>
-            <div class="mt-3">
-                <label for="decline-reason" class="form-label">Reason for declining:</label>
-                <textarea id="decline-reason" class="form-control" rows="3" placeholder="Please provide a reason for declining the test..." required></textarea>
-            </div>
-        `,
+        text: `Are you sure you want to decline the knowledge test for "${userName}"?`,
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#dc3545',
@@ -882,19 +870,9 @@ function declineTest(userId, userName) {
         customClass: {
             confirmButton: 'btn btn-danger',
             cancelButton: 'btn btn-secondary'
-        },
-        preConfirm: () => {
-            const reason = document.getElementById('decline-reason').value.trim();
-            if (!reason) {
-                Swal.showValidationMessage('Please provide a reason for declining');
-                return false;
-            }
-            return reason;
         }
     }).then((result) => {
         if (result.isConfirmed) {
-            const declinedReason = result.value;
-
             // Show loading
             Swal.fire({
                 title: 'Declining...',
@@ -912,8 +890,7 @@ function declineTest(userId, userName) {
                 type: 'POST',
                 data: {
                     action: 'decline_test',
-                    user_id: userId,
-                    declined_reason: declinedReason
+                    user_id: userId
                 },
                 dataType: 'json',
                 success: function(response) {
