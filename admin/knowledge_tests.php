@@ -280,6 +280,7 @@ $query = "
         wu.knowledge_test_result,
         wu.user_credit,
         wu.created_at,
+        wu.paid_user,
         COALESCE(referral_counts.completed_referrals, 0) AS completed_referrals,
         m.status AS mt5_status,
         COALESCE(kta.approval_status, 'pending') AS approval_status,
@@ -341,6 +342,7 @@ ob_start();
                         <th>Approval Status</th>
                         <th>Created At</th>
                         <th>MT5 Status</th>
+                        <th>IsPaid</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -413,6 +415,13 @@ ob_start();
                                 echo '<span class="text-muted">Not Submitted</span>';
                             }
                             ?>
+                        </td>
+                        <td>
+                            <?php if ((int)$user['paid_user'] === 1): ?>
+                                <span class="badge bg-info text-dark">Paid User</span>
+                            <?php else: ?>
+                                <span class="badge bg-secondary">N/A</span>
+                            <?php endif; ?>
                         </td>
                         <td>
                             <div class="dropdown">
