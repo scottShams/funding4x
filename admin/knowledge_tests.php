@@ -68,6 +68,118 @@ if (isset($_POST['action']) && $_POST['action'] === 'remove_credit') {
     exit;
 }
 
+// Handle approve knowledge test action
+if (isset($_POST['action']) && $_POST['action'] === 'approve_test') {
+    header('Content-Type: application/json');
+
+    $userId = (int)$_POST['user_id'];
+
+    // Get admin user ID from session email
+    $adminEmail = $_SESSION['admin_email'] ?? '';
+    $adminId = null;
+
+    if (!empty($adminEmail)) {
+        $adminStmt = $pdo->prepare("SELECT id FROM waitlist_users WHERE email = ?");
+        $adminStmt->execute([$adminEmail]);
+        $adminUser = $adminStmt->fetch(PDO::FETCH_ASSOC);
+        $adminId = $adminUser ? $adminUser['id'] : null;
+    }
+
+    try {
+        // Update or insert approval status
+        if ($adminId) {
+            $stmt = $pdo->prepare("
+                INSERT INTO knowledge_test_approvals (user_id, approval_status, approved_by, approved_at)
+                VALUES (?, 'approved', ?, NOW())
+                ON DUPLICATE KEY UPDATE
+                approval_status = 'approved',
+                approved_by = VALUES(approved_by),
+                approved_at = VALUES(approved_at),
+                declined_reason = NULL
+            ");
+            $success = $stmt->execute([$userId, $adminId]);
+        } else {
+            $stmt = $pdo->prepare("
+                INSERT INTO knowledge_test_approvals (user_id, approval_status, approved_at)
+                VALUES (?, 'approved', NOW())
+                ON DUPLICATE KEY UPDATE
+                approval_status = 'approved',
+                approved_at = VALUES(approved_at),
+                declined_reason = NULL
+            ");
+            $success = $stmt->execute([$userId]);
+        }
+
+        if ($success) {
+            echo json_encode(['success' => true, 'message' => 'Knowledge test approved successfully']);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Failed to approve knowledge test']);
+        }
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'message' => 'Database error: ' . $e->getMessage()]);
+    }
+    exit;
+}
+
+// Handle decline knowledge test action
+if (isset($_POST['action']) && $_POST['action'] === 'decline_test') {
+    header('Content-Type: application/json');
+
+    $userId = (int)$_POST['user_id'];
+    $declinedReason = trim($_POST['declined_reason'] ?? '');
+
+    // Get admin user ID from session email
+    $adminEmail = $_SESSION['admin_email'] ?? '';
+    $adminId = null;
+
+    if (!empty($adminEmail)) {
+        $adminStmt = $pdo->prepare("SELECT id FROM waitlist_users WHERE email = ?");
+        $adminStmt->execute([$adminEmail]);
+        $adminUser = $adminStmt->fetch(PDO::FETCH_ASSOC);
+        $adminId = $adminUser ? $adminUser['id'] : null;
+    }
+
+    if (empty($declinedReason)) {
+        echo json_encode(['success' => false, 'message' => 'Decline reason is required']);
+        exit;
+    }
+
+    try {
+        // Update or insert approval status
+        if ($adminId) {
+            $stmt = $pdo->prepare("
+                INSERT INTO knowledge_test_approvals (user_id, approval_status, approved_by, declined_reason)
+                VALUES (?, 'declined', ?, ?)
+                ON DUPLICATE KEY UPDATE
+                approval_status = 'declined',
+                approved_by = VALUES(approved_by),
+                approved_at = NULL,
+                declined_reason = VALUES(declined_reason)
+            ");
+            $success = $stmt->execute([$userId, $adminId, $declinedReason]);
+        } else {
+            $stmt = $pdo->prepare("
+                INSERT INTO knowledge_test_approvals (user_id, approval_status, declined_reason)
+                VALUES (?, 'declined', ?)
+                ON DUPLICATE KEY UPDATE
+                approval_status = 'declined',
+                approved_at = NULL,
+                declined_reason = VALUES(declined_reason)
+            ");
+            $success = $stmt->execute([$userId, $declinedReason]);
+        }
+
+        if ($success) {
+            echo json_encode(['success' => true, 'message' => 'Knowledge test declined successfully']);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Failed to decline knowledge test']);
+        }
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'message' => 'Database error: ' . $e->getMessage()]);
+    }
+    exit;
+}
+
 // ----------------------
 // CSV EXPORT
 // ----------------------
@@ -83,7 +195,9 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
             wu.user_credit,
             wu.created_at,
             COALESCE(referral_counts.completed_referrals, 0) AS completed_referrals,
-            m.status AS mt5_status
+            m.status AS mt5_status,
+            COALESCE(kta.approval_status, 'pending') AS approval_status,
+            kta.declined_reason
         FROM waitlist_users wu
         LEFT JOIN (
             SELECT
@@ -100,6 +214,7 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
         ) referral_counts
         ON wu.id = referral_counts.parent_user_id
         LEFT JOIN mt5_details m ON wu.id = m.user_id
+        LEFT JOIN knowledge_test_approvals kta ON wu.id = kta.user_id
         WHERE wu.knowledge_test_result IS NOT NULL
         ORDER BY wu.created_at DESC
     ";
@@ -120,7 +235,7 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
     fprintf($output, chr(0xEF) . chr(0xBB) . chr(0xBF));
 
     // CSV headers
-    fputcsv($output, ['ID', 'Name', 'Email', 'Credits', 'Total Referrals', 'Completed Referrals', 'MT5 Status', 'Created At']);
+    fputcsv($output, ['ID', 'Name', 'Email', 'Credits', 'Total Referrals', 'Completed Referrals', 'Approval Status', 'Decline Reason', 'MT5 Status', 'Created At']);
 
     // Loop through users and write rows
     foreach ($export_users as $user) {
@@ -137,6 +252,8 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
             $user['credits'] ?? 0,
             $user['credits'] ?? 0,
             $user['completed_referrals'] ?? 0,
+            ucfirst($user['approval_status'] ?? 'pending'),
+            $user['declined_reason'] ?? 'N/A',
             $user['mt5_status'] ?? 'Not Submitted',
             !empty($user['created_at'])
                 ? date('d/m/Y H:i:s', strtotime($user['created_at']))
@@ -170,7 +287,10 @@ $query = "
         wu.user_credit,
         wu.created_at,
         COALESCE(referral_counts.completed_referrals, 0) AS completed_referrals,
-        m.status AS mt5_status
+        m.status AS mt5_status,
+        COALESCE(kta.approval_status, 'pending') AS approval_status,
+        kta.declined_reason,
+        kta.approved_at
     FROM waitlist_users wu
     LEFT JOIN (
         SELECT
@@ -187,6 +307,7 @@ $query = "
     ) referral_counts
     ON wu.id = referral_counts.parent_user_id
     LEFT JOIN mt5_details m ON wu.id = m.user_id
+    LEFT JOIN knowledge_test_approvals kta ON wu.id = kta.user_id
     WHERE wu.knowledge_test_result IS NOT NULL
     ORDER BY wu.created_at DESC
     LIMIT $limit OFFSET $offset
@@ -223,6 +344,7 @@ ob_start();
                         <th>Total Referrals</th>
                         <th>Completed Referrals</th>
                         <th>% Referred</th>
+                        <th>Approval Status</th>
                         <th>Created At</th>
                         <th>MT5 Status</th>
                         <th>Actions</th>
@@ -258,6 +380,23 @@ ob_start();
                                 echo $percentage . '%';
                             ?>
                         </td>
+                        <td>
+                            <?php
+                            $approval_status = $user['approval_status'] ?? 'pending';
+                            $badgeClass = 'bg-warning';
+                            $statusText = 'Pending';
+
+                            if ($approval_status === 'approved') {
+                                $badgeClass = 'bg-success';
+                                $statusText = 'Approved';
+                            } elseif ($approval_status === 'declined') {
+                                $badgeClass = 'bg-danger';
+                                $statusText = 'Declined';
+                            }
+
+                            echo "<span class='badge $badgeClass'>$statusText</span>";
+                            ?>
+                        </td>
                         <td><?php echo date('M d, Y H:i', strtotime($user['created_at'])); ?></td>
                         <td>
                             <?php
@@ -290,6 +429,17 @@ ob_start();
                                     <li><a class="dropdown-item" href="#" onclick="openEmailModal(<?php echo $user['id']; ?>, '<?php echo htmlspecialchars($user['name']); ?>', '<?php echo htmlspecialchars($user['email']); ?>')">
                                         <i class="bi bi-envelope me-2"></i>Send Mail
                                     </a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <?php if (($user['approval_status'] ?? 'pending') !== 'approved'): ?>
+                                    <li><a class="dropdown-item text-success" href="#" onclick="approveTest(<?php echo $user['id']; ?>, '<?php echo htmlspecialchars($user['name']); ?>')">
+                                        <i class="bi bi-check-circle me-2"></i>Approve Test
+                                    </a></li>
+                                    <?php endif; ?>
+                                    <?php if (($user['approval_status'] ?? 'pending') !== 'declined'): ?>
+                                    <li><a class="dropdown-item text-danger" href="#" onclick="declineTest(<?php echo $user['id']; ?>, '<?php echo htmlspecialchars($user['name']); ?>')">
+                                        <i class="bi bi-x-circle me-2"></i>Decline Test
+                                    </a></li>
+                                    <?php endif; ?>
                                     <li><hr class="dropdown-divider"></li>
                                     <li><a class="dropdown-item" href="#" onclick="addCredit(<?php echo $user['id']; ?>, '<?php echo htmlspecialchars($user['name']); ?>')">
                                         <i class="bi bi-plus-circle me-2"></i>Add Credit
@@ -632,6 +782,165 @@ function removeCredit(userId, userName) {
                     Swal.fire({
                         title: 'Error!',
                         text: 'An error occurred while removing credit.',
+                        icon: 'error',
+                        confirmButtonText: 'OK'
+                    });
+                }
+            });
+        }
+    });
+}
+
+// Approve test function
+function approveTest(userId, userName) {
+    Swal.fire({
+        title: 'Approve Knowledge Test',
+        text: `Are you sure you want to approve the knowledge test for "${userName}"?`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#28a745',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Yes, approve!',
+        cancelButtonText: 'Cancel',
+        customClass: {
+            confirmButton: 'btn btn-success',
+            cancelButton: 'btn btn-secondary'
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Show loading
+            Swal.fire({
+                title: 'Approving...',
+                text: 'Please wait while we approve the knowledge test',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            // Send AJAX request to approve
+            $.ajax({
+                url: 'knowledge_tests.php',
+                type: 'POST',
+                data: {
+                    action: 'approve_test',
+                    user_id: userId
+                },
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        Swal.fire({
+                            title: 'Approved!',
+                            text: 'Knowledge test has been approved successfully.',
+                            icon: 'success',
+                            timer: 2000,
+                            showConfirmButton: false
+                        }).then(() => {
+                            // Reload the page to reflect changes
+                            location.reload();
+                        });
+                    } else {
+                        Swal.fire({
+                            title: 'Error!',
+                            text: response.message || 'Failed to approve knowledge test.',
+                            icon: 'error',
+                            confirmButtonText: 'OK'
+                        });
+                    }
+                },
+                error: function() {
+                    Swal.fire({
+                        title: 'Error!',
+                        text: 'An error occurred while approving the knowledge test.',
+                        icon: 'error',
+                        confirmButtonText: 'OK'
+                    });
+                }
+            });
+        }
+    });
+}
+
+// Decline test function
+function declineTest(userId, userName) {
+    Swal.fire({
+        title: 'Decline Knowledge Test',
+        html: `
+            <p>Are you sure you want to decline the knowledge test for "${userName}"?</p>
+            <div class="mt-3">
+                <label for="decline-reason" class="form-label">Reason for declining:</label>
+                <textarea id="decline-reason" class="form-control" rows="3" placeholder="Please provide a reason for declining the test..." required></textarea>
+            </div>
+        `,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Yes, decline!',
+        cancelButtonText: 'Cancel',
+        customClass: {
+            confirmButton: 'btn btn-danger',
+            cancelButton: 'btn btn-secondary'
+        },
+        preConfirm: () => {
+            const reason = document.getElementById('decline-reason').value.trim();
+            if (!reason) {
+                Swal.showValidationMessage('Please provide a reason for declining');
+                return false;
+            }
+            return reason;
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const declinedReason = result.value;
+
+            // Show loading
+            Swal.fire({
+                title: 'Declining...',
+                text: 'Please wait while we decline the knowledge test',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            // Send AJAX request to decline
+            $.ajax({
+                url: 'knowledge_tests.php',
+                type: 'POST',
+                data: {
+                    action: 'decline_test',
+                    user_id: userId,
+                    declined_reason: declinedReason
+                },
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        Swal.fire({
+                            title: 'Declined!',
+                            text: 'Knowledge test has been declined successfully.',
+                            icon: 'success',
+                            timer: 2000,
+                            showConfirmButton: false
+                        }).then(() => {
+                            // Reload the page to reflect changes
+                            location.reload();
+                        });
+                    } else {
+                        Swal.fire({
+                            title: 'Error!',
+                            text: response.message || 'Failed to decline knowledge test.',
+                            icon: 'error',
+                            confirmButtonText: 'OK'
+                        });
+                    }
+                },
+                error: function() {
+                    Swal.fire({
+                        title: 'Error!',
+                        text: 'An error occurred while declining the knowledge test.',
                         icon: 'error',
                         confirmButtonText: 'OK'
                     });
