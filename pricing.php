@@ -119,7 +119,7 @@
                 Choose Your Path to a Funded Account
             </h2>
             <p class="text-lg text-gray-600 text-center mb-6">
-                Start your evaluation today—either by referring others or by purchasing instant access to Phase 1.
+             <!--   Start your evaluation today—either by referring others or by purchasing instant access to Phase 1.-->
             </p>
 
             <!-- GLOBAL PROMINENT TIMER SECTION (Card Style) -->
@@ -200,7 +200,7 @@
                     <ul class="feature-list text-gray-700 mb-8">
                         <li>
                             <svg class="w-5 h-5 text-success-green" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                            Full access to Phase 1 Trading Evaluation
+                            Trading Challenge Phase 1
                         </li>
                         <li>
                             <svg class="w-5 h-5 text-success-green" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
@@ -208,17 +208,26 @@
                         </li>
                         <li>
                             <svg class="w-5 h-5 text-success-green" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                            Free Retry
+                            1 Free Retry (if you fail)
+                        </li>
+                       
+                        <li>
+                            <svg class="w-5 h-5 text-success-green" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            2 Chances to Continue if you break Soft Rules
                         </li>
                         <li>
                             <svg class="w-5 h-5 text-success-green" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                            Priority Support
+                            50:50 Profit Share 
+                        </li>
+                         <li>
+                            <svg class="w-5 h-5 text-success-green" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            Priority Support - No Long Waiting
                         </li>
                     </ul>
 
                     <!-- CTA Button -->
                     <a href="login.php?paid=1" class="w-full py-3 bg-primary-purple text-card-white font-extrabold text-lg rounded-lg shadow-lg hover:bg-secondary-purple transition duration-300 text-center block">
-                        Log In to Get Started
+                        Get My Account Now 
                     </a>
 
                 </div>
@@ -240,16 +249,16 @@
                         
                     </div>
                     <p class="text-base text-gray-500 font-semibold mb-6 text-center">
-                        Unlock Phase 1 by growing our community.
+                        
                     </p>
 
                     <!-- Key Feature Highlight -->
                     <div class="bg-primary-purple/10 p-4 rounded-lg mb-8 border border-primary-purple">
                         <p class="text-lg font-bold text-primary-purple text-center">
-                            Requirement: Refer 5 Forex Traders
+                            To Get a Free Trading Challenge you must Refer 5 Forex Traders to Join Us.
                         </p>
                         <p class="text-sm text-gray-600 text-center mt-1">
-                            Your referred traders must successfully register to grant you a Free Trading Challenge.
+                            Your referred traders must successfully register AND participate in the Trading Challenge. Only then we will grant you a Free Trading Challenge.
                         </p>
                     </div>
 
@@ -257,11 +266,23 @@
                     <ul class="feature-list text-gray-700 mb-8">
                         <li>
                             <svg class="w-5 h-5 text-success-green" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                            Full access to Phase 1 Trading Evaluation
+                            Trading Challenge Phase 1
                         </li>
                         <li>
                             <svg class="w-5 h-5 text-success-green" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                             $5,000 Starting Account balance
+                        </li>
+                        <li>
+                            <svg class="w-5 h-5 text-success-green" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            2 Chances to Continue if you break Soft Rules
+                        </li>
+                        <li>
+                            <svg class="w-5 h-5 text-success-green" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            50:50 Profit Share 
+                        </li>
+                        <li>
+                            <svg class="w-5 h-5 text-success-green" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            Long Que for Approval
                         </li>
                         <li class="opacity-70">
                             <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
@@ -275,7 +296,7 @@
 
                     <!-- CTA Button -->
                     <a href="login.php" class="w-full py-3 bg-trophy-gold text-header-dark font-extrabold text-lg rounded-lg shadow-lg hover:bg-cta-hover transition duration-300 text-center block">
-                        Log In Now
+                        Get My Account Now
                     </a>
                     
                 </div>

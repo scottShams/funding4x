@@ -106,8 +106,20 @@
         <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             <div class="text-center mb-10">
                 <h1 class="text-4xl sm:text-5xl font-extrabold mb-4 text-trophy-gold">Official Trading Rules</h1>
+               
                 <p class="text-xl text-gray-300"><span class="text-xl text-gray-300 mb-12">No more painful rules, hidden surprises, and tricks to make you fail. <br>
 We have clear transparent and easy to follow rules to help you be profitable and Pass the Trading Test</span></p>
+
+			<br />
+                <!-- CTA -->
+            <div class="mt-12 text-center">
+                <p class="text-xl text-gray-300"><span class="text-xl text-gray-300 mb-12">You must AGREE to all the Rules to Continue..</p>
+                <button class="bg-trophy-gold text-header-dark font-bold py-3 px-8 rounded-full text-lg shadow-lg hover:bg-cta-hover transition" onclick="alertMessage('Registration', 'Proceeding to fair competition registration.')">
+                    Read All The Rules Below
+                </button>
+            </div>
+
+
             </div>
 
             <!-- The "Pricing Table" Style Card -->
@@ -148,7 +160,7 @@ We have clear transparent and easy to follow rules to help you be profitable and
                         </tr>
                         <!-- Restrictions -->
                         <tr>
-                            <td class="font-medium text-gray-600">Overnight Holding</td>
+                            <td class="font-medium text-gray-600">Overnight or Weekend Holding</td>
                             <td class="font-bold text-red-600 text-right text-sm">❌ Prohibited</td>
                         </tr>
                         <tr>
@@ -255,8 +267,8 @@ We have clear transparent and easy to follow rules to help you be profitable and
                         <p class="text-gray-700">Participants must execute trades on a **minimum of 5 separate days** to qualify. A trading day is defined as any 24-hour period (00:00 to 23:59 GMT) in which at least one trade is opened and closed.</p>
                     </div>
                     <div class="bg-yellow-50 p-4 rounded-lg border-l-4 border-yellow-500">
-                        <p class="font-semibold text-yellow-800">2.5 Closing Positions End of Day (No Overnight Holding)</p>
-                        <p class="text-gray-700">**All open positions must be closed** before 23:59 GMT each trading day. Holding positions overnight (past midnight GMT) is strictly prohibited and will result in the automatic closure of the position and potential penalty.</p>
+                        <p class="font-semibold text-yellow-800">2.5 Closing Positions End of Day (No Overnight or Weekend Holding)</p>
+                        <p class="text-gray-700">**All open positions must be closed** before 16:59 New York Time each trading day. Holding positions overnight (past 5pm New York Time) is strictly prohibited and will result in the automatic closure of the position and the Test will be Failed.</p>
                     </div>
                 </div>
             </div>
@@ -306,12 +318,12 @@ We have clear transparent and easy to follow rules to help you be profitable and
             
            
             <!-- CTA -->
-            <!--<div class="mt-12 text-center">
-                <p class="text-xl font-semibold text-primary-purple mb-4">Ready to Compete Fairly?</p>
+            <div class="mt-12 text-center">
+                <p class="text-xl font-semibold text-primary-purple mb-4">You must AGREE to all the Rules to Continue..</p>
                 <button class="bg-trophy-gold text-header-dark font-bold py-3 px-8 rounded-full text-lg shadow-lg hover:bg-cta-hover transition" onclick="alertMessage('Registration', 'Proceeding to fair competition registration.')">
-                    Begin Your Challenge
+                    Yes I Agree to all the Rules
                 </button>
-            </div>-->
+            </div>
 
         </div>
     </section>
