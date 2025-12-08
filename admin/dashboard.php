@@ -11,6 +11,9 @@ $userCount = $pdo->query("SELECT COUNT(*) FROM waitlist_users WHERE email != 'ad
 $verifiedCount = $pdo->query("SELECT COUNT(*) FROM waitlist_users WHERE email_verified = 1 AND email != 'admin@gmail.com'")->fetchColumn();
 $referralCount = $pdo->query("SELECT COUNT(*) FROM waitlist_users WHERE parent_user_id IS NOT NULL")->fetchColumn();
 
+// Get new users in last 24 hours
+$newUsers24h = $pdo->query("SELECT COUNT(*) FROM waitlist_users WHERE email != 'admin@gmail.com' AND created_at >= DATE_SUB(NOW(), INTERVAL 24 HOUR)")->fetchColumn();
+
 // Get Knowledge Tests count (users who have completed knowledge test)
 $knowledgeTestCount = $pdo->query("SELECT COUNT(*) FROM waitlist_users WHERE knowledge_test_result IS NOT NULL AND email != 'admin@gmail.com'")->fetchColumn();
 
@@ -59,6 +62,15 @@ ob_start();
 
 <!-- Stats Cards -->
 <div class="row">
+    <div class="col-md-3 col-sm-6">
+        <div class="card text-white bg-info mb-3">
+            <div class="card-body">
+                <h5 class="card-title">New Users (24h)</h5>
+                <h2><?php echo $newUsers24h; ?></h2>
+                <small>Last 24 hours</small>
+            </div>
+        </div>
+    </div>
     <div class="col-md-3 col-sm-6">
         <div class="card text-white bg-primary mb-3">
             <div class="card-body">
