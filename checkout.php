@@ -11,19 +11,53 @@
     // Default checkout price
     $checkoutPrice = 59;
 
+    $discountPrice = null;
+
     // If session has price → use it (highest priority)
+    // ===============================
+    // DISCOUNT LOGIC FOR NEW USERS
+    // ===============================
+
+    // Apply discount only when session price exists (NOT GET price)
     if (isset($_SESSION['checkout_price'])) {
 
-        $checkoutPrice = (int) $_SESSION['checkout_price'];
+        $sessionPrice = $checkoutPrice = (int) $_SESSION['checkout_price'];
 
-        // Store it in cookie for 1 days
-        setcookie('checkout_price', $checkoutPrice, time() + (1 * 24 * 60 * 60), "/");
+        // 7-day cookie: user already received discount
+        $hasReceivedDiscount = isset($_COOKIE['discount_received']);
+
+        // 2-hour discount active
+        $hasActive2HourDiscount = isset($_COOKIE['discount_price']);
+
+        // APPLY DISCOUNT ONLY IF:
+        // - user has NOT received discount in last 7 days
+        // - 2-hour discount is NOT already active
+        if (!$hasReceivedDiscount && !$hasActive2HourDiscount) {
+
+            // 40% discount
+            $discountedPrice = round($sessionPrice * 0.60);
+
+            // save discount for 2 hours
+            setcookie("discount_price", $discountedPrice, time() + (2 * 60 * 60), "/");
+
+            // save flag that user already got discount → lasts 7 days
+            setcookie("discount_received", "yes", time() + (7 * 24 * 60 * 60), "/");
+
+            // apply discount to actual checkout price
+            $discountPrice = $discountedPrice;
+
+        } elseif ($hasActive2HourDiscount) {
+
+            // If within 2 hours, always use the same discount price
+            $discountPrice = (int) $_COOKIE['discount_price'];
+        }
 
     }
     // If GET has price → use it
     elseif (isset($_GET['price'])) {
 
         $checkoutPrice = (int) $_GET['price'];
+        $discountPrice = null;
 
         // Store in session & cookie
         $_SESSION['checkout_price'] = $checkoutPrice;
@@ -34,6 +68,7 @@
     elseif (isset($_COOKIE['checkout_price'])) {
 
         $checkoutPrice = (int) $_COOKIE['checkout_price'];
+        $discountPrice = null;
 
         // Restore into session
         $_SESSION['checkout_price'] = $checkoutPrice;
@@ -159,6 +194,8 @@
         }
     }
 
+    $finalPrice = $discountPrice ?? $checkoutPrice;
+    $finalPrice = number_format($finalPrice, 2);
 ?>
 
 <!DOCTYPE html>
@@ -309,7 +346,7 @@
                         <!-- Item 1 -->
                         <div class="flex justify-between text-gray-700">
                             <span class="text-sm">Competition Entry Fee</span>
-                            <span class="font-semibold">$<?php echo number_format($checkoutPrice, 2); ?></span>
+                            <span class="font-semibold">$<?php echo $finalPrice; ?></span>
                         </div>
                       
 
@@ -335,7 +372,7 @@
                         <!-- Total -->
                         <div class="flex justify-between items-center text-xl font-extrabold text-header-dark">
                             <span>Total Due:</span>
-                            <span class="text-primary-purple">$<?php echo number_format($checkoutPrice, 2); ?></span>
+                            <span class="text-primary-purple">$<?php echo $finalPrice; ?></span>
                         </div>
                     </div>
                 </div>
@@ -415,7 +452,7 @@
                                 </div>
 
                                 <button type="submit" class="w-full px-4 py-4 bg-trophy-gold text-header-dark font-bold rounded-lg shadow-lg hover:bg-cta-hover hover:text-white transition duration-300 uppercase tracking-wide">
-                                    Pay $<?php echo number_format($checkoutPrice, 2); ?>
+                                    Pay $<?php echo $finalPrice; ?>
                                 </button>
 
                                 <div class="mt-4 text-center">
@@ -431,7 +468,7 @@
                             <h3 class="text-xl font-bold text-primary-purple mb-6">Pay with Crypto (USDC)</h3>
                             <form action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>" method="POST" onsubmit="handlePayment(event, 'Crypto')">
                                 <p class="text-gray-600 mb-6">
-                                    Please send exactly <span class="font-bold text-lg text-primary-purple"><?php echo number_format($checkoutPrice, 2); ?> USDC</span> to the address below.
+                                    Please send exactly <span class="font-bold text-lg text-primary-purple"><?php echo $finalPrice; ?> USDC</span> to the address below.
                                 </p>
 
                                 
@@ -468,7 +505,7 @@
                                 </div>
                                 
                                 <button type="submit" class="w-full px-4 py-4 bg-primary-purple text-white font-bold rounded-lg shadow-lg hover:bg-header-dark transition duration-300 uppercase tracking-wide">
-                                    Confirm Crypto Payment ($<?php echo number_format($checkoutPrice, 2); ?>)
+                                    Confirm Crypto Payment ($<?php echo $finalPrice; ?>)
                                 </button>
 
                                 <div class="mt-4 text-center">
@@ -502,7 +539,7 @@
 
                 <h2 class="text-3xl font-extrabold text-primary-purple mb-4">Payment Successful!</h2>
                 <p class="text-gray-700 mb-8 leading-relaxed text-lg">
-                    Thank You for your Payment of <strong>$<?php echo number_format($checkoutPrice, 2); ?></strong> by using Crypto Currency. We will review your payment shortly to ensure this has been received Safely. You will receive an email to confirm receipt.
+                    Thank You for your Payment of <strong>$<?php echo $finalPrice; ?></strong> by using Crypto Currency. We will review your payment shortly to ensure this has been received Safely. You will receive an email to confirm receipt.
                 </p>
 
                 <div class="flex justify-center space-x-4">
