@@ -9,7 +9,7 @@
             </div>
             <!-- Desktop Nav -->
             <nav class="hidden md:flex space-x-8">
-                <a href="home.php" class="text-trophy-gold font-bold transition duration-150 border-b-2 border-trophy-gold">Home</a>
+                <a href="index.php" class="text-trophy-gold font-bold transition duration-150 border-b-2 border-trophy-gold">Home</a>
 
                 <a href="rule.php" class="text-gray-300 hover:text-trophy-gold transition duration-150 font-medium">Rules</a>
                 <?php if(isset($_SESSION['user_email'])): ?>
@@ -29,7 +29,7 @@
     </div>
     <!-- Mobile Menu -->
     <div id="mobile-menu" class="hidden md:hidden bg-header-dark pb-3 px-2 pt-2 space-y-1 sm:px-3">
-        <a href="home.php" class="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:bg-secondary-purple">Home</a>
+        <a href="index.php" class="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:bg-secondary-purple">Home</a>
         <a href="rule.php" class="block px-3 py-2 rounded-md text-base font-medium text-trophy-gold hover:bg-secondary-purple">Rules</a>
         <?php if(isset($_SESSION['user_email'])): ?>
             <a href="referral_dashboard.php" class="block px-3 py-2 rounded-md text-base font-medium bg-primary-purple text-white mt-2">Dashboard</a>
