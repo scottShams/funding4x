@@ -357,13 +357,8 @@ We have clear transparent and easy to follow rules to help you be profitable and
         </div>
     </footer>
 
-    <!-- JavaScript for Mobile Menu and Custom Alert -->
+    <!-- JavaScript for Custom Alert -->
     <script>
-        document.getElementById('menu-button').addEventListener('click', function() {
-            const menu = document.getElementById('mobile-menu');
-            // Toggle visibility using Tailwind class
-            menu.classList.toggle('hidden');
-        });
 
         // Custom alert/message function (since we cannot use window.alert)
         function alertMessage(title, message) {
