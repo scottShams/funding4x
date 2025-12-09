@@ -351,57 +351,69 @@ ob_start();
                     <div class="mb-3">
                         <label class="form-label">Select the reasons for failure:</label>
                         <div class="form-check">
-                            <input class="form-check-input fail-reason" type="checkbox" value="You didn't set a Stop Loss or Target Price" id="reason1">
+                            <input class="form-check-input fail-reason" type="checkbox" value="You hit maximum daily drawn down of 5%" id="reason1">
                             <label class="form-check-label" for="reason1">
-                                1. You didn't set a Stop Loss or Target Price
+                                1. You hit maximum daily drawn down of 5%
                             </label>
                         </div>
                         <div class="form-check">
-                            <input class="form-check-input fail-reason" type="checkbox" value="You Opened a single position that is larger than 0.1 lots" id="reason2">
+                            <input class="form-check-input fail-reason" type="checkbox" value="You had positions that had more than 1% risk" id="reason2">
                             <label class="form-check-label" for="reason2">
-                                2. You Opened a single position that is larger than 0.1 lots
+                                2. You had positions that had more than 1% risk
                             </label>
                         </div>
                         <div class="form-check">
-                            <input class="form-check-input fail-reason" type="checkbox" value="Your Total open positions is larger than 0.5 lots" id="reason3">
+                            <input class="form-check-input fail-reason" type="checkbox" value="You didn't set a Stop Loss or Target Price" id="reason3">
                             <label class="form-check-label" for="reason3">
-                                3. Your Total open positions is larger than 0.5 lots
+                                3. You didn't set a Stop Loss or Target Price
                             </label>
                         </div>
                         <div class="form-check">
-                            <input class="form-check-input fail-reason" type="checkbox" value="You hit the Maximum Drawn Down limit of 10%." id="reason4">
+                            <input class="form-check-input fail-reason" type="checkbox" value="You Opened a single position that is larger than 0.1 lots" id="reason4">
                             <label class="form-check-label" for="reason4">
-                                4. You hit the Maximum Drawn Down limit of 10%.
+                                4. You Opened a single position that is larger than 0.1 lots
                             </label>
                         </div>
                         <div class="form-check">
-                            <input class="form-check-input fail-reason" type="checkbox" value="You did EA/robot trading" id="reason5">
+                            <input class="form-check-input fail-reason" type="checkbox" value="Your Total open positions is larger than 0.5 lots" id="reason5">
                             <label class="form-check-label" for="reason5">
-                                5. You did EA/robot trading
+                                5. Your Total open positions is larger than 0.5 lots
                             </label>
                         </div>
                         <div class="form-check">
-                            <input class="form-check-input fail-reason" type="checkbox" value="You did Copy Trading" id="reason6">
+                            <input class="form-check-input fail-reason" type="checkbox" value="You hit the Maximum Drawn Down limit of 10%." id="reason6">
                             <label class="form-check-label" for="reason6">
-                                6. You did Copy Trading
+                                6. You hit the Maximum Drawn Down limit of 10%.
                             </label>
                         </div>
                         <div class="form-check">
-                            <input class="form-check-input fail-reason" type="checkbox" value="You Traded during critical News Time" id="reason7">
+                            <input class="form-check-input fail-reason" type="checkbox" value="You did EA/robot trading" id="reason7">
                             <label class="form-check-label" for="reason7">
-                                7. You Traded during critical News Time
+                                7. You did EA/robot trading
                             </label>
                         </div>
                         <div class="form-check">
-                            <input class="form-check-input fail-reason" type="checkbox" value="You Traded something other than Forex and Metals" id="reason8">
+                            <input class="form-check-input fail-reason" type="checkbox" value="You did Copy Trading" id="reason8">
                             <label class="form-check-label" for="reason8">
-                                8. You Traded something other than Forex and Metals
+                                8. You did Copy Trading
                             </label>
                         </div>
                         <div class="form-check">
-                            <input class="form-check-input fail-reason" type="checkbox" value="Your positions were held overnight, that is past 6pm New York Time" id="reason9">
+                            <input class="form-check-input fail-reason" type="checkbox" value="You Traded during critical News Time" id="reason9">
                             <label class="form-check-label" for="reason9">
-                                9. Your positions were held overnight, that is past 6pm New York Time
+                                9. You Traded during critical News Time
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input fail-reason" type="checkbox" value="You Traded something other than Forex and Metals" id="reason10">
+                            <label class="form-check-label" for="reason10">
+                                10. You Traded something other than Forex and Metals
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input fail-reason" type="checkbox" value="Your positions were held overnight, that is past 6pm New York Time" id="reason11">
+                            <label class="form-check-label" for="reason11">
+                                11. Your positions were held overnight, that is past 6pm New York Time
                             </label>
                         </div>
                     </div>
