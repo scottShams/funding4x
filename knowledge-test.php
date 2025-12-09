@@ -154,7 +154,7 @@
                 <h3 class="text-2xl font-bold text-primary-purple mb-3">Knowledge Check Complete!</h3>
                 <p class="text-lg text-gray-700 mb-6">You've completed the Knowledge Check. Please click below to access your referral dashboard.</p>
                 <a href="referral_dashboard.php" class="px-8 py-3 bg-primary-purple text-white font-bold rounded-lg hover:bg-trophy-gold hover:text-header-dark transition duration-300 shadow-lg">
-                    Continue to Referral Dashboard
+                    Go To Dashboard
                 </a>
             </div>
 

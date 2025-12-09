@@ -113,8 +113,9 @@ We have clear transparent and easy to follow rules to help you be profitable and
 			<br />
                 <!-- CTA -->
             <div class="mt-12 text-center">
-                <p class="text-xl text-gray-300 mb-5"><span class="text-xl text-gray-300 mb-12">You must AGREE to all the Rules to Continue..</p>
-                <a href="#detailed-rules" class="bg-trophy-gold text-header-dark font-bold py-3 px-8 rounded-full text-lg shadow-lg hover:bg-cta-hover transition">
+                <p class="text-xl text-gray-700"><span class="text-xl text-gray-300 mb-12">You must AGREE to all the Rules to Continue..</p>
+                <br />
+                <a href="#rules" class="bg-trophy-gold text-header-dark font-bold py-3 px-8 rounded-full text-lg shadow-lg hover:bg-cta-hover transition">
                     Read All The Rules Below
                 </a>
             </div>
@@ -194,7 +195,7 @@ We have clear transparent and easy to follow rules to help you be profitable and
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
 
 
-            <!-- NEW SECTION: The Fairness Commitment (What We DON'T Include) -->
+ <!-- NEW SECTION: The Fairness Commitment (What We DON'T Include) -->
             <div class="mb-12 pt-6">
                 <h2 class="text-3xl font-extrabold mb-8 text-success-green">The Fairness Commitment: What We Don't Do</h2>
                 <p class="text-gray-600 mb-6">We are committed to providing a transparent and trader-friendly environment. Our rules are designed for clear risk management, not for trapping traders.</p>
@@ -227,12 +228,12 @@ We have clear transparent and easy to follow rules to help you be profitable and
             </div>
             
             
-            <div class="mb-12 border-t-4 border-success-green pt-6"></div>
+             <div class="mb-12 border-t-4 border-success-green pt-6"></div>
              
             <h2 class="text-3xl font-extrabold mb-10 text-header-dark border-b pb-3 border-trophy-gold">Comprehensive Trading Guidelines</h2>
 
             <!-- SECTION: Eligibility and Registration -->
-            <div class="mb-12" id="detailed-rules">
+            <div class="mb-12" ID="rules">
                 <h3>1. Eligibility and Registration</h3>
                 <div class="space-y-4">
                     <div class="bg-bg-light p-4 rounded-lg">
@@ -243,6 +244,19 @@ We have clear transparent and easy to follow rules to help you be profitable and
                         <p class="font-semibold text-primary-purple">1.2 Account Limits</p>
                         <p class="text-gray-700">Each participant is limited to one competition trading account. Multiple registrations will result in the immediate disqualification of all associated accounts.</p>
                     </div>
+                    <div class="bg-bg-light p-4 rounded-lg">
+                        <p class="font-semibold text-primary-purple">1.3 Automatic Position Closure</p>
+                        <p class="text-gray-700">All Traders must keep in mind that if any of the Trading Rules detailed below are breached, all your positions will be closed Automatically by a real live person who is monitoring your Trading. This is to protect the Account. The Account will remain paused for 2 hours. If you try to open any trades during this 2 hour pause period, they will be closed, even if they are perfect trades. </p>
+                    </div>
+                    <div class="bg-yellow-50 p-4 rounded-lg border-l-4 border-yellow-500">
+                        <p class="font-semibold text-yellow-800">1.4 Chances to Continue</p>
+                        <p class="text-gray-700">We recognise that you may break some rules accidentally, for this reason we want to offer our understanding by giving you 2 Chances to Continue Trading. After the 2 hour pause period is finished you will be able to continue Trading. However, if you break the rules the third time, your account will be blocked, all trades will be closed, and the Test will be Failed. </p>
+                    </div>
+                    <div class="bg-yellow-50 p-4 rounded-lg border-l-4 border-yellow-500">
+                        <p class="font-semibold text-yellow-800">1.5 High Risk Rule Breach</p>
+                        <p class="text-gray-700">If the Trader breaks any rule mentioned below that carries a high risk of loss  (such as rules 2.5, 3.1, 3.2, 3.3, 3.4, 3.5, , there will be no chances, the account will be blocked, all trades will be closed, and the Test will be Failed immediately  </p>
+                    </div>
+                    
                 </div>
             </div>
 
@@ -289,6 +303,10 @@ We have clear transparent and easy to follow rules to help you be profitable and
                     <div class="bg-red-50 p-4 rounded-lg border-l-4 border-red-500">
                         <p class="font-semibold text-red-600">3.3 Copy Trading</p>
                         <p class="text-gray-700">**The use of any external copy trading service, signal provider, or automated replication of trades from another account is strictly prohibited.** All trades must be generated solely by the participant's strategy. The trades cannot be copied from another participant in Funding4x either.</p>
+                    </div>
+                    <div class="bg-yellow-50 p-4 rounded-lg border-l-4 border-yellow-500">
+                        <p class="font-semibold text-yellow-800">3.4 S/L and T/P Required</p>
+                        <p class="text-gray-700">All positions must have a Stop Loss and Target Price set at the time of opening the position. If any open positions are found without S/L or T/P then ALL open positions will be closed, and Trading will be pause for 2 hours. No positions will be allowed during the 2 hour pause period.</p>
                     </div>
                     <div class="bg-yellow-50 p-4 rounded-lg border-l-4 border-yellow-500">
                         <p class="font-semibold text-yellow-800">3.4 Risk Exposure</p>

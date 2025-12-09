@@ -103,7 +103,7 @@
     <section class="py-16 sm:py-24 bg-bg-light">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             
-            <div style="display: flex; justify-content: center;"><img src="assets/logo.png" alt="Funding4X Logo" ></div>
+            <div style="display: flex; justify-content: center;"><img src="assets/consistency-rule.PNG" alt="no consistency rule prop firm" ></div>
             
             <!-- Headline: Energetic & FOMO -->
             <h2 class="text-4xl sm:text-6xl font-extrabold tracking-tighter text-gray-900 leading-tight mb-4">
@@ -137,7 +137,7 @@
             <!-- FOMO Counter, Countdown, & Progress Bar -->
             <div class="mt-10 p-6 bg-white border-2 border-fomo-red rounded-xl shadow-2xl max-w-lg mx-auto fomo-glow">
                 <p class="text-2xl font-bold text-fomo-red uppercase tracking-widest animate-pulse">
-                    <span id="fomo-count">380</span> / 200 SPOTS TAKEN!
+                    <span id="fomo-count">380</span> / 400 SPOTS TAKEN!
                 </p>
                 <p class="text-sm text-gray-500 mt-1 mb-3 font-semibold">
                     <span class="text-lg font-extrabold text-success-green">FREE ACCESS ENDING IN:</span>
@@ -373,7 +373,7 @@
                     Don't Miss Out on FREE ACCESS!
                 </h3>
                 <p class="text-xl text-gray-600 mb-8">
-                    The next <span class="text-fomo-red font-extrabold"><?php echo 200 - (int)$current_users; ?> traders</span> get to prove their skills completely FREE. Secure your place before the counter hits 1,000!
+                    The next <span class="text-fomo-red font-extrabold"><?php echo 200 - (int)$current_users; ?> traders</span> get to prove their skills completely FREE. Secure your place before the counter hits 400!
                 </p>
                 <button onclick="window.location.href='pricing.php'"
                         class="px-12 py-4 text-2xl font-bold text-white bg-success-green rounded-xl shadow-lg hover:bg-emerald-600 transition duration-300 transform hover:scale-105 active:scale-95 uppercase tracking-wider border-b-4 border-emerald-700">
@@ -399,7 +399,7 @@
     <script>
         // Data for the counter (dynamic current users out of 1000 free slots)
         const CURRENT_USERS = <?php echo $current_users; ?>;
-        const FREE_CAP = 200;
+        const FREE_CAP = 400;
         
         const startDate = new Date('2025-11-31T00:00:00').getTime();
 

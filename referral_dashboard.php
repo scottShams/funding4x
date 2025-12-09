@@ -542,7 +542,7 @@ if ($user) {
     <section id="dashboard" class="py-16 sm:py-24 bg-primary-purple text-white">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <span class="text-trophy-gold text-sm font-semibold uppercase tracking-widest block mb-4">
-                Thank you <?php echo htmlspecialchars($user['name']); ?>, we added you to the Waiting List for the $5000 Funded Account. 
+                 <?php echo htmlspecialchars($user['name']); ?>, Welcome to Funded4x!
             </span>
             <!-- Telegram Button -->
             <div class="flex justify-center mt-6">
@@ -565,9 +565,12 @@ if ($user) {
             <h2 class="text-4xl sm:text-6xl font-extrabold tracking-tighter leading-tight mb-4">
                 5 Referrals = <span class="text-trophy-gold">$5,000</span> Funded Account
             </h2>
+            
             <p class="mt-4 text-xl text-gray-200">
-                Share your unique link with other passionate <strong>Forex Traders only</strong>. For every successful referral who joins the competition and verifies their email, you earn **1 Credit**. Collect five credits to bypass the competition and get FREE Entry for the Test to get your Funded Account  (usually costs $59)!
-                <br/><br/>
+            <strong>(After Passing Trading Tests)</strong>
+            <br /><br />
+                Invite other Forex Traders to join as your Referral by Sharing your Referral Link with them.
+               
                 
             </p>
         </div>
@@ -657,12 +660,13 @@ if ($user) {
                                 <input type="text" id="referral-link" value="<?php echo htmlspecialchars($referralLink); ?>" readonly 
                                     class="flex-grow p-3 border-2 border-gray-300 rounded-lg bg-gray-50 text-gray-700 font-mono text-sm">
                                 <button onclick="nativeShare('referral-link')" 
-                                        class="bg-gray-200 hover:bg-gray-300 text-violet-700 py-3 px-4 rounded-lg font-bold shadow-md flex items-center justify-center space-x-2">
+                                        
+                                        class="copy-btn px-6 py-3 bg-trophy-gold text-header-dark font-semibold rounded-lg hover:bg-yellow-700 transition duration-300 shadow-md">
                                     <i class="fas fa-share-alt text-xl"></i>
                                     <span>Share</span>
                                 </button>
                                 <button onclick="copyToClipboard('referral-link')" 
-                                        class="copy-btn px-6 py-3 bg-trophy-gold text-header-dark font-semibold rounded-lg hover:bg-yellow-700 transition duration-300 shadow-md">
+                                       class="bg-gray-200 hover:bg-gray-300 text-violet-700 py-3 px-4 rounded-lg font-bold shadow-md flex items-center justify-center space-x-2">
                                     Copy Link
                                 </button>
                             </div>
@@ -755,7 +759,7 @@ if ($user) {
                                         
                                         
                                     <?php else: ?>
-                                        You are <strong><?php echo ($goalCredits - $credits); ?></strong> successful referral(s) away from a $5,000 Funded Account!
+                                        You are <strong><?php echo ($goalCredits - $credits); ?></strong> successful referral(s) away from the $5,000 Funded Account Phase 1!
                                     <?php endif; ?>
                                 </p>
                             </div>
@@ -809,10 +813,17 @@ if ($user) {
                                     <div class="text-6xl mb-4">👥</div>
                                     <h4 class="text-xl font-bold text-gray-600 mb-2">No Referrals Yet</h4>
                                     <p class="text-gray-500 mb-6">Share your unique link above to start earning credits!</p>
-                                    <button onclick="copyToClipboard('referral-link')" 
+                                    <!--<button onclick="copyToClipboard('referral-link')" 
                                             class="copy-btn px-6 py-3 bg-primary-purple text-white font-semibold rounded-lg hover:bg-purple-700 transition duration-300">
                                         Copy & Share Your Link
-                                    </button>
+                                    </button>-->
+                                    
+                                     <button onclick="nativeShare('referral-link')" 
+                                        class="bg-primary-purple hover:bg-gray-300 text-violet-700 py-3 px-4 rounded-lg font-bold shadow-md flex items-center justify-center space-x-2">
+                                    <i class="fas fa-share-alt text-xl"></i>
+                                    <span>Share Your Link</span>
+                                	</button>
+                                
                                 </div>
                             <?php else: ?>
                                 <!-- Has referrals -->
@@ -1470,7 +1481,7 @@ if ($user) {
             { id: 1, name: "1. Verify your Email Address", isCompleted: <?php echo ($user && $user['email_verified'] == 1) ? 'true' : 'false'; ?> },
             { id: 2, name: "2. Refer 5 Forex Traders (optional)", isCompleted: <?php echo ($user && $verifiedReferrals >= 5) ? 'true' : 'false'; ?> },
             { id: 3, name: "3. Complete the Knowledge Check", redirectTo: "knowledge-test.php", isCompleted: <?php echo ($user && !empty($user['knowledge_test_result'])) ? 'true' : 'false'; ?> },
-            { id: 4, name: "4. Pass the Trading Test 1", redirectTo: "choose-broker.php", isCompleted: false },
+            { id: 4, name: "4. Pass the Trading Test 1", redirectTo: "rule.php", isCompleted: false },
             { id: 5, name: "5. Pass the Trading Test 2", redirectTo: "choose-broker-second.php", isCompleted: false },
             { id: 6, name: "6. Get your $5000 Funded Account", isCompleted: false }
         ];

@@ -137,7 +137,7 @@
 
             <div id="quiz-header" class="mb-4 sm:mb-6 border-b pb-3 sm:pb-4">
                 <h2 class="text-xl sm:text-2xl md:text-3xl font-extrabold text-primary-purple mb-2">
-                    Trader Skills Check
+                    Trader KYC
                 </h2>
                 <p class="text-sm sm:text-base text-gray-600">
                     Question <span id="current-q-number">1</span> of 7
@@ -181,7 +181,7 @@
                 <i class="fas fa-times text-3xl text-red-600"></i>
             </div>
 
-            <h2 class="text-2xl font-bold text-red-600 mb-4">Quiz Failed</h2>
+            <h2 class="text-2xl font-bold text-red-600 mb-4">KYC Failed</h2>
 
             <p class="text-gray-700 text-lg leading-relaxed">
                 Sorry, it seems you are <span class="text-red-600 font-bold">not a Forex Trader</span>.
