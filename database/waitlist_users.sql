@@ -56,3 +56,6 @@ ADD COLUMN credit_updated_at TIMESTAMP NULL AFTER user_credit;
 
 ALTER TABLE waitlist_users
 ADD COLUMN paid_user TINYINT(1) DEFAULT 0 AFTER credit_updated_at;
+
+ALTER TABLE waitlist_users
+ADD COLUMN discount_taken TINYINT(1) DEFAULT 0 AFTER paid_user;

@@ -8,81 +8,6 @@
     // Email
     $email = $_SESSION['user_email'] ?? null;
 
-    // Default checkout price
-    $checkoutPrice = 59;
-
-    $discountPrice = null;
-
-    // If session has price → use it (highest priority)
-    // ===============================
-    // DISCOUNT LOGIC FOR NEW USERS
-    // ===============================
-
-    // Apply discount only when session price exists (NOT GET price)
-    if (isset($_SESSION['checkout_price'])) {
-
-        $sessionPrice = $checkoutPrice = (int) $_SESSION['checkout_price'];
-
-        // 7-day cookie: user already received discount
-        $hasReceivedDiscount = isset($_COOKIE['discount_received']);
-
-        // 2-hour discount active
-        $hasActive2HourDiscount = isset($_COOKIE['discount_price']);
-
-        // APPLY DISCOUNT ONLY IF:
-        // - user has NOT received discount in last 7 days
-        // - 2-hour discount is NOT already active
-        if (!$hasReceivedDiscount && !$hasActive2HourDiscount) {
-
-            // 40% discount
-            $discountedPrice = round($sessionPrice * 0.60);
-
-            // save discount for 2 hours
-            setcookie("discount_price", $discountedPrice, time() + (2 * 60 * 60), "/");
-
-            // save flag that user already got discount → lasts 7 days
-            // Random expiration between 1–7 days
-            $randomDays = rand(1, 7);
-
-            setcookie(
-                "discount_received",
-                "yes",
-                time() + ($randomDays * 24 * 60 * 60), // random days
-                "/"
-            );
-
-            // apply discount to actual checkout price
-            $discountPrice = $discountedPrice;
-
-        } elseif ($hasActive2HourDiscount) {
-
-            // If within 2 hours, always use the same discount price
-            $discountPrice = (int) $_COOKIE['discount_price'];
-        }
-
-    }
-    // If GET has price → use it
-    elseif (isset($_GET['price'])) {
-
-        $checkoutPrice = (int) $_GET['price'];
-        $discountPrice = null;
-
-        // Store in session & cookie
-        $_SESSION['checkout_price'] = $checkoutPrice;
-        setcookie('checkout_price', $checkoutPrice, time() + (1 * 24 * 60 * 60), "/");
-
-    }
-    // If cookie exists → use it (when session is empty)
-    elseif (isset($_COOKIE['checkout_price'])) {
-
-        $checkoutPrice = (int) $_COOKIE['checkout_price'];
-        $discountPrice = null;
-
-        // Restore into session
-        $_SESSION['checkout_price'] = $checkoutPrice;
-    }
-
-
     if(empty($email)) {
         ?>
         <!DOCTYPE html>
@@ -130,6 +55,85 @@
     $stmt->execute([$email]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
+    // Default checkout price
+    $checkoutPrice = 59;
+
+    $discountPrice = null;
+
+    // If session has price → use it (highest priority)
+    // ===============================
+    // DISCOUNT LOGIC FOR NEW USERS
+    // ===============================
+
+    // Apply discount only when session price exists (NOT GET price)
+    if (isset($_SESSION['checkout_price'])) {
+
+        $sessionPrice = $checkoutPrice = (int) $_SESSION['checkout_price'];
+
+        // 7-day cookie: user already received discount
+        $hasReceivedDiscount = isset($_COOKIE['discount_received']);
+
+        // 2-hour discount active
+        $hasActive2HourDiscount = isset($_COOKIE['discount_price']);
+
+        // APPLY DISCOUNT ONLY IF:
+        // - user has NOT received discount in last 7 days
+        // - 2-hour discount is NOT already active
+        // - user has NOT taken discount before
+        if (!$hasReceivedDiscount && !$hasActive2HourDiscount && !$user['discount_taken']) {
+
+            // 40% discount
+            $discountedPrice = round($sessionPrice * 0.60);
+
+            // save discount for 2 hours
+            setcookie("discount_price", $discountedPrice, time() + (2 * 60 * 60), "/");
+
+            // save flag that user already got discount → lasts 7 days
+            // Random expiration between 1–7 days
+            $randomDays = rand(1, 7);
+
+            setcookie(
+                "discount_received",
+                "yes",
+                time() + ($randomDays * 24 * 60 * 60), // random days
+                "/"
+            );
+
+            // apply discount to actual checkout price
+            $discountPrice = $discountedPrice;
+
+        } elseif ($hasActive2HourDiscount && !$user['discount_taken'] ) {
+
+            // If within 2 hours, always use the same discount price
+            $discountPrice = (int) $_COOKIE['discount_price'];
+        }else{
+            // No discount
+            $discountPrice = null;
+        }
+
+    }
+    // If GET has price → use it
+    elseif (isset($_GET['price'])) {
+
+        $checkoutPrice = (int) $_GET['price'];
+        $discountPrice = null;
+
+        // Store in session & cookie
+        $_SESSION['checkout_price'] = $checkoutPrice;
+        setcookie('checkout_price', $checkoutPrice, time() + (1 * 24 * 60 * 60), "/");
+
+    }
+    // If cookie exists → use it (when session is empty)
+    elseif (isset($_COOKIE['checkout_price'])) {
+
+        $checkoutPrice = (int) $_COOKIE['checkout_price'];
+        $discountPrice = null;
+
+        // Restore into session
+        $_SESSION['checkout_price'] = $checkoutPrice;
+    }
+
+
     // Check if user has already made a payment
     $stmt = $pdo->prepare("SELECT id FROM payments WHERE user_id = ? AND status = 'completed'");
     $stmt->execute([$user['id']]);
@@ -164,6 +168,12 @@
                     $transactionHash
                 ]);
 
+                // Mark discount as taken if payment was made with discount
+                if ($amount < $checkoutPrice) {
+                    $stmt = $pdo->prepare("UPDATE waitlist_users SET discount_taken = 1 WHERE id = ?");
+                    $stmt->execute([$user['id']]);
+                }
+
             } elseif ($paymentMethod === 'credit_card') {
                 // Handle credit card payment (in real app, this would be processed by payment gateway)
                 $cardName = $_POST['card_name'];
@@ -187,6 +197,12 @@
                     $cardExpiry, // In production: encrypt this
                     $cardCvc, // In production: encrypt this
                 ]);
+
+                // Mark discount as taken if payment was made with discount
+                if ($amount < $checkoutPrice) {
+                    $stmt = $pdo->prepare("UPDATE waitlist_users SET discount_taken = 1 WHERE id = ?");
+                    $stmt->execute([$user['id']]);
+                }
             }
 
             // Return success response
@@ -560,34 +576,69 @@
     </div>
 
     <!-- Discount Modal -->
-    <div id="discount-modal" class="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-50 hidden animate-fade-in">
-        <div class="bg-white p-10 rounded-3xl shadow-2xl max-w-lg mx-4 border-t-4 border-trophy-gold transform scale-95 animate-modal-appear relative">
-            <button onclick="closeDiscountModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition duration-200">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+    <div id="discount-modal"
+        class="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-50 hidden">
+
+        <!-- Modal Container -->
+        <div class="relative bg-white rounded-3xl shadow-3xl max-w-lg w-full mx-6 overflow-hidden 
+                    animate-[fadeIn_0.4s_ease-out]">
+
+            <!-- Top Gold Gradient Bar -->
+            <div class="h-3 bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600"></div>
+
+            <!-- Close Button -->
+            <button onclick="closeDiscountModal()"
+                    class="absolute top-4 right-4 text-gray-400 hover:text-gray-700 transition">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2"
+                    viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M6 18L18 6M6 6l12 12"></path>
                 </svg>
             </button>
-            <div class="text-center">
-                <!-- Discount Icon -->
-                <div class="mx-auto w-20 h-20 bg-trophy-gold rounded-full flex items-center justify-center mb-6">
-                    <svg class="w-12 h-12 text-header-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+
+            <!-- Content -->
+            <div class="p-10 text-center">
+
+                <!-- Floating Gold Icon -->
+                <div class="mx-auto w-24 h-24 bg-gradient-to-br from-yellow-300 to-yellow-500 rounded-full 
+                            flex items-center justify-center shadow-xl shadow-yellow-300/50 
+                            animate-[bounce_1.5s_infinite] mb-6">
+                    <svg class="w-14 h-14 text-white drop-shadow-lg" fill="none" stroke="currentColor" 
+                        stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
                     </svg>
                 </div>
 
-                <h2 class="text-3xl font-extrabold text-primary-purple mb-4">Congratulations!</h2>
-                <p class="text-gray-700 mb-8 leading-relaxed text-lg">
-                    You've received a <strong>40% discount</strong> on your entry fee! Your new price is <strong>$<?php echo $discountPrice; ?></strong>.
+                <!-- Title -->
+                <h2 class="text-4xl font-extrabold text-primary-purple tracking-tight mb-4">
+                    🎉 Congratulations!
+                </h2>
+
+                <!-- Description -->
+                <p class="text-gray-700 text-lg leading-relaxed mb-6">
+                    You just unlocked an exclusive <span class="font-bold text-primary-purple">40% discount</span>  
+                    on your entry fee!
+                    <br><br>
+                    Your new price is:
                 </p>
 
-                <div class="flex justify-center">
-                    <button onclick="closeDiscountModal()" class="px-8 py-4 bg-primary-purple text-white font-bold rounded-xl shadow-lg hover:bg-header-dark transition-all duration-300 transform hover:scale-105">
-                        Continue to Payment
-                    </button>
+                <!-- Discounted Price Box -->
+                <div class="bg-gradient-to-r from-purple-600 to-purple-700 text-white py-4 rounded-xl shadow-lg 
+                            mb-8 text-3xl font-extrabold tracking-wide">
+                    $<?php echo $discountPrice; ?>
                 </div>
+
+                <!-- Button -->
+                <button onclick="closeDiscountModal()"
+                        class="px-8 py-4 bg-primary-purple text-white font-bold rounded-xl shadow-lg 
+                            hover:bg-header-dark transition duration-300 transform hover:scale-105">
+                    Continue to Payment
+                </button>
             </div>
         </div>
     </div>
+
 
     <!-- Already Paid Modal -->
     <!-- <div id="already-paid-modal" class="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-50 <?php echo $hasPayment ? '' : 'hidden'; ?> animate-fade-in">
@@ -655,7 +706,7 @@
             const formData = new FormData(event.target);
             formData.append('process_payment', '1');
             formData.append('payment_method', method.toLowerCase().replace(' ', '_'));
-            formData.append('amount', '<?php echo $checkoutPrice; ?>');
+            formData.append('amount', '<?php echo $finalPrice; ?>');
 
             // Add specific fields based on payment method
             if (method.toLowerCase() === 'crypto') {
