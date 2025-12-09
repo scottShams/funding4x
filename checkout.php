@@ -41,7 +41,15 @@
             setcookie("discount_price", $discountedPrice, time() + (2 * 60 * 60), "/");
 
             // save flag that user already got discount → lasts 7 days
-            setcookie("discount_received", "yes", time() + (7 * 24 * 60 * 60), "/");
+            // Random expiration between 1–7 days
+            $randomDays = rand(1, 7);
+
+            setcookie(
+                "discount_received",
+                "yes",
+                time() + ($randomDays * 24 * 60 * 60), // random days
+                "/"
+            );
 
             // apply discount to actual checkout price
             $discountPrice = $discountedPrice;
