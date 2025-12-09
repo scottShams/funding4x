@@ -524,10 +524,20 @@
 
                                 <div class="mb-6">
                                     <label for="tx_hash" class="block text-sm font-medium text-gray-700 mb-1">Transaction Hash / ID</label>
-                                    <input type="text" id="tx_hash" required placeholder="0xabc123..." 
+                                    <input type="text" id="tx_hash" required placeholder="0xabc123..."
                                         class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-trophy-gold focus:border-trophy-gold">
                                 </div>
-                                
+
+                                <div class="mb-6">
+                                    <label class="flex items-center">
+                                        <input type="checkbox" name="payment_confirmation" required
+                                               class="mr-3 w-4 h-4 text-primary-purple bg-gray-100 border-gray-300 rounded focus:ring-primary-purple focus:ring-2">
+                                        <span class="text-sm font-medium text-gray-700">
+                                            I have sent the Payment of <strong>$<?php echo $finalPrice; ?></strong> by Cryptocurrency to Funding4x
+                                        </span>
+                                    </label>
+                                </div>
+
                                 <button type="submit" class="w-full px-4 py-4 bg-primary-purple text-white font-bold rounded-lg shadow-lg hover:bg-header-dark transition duration-300 uppercase tracking-wide">
                                     Confirm Crypto Payment ($<?php echo $finalPrice; ?>)
                                 </button>
