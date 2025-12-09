@@ -175,6 +175,66 @@ if (isset($_POST['action']) && $_POST['action'] === 'decline_test') {
 }
 
 // ----------------------
+// USER SPECIFIC CSV EXPORT (individual knowledge test results)
+// ----------------------
+if (isset($_GET['export']) && $_GET['export'] === 'user_csv' && isset($_GET['user_id'])) {
+    $userId = (int)$_GET['user_id'];
+
+    // Fetch user data
+    $user_query = "
+        SELECT
+            wu.id,
+            wu.name,
+            wu.email,
+            wu.knowledge_test_result,
+            wu.created_at
+        FROM waitlist_users wu
+        WHERE wu.id = ? AND wu.knowledge_test_result IS NOT NULL
+    ";
+    $user_stmt = $pdo->prepare($user_query);
+    $user_stmt->execute([$userId]);
+    $user = $user_stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$user) {
+        die('User not found or no test results available.');
+    }
+
+    // Set CSV headers
+    header('Content-Type: text/csv; charset=utf-8');
+    header('Content-Disposition: attachment; filename=user_' . $user['id'] . '_knowledge_test_' . date('Y-m-d_H-i-s') . '.csv');
+    header('Pragma: no-cache');
+    header('Expires: 0');
+
+    // Open output stream
+    $output = fopen('php://output', 'w');
+
+    // Add UTF-8 BOM for Excel compatibility
+    fprintf($output, chr(0xEF) . chr(0xBB) . chr(0xBF));
+
+    // CSV headers
+    fputcsv($output, ['User ID', 'Name', 'Email', 'Test Results', 'Completed At']);
+
+    // Parse the knowledge test result
+    $result = json_decode($user['knowledge_test_result'], true);
+    $completed_at = $result['completed_at'] ?? 'N/A';
+    if ($completed_at !== 'N/A') {
+        $completed_at = date('d/m/Y H:i:s', strtotime($completed_at));
+    }
+
+    // Write single row with full test results
+    fputcsv($output, [
+        $user['id'],
+        $user['name'],
+        $user['email'],
+        $user['knowledge_test_result'], // Full JSON string
+        $completed_at
+    ]);
+
+    fclose($output);
+    exit;
+}
+
+// ----------------------
 // CSV EXPORT
 // ----------------------
 if (isset($_GET['export']) && $_GET['export'] === 'csv') {
@@ -449,6 +509,10 @@ ob_start();
                                     </a></li>
                                     <li><a class="dropdown-item" href="#" onclick="removeCredit(<?php echo $user['id']; ?>, '<?php echo htmlspecialchars($user['name']); ?>')">
                                         <i class="bi bi-dash-circle me-2"></i>Remove Credit
+                                    </a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="?export=user_csv&user_id=<?php echo $user['id']; ?>">
+                                        <i class="bi bi-file-earmark-spreadsheet me-2"></i>Download Test CSV
                                     </a></li>
                                     <li><hr class="dropdown-divider"></li>
                                     <li><a class="dropdown-item text-warning" href="#" onclick="resetTest(<?php echo $user['id']; ?>, '<?php echo htmlspecialchars($user['name']); ?>')">
