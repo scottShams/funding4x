@@ -1,4 +1,7 @@
 <?php
+// Set session lifetime to 7 hours (25200 seconds)
+ini_set('session.gc_maxlifetime', 25200);
+session_set_cookie_params(25200);
 session_start();
 require_once '../database.php';
 
