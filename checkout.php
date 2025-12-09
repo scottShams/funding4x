@@ -559,6 +559,36 @@
         </div>
     </div>
 
+    <!-- Discount Modal -->
+    <div id="discount-modal" class="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-50 hidden animate-fade-in">
+        <div class="bg-white p-10 rounded-3xl shadow-2xl max-w-lg mx-4 border-t-4 border-trophy-gold transform scale-95 animate-modal-appear relative">
+            <button onclick="closeDiscountModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition duration-200">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+            <div class="text-center">
+                <!-- Discount Icon -->
+                <div class="mx-auto w-20 h-20 bg-trophy-gold rounded-full flex items-center justify-center mb-6">
+                    <svg class="w-12 h-12 text-header-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                    </svg>
+                </div>
+
+                <h2 class="text-3xl font-extrabold text-primary-purple mb-4">Congratulations!</h2>
+                <p class="text-gray-700 mb-8 leading-relaxed text-lg">
+                    You've received a <strong>40% discount</strong> on your entry fee! Your new price is <strong>$<?php echo $discountPrice; ?></strong>.
+                </p>
+
+                <div class="flex justify-center">
+                    <button onclick="closeDiscountModal()" class="px-8 py-4 bg-primary-purple text-white font-bold rounded-xl shadow-lg hover:bg-header-dark transition-all duration-300 transform hover:scale-105">
+                        Continue to Payment
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Already Paid Modal -->
     <!-- <div id="already-paid-modal" class="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-50 <?php echo $hasPayment ? '' : 'hidden'; ?> animate-fade-in">
         <div class="bg-white p-10 rounded-3xl shadow-2xl max-w-lg mx-4 border-t-4 border-primary-purple transform scale-95 animate-modal-appear">
@@ -701,12 +731,22 @@
             document.getElementById('already-paid-modal').classList.add('hidden');
         }
 
+        // Function to close discount modal
+        function closeDiscountModal() {
+            document.getElementById('discount-modal').classList.add('hidden');
+        }
+
         // Ensure the correct payment form is visible on load based on default radio
         window.onload = () => {
               // Initial check to apply styling to the default selected radio button
             const defaultChecked = document.querySelector('input[name="payment_method"]:checked');
             if (defaultChecked) {
                 togglePaymentForm(defaultChecked.value);
+            }
+
+            // Show discount modal if discount is applied
+            if (<?php echo $discountPrice ? 'true' : 'false'; ?>) {
+                document.getElementById('discount-modal').classList.remove('hidden');
             }
         };
     </script>
