@@ -278,9 +278,10 @@ class EmailVerification {
      * @param string $email User email
      * @param string $name User name
      * @param array $failReasons Array of fail reasons
+     * @param string|null $attachmentPath Path to attachment file
      * @return bool Success status
      */
-    public static function sendFailEmail($email, $name, $failReasons = []) {
+    public static function sendFailEmail($email, $name, $failReasons = [], $attachmentPath = null) {
         try {
             // Get SMTP config
             $smtpHost = EnvLoader::get('SMTP_HOST', 'localhost');
@@ -324,6 +325,11 @@ class EmailVerification {
             $mail->addAddress($email, $name);
             $mail->addReplyTo('support@funding4x.com', 'Funding4x Support');
             $mail->addBCC('admin@funding4x.com');
+
+            // Add attachment if provided
+            if ($attachmentPath && file_exists($attachmentPath)) {
+                $mail->addAttachment($attachmentPath);
+            }
 
             $mail->isHTML(true);
             $mail->Subject = $subject;

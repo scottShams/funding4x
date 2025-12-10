@@ -54,7 +54,22 @@ if (isset($_POST['action']) && $_POST['action'] === 'update_status') {
             if ($userData) {
                 require_once '../email_verification.php';
                 $failReasons = json_decode($userData['fail_reason'], true) ?: [];
-                $emailSent = EmailVerification::sendFailEmail($userData['email'], $userData['name'], $failReasons);
+
+                // Handle file upload
+                $attachmentPath = null;
+                if (isset($_FILES['failFile']) && $_FILES['failFile']['error'] === UPLOAD_ERR_OK) {
+                    $uploadDir = __DIR__ . '/testResults/';
+                    if (!is_dir($uploadDir)) {
+                        mkdir($uploadDir, 0755, true);
+                    }
+                    $fileName = uniqid() . '_' . basename($_FILES['failFile']['name']);
+                    $filePath = $uploadDir . $fileName;
+                    if (move_uploaded_file($_FILES['failFile']['tmp_name'], $filePath)) {
+                        $attachmentPath = $filePath;
+                    }
+                }
+
+                $emailSent = EmailVerification::sendFailEmail($userData['email'], $userData['name'], $failReasons, $attachmentPath);
             }
         }
 
@@ -417,6 +432,11 @@ ob_start();
                             </label>
                         </div>
                     </div>
+                    <div class="mb-3">
+                        <label for="failFile" class="form-label">Attach a file (optional - PDF, DOC, DOCX, JPG, PNG):</label>
+                        <input type="file" class="form-control" id="failFile" name="failFile" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
+                        <small class="form-text text-muted">Max file size: 5MB</small>
+                    </div>
                 </form>
             </div>
             <div class="modal-footer">
@@ -669,16 +689,29 @@ $(document).ready(function() {
                 Swal.showLoading();
             }
         });
-        // Send AJAX request
+
+        // Prepare FormData for file upload
+        const formData = new FormData();
+        formData.append('action', 'update_status');
+        formData.append('mt5_id', window.currentMt5Id);
+        formData.append('status', 'fail');
+        checkedReasons.forEach(reason => {
+            formData.append('fail_reasons[]', reason);
+        });
+
+        // Add file if selected
+        const fileInput = document.getElementById('failFile');
+        if (fileInput.files.length > 0) {
+            formData.append('failFile', fileInput.files[0]);
+        }
+
+        // Send AJAX request with FormData
         $.ajax({
             url: 'mt5_details.php',
             type: 'POST',
-            data: {
-                action: 'update_status',
-                mt5_id: window.currentMt5Id,
-                status: 'fail',
-                fail_reasons: checkedReasons
-            },
+            data: formData,
+            processData: false,
+            contentType: false,
             dataType: 'json',
             success: function(response) {
                 if (response.success) {
@@ -688,13 +721,27 @@ $(document).ready(function() {
                     const statusCell = row.querySelector('td:nth-child(8) .badge'); // Status is 8th column
                     statusCell.className = 'badge bg-danger';
                     statusCell.textContent = 'Fail';
-                    Swal.fire({
-                        title: 'Success!',
-                        text: 'Status updated successfully.',
-                        icon: 'success',
-                        timer: 1500,
-                        showConfirmButton: false
-                    });
+
+                    // Clear file input
+                    $('#failFile').val('');
+
+                    // Check if email was sent
+                    if (response.email_sent) {
+                        Swal.fire({
+                            title: 'Success!',
+                            text: 'Status updated and email sent successfully.',
+                            icon: 'success',
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+                    } else {
+                        Swal.fire({
+                            title: 'Status Updated',
+                            text: 'Status updated but email sending failed.',
+                            icon: 'warning',
+                            confirmButtonText: 'OK'
+                        });
+                    }
                 } else {
                     Swal.fire({
                         title: 'Error!',
