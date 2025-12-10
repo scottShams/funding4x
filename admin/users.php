@@ -55,33 +55,13 @@ if (isset($_GET['delete']) && is_numeric($_GET['delete'])) {
         $deleteStmt = $pdo->prepare("DELETE FROM waitlist_users WHERE id = ?");
         $deleteStmt->execute([$userId]);
         
-        // Build redirect URL with preserved search parameters
-        $redirectUrl = 'users.php?deleted=1';
-        if (isset($_GET['search']) && !empty($_GET['search'])) {
-            $redirectUrl .= '&search=' . urlencode($_GET['search']);
-        }
-        if (isset($_GET['page']) && is_numeric($_GET['page'])) {
-            $redirectUrl .= '&page=' . (int)$_GET['page'];
-        }
-        
-        // Redirect back to avoid resubmission
-        header('Location: ' . $redirectUrl);
+        // Redirect back
+        header('Location: users.php?deleted=1');
         exit;
     }
 }
 
-// Pagination settings
-$limit = 50;
-$page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
-$offset = ($page - 1) * $limit;
-
-// Get total count for pagination
-$total_query = "SELECT COUNT(*) FROM waitlist_users WHERE email != 'admin@gmail.com'";
-$total_stmt = $pdo->query($total_query);
-$total_users = $total_stmt->fetchColumn();
-$total_pages = ceil($total_users / $limit);
-
-// Get users with pagination
+// Get all users
 $query = "
     SELECT
         u.*,
@@ -93,7 +73,6 @@ $query = "
     FROM waitlist_users u
     WHERE u.email != 'admin@gmail.com'
     ORDER BY u.created_at DESC
-    LIMIT $limit OFFSET $offset
 ";
 $stmt = $pdo->prepare($query);
 $stmt->execute();
@@ -250,62 +229,6 @@ ob_start();
     </div>
 </div>
 
-<!-- Pagination -->
-<?php if ($total_pages > 1): ?>
-<div class="d-flex justify-content-center mt-4">
-    <nav aria-label="Page navigation">
-        <ul class="pagination">
-            <?php if ($page > 1): ?>
-                <li class="page-item">
-                    <a class="page-link" href="?page=<?php echo $page - 1; ?><?php echo isset($_GET['search']) ? '&search=' . urlencode($_GET['search']) : ''; ?>" aria-label="Previous">
-                        <span aria-hidden="true">&laquo;</span>
-                    </a>
-                </li>
-            <?php endif; ?>
-
-            <?php
-            $start_page = max(1, $page - 2);
-            $end_page = min($total_pages, $page + 2);
-
-            if ($start_page > 1): ?>
-                <li class="page-item">
-                    <a class="page-link" href="?page=1<?php echo isset($_GET['search']) ? '&search=' . urlencode($_GET['search']) : ''; ?>">1</a>
-                </li>
-                <?php if ($start_page > 2): ?>
-                    <li class="page-item disabled">
-                        <span class="page-link">...</span>
-                    </li>
-                <?php endif; ?>
-            <?php endif; ?>
-
-            <?php for ($i = $start_page; $i <= $end_page; $i++): ?>
-                <li class="page-item <?php echo $i == $page ? 'active' : ''; ?>">
-                    <a class="page-link" href="?page=<?php echo $i; ?><?php echo isset($_GET['search']) ? '&search=' . urlencode($_GET['search']) : ''; ?>"><?php echo $i; ?></a>
-                </li>
-            <?php endfor; ?>
-
-            <?php if ($end_page < $total_pages): ?>
-                <?php if ($end_page < $total_pages - 1): ?>
-                    <li class="page-item disabled">
-                        <span class="page-link">...</span>
-                    </li>
-                <?php endif; ?>
-                <li class="page-item">
-                    <a class="page-link" href="?page=<?php echo $total_pages; ?><?php echo isset($_GET['search']) ? '&search=' . urlencode($_GET['search']) : ''; ?>"><?php echo $total_pages; ?></a>
-                </li>
-            <?php endif; ?>
-
-            <?php if ($page < $total_pages): ?>
-                <li class="page-item">
-                    <a class="page-link" href="?page=<?php echo $page + 1; ?><?php echo isset($_GET['search']) ? '&search=' . urlencode($_GET['search']) : ''; ?>" aria-label="Next">
-                        <span aria-hidden="true">&raquo;</span>
-                    </a>
-                </li>
-            <?php endif; ?>
-        </ul>
-    </nav>
-</div>
-<?php endif; ?>
 
 <?php
 $content = ob_get_clean();
@@ -437,58 +360,25 @@ $(document).ready(function() {
         language: {
             search: "_INPUT_",
             searchPlaceholder: "Search users...",
-            lengthMenu: "_MENU_ users per page",
-            info: "Showing _START_ to _END_ of _TOTAL_ users",
-            infoEmpty: "No users found",
-            infoFiltered: "(filtered from _MAX_ total users)"
+            lengthMenu: "_MENU_ entries per page",
+            info: "Showing _START_ to _END_ of _TOTAL_ entries",
+            infoEmpty: "No entries found",
+            infoFiltered: "(filtered from _MAX_ total entries)"
         },
-        paging: false,
+        pageLength: 10,
+        lengthMenu: [[5, 10, 25, 50, -1], [5, 10, 25, 50, "All"]],
         ordering: true,
-        order: [[0, 'desc']], // Sort by ID in descending order
-        responsive: {
-            details: {
-                display: $.fn.dataTable.Responsive.display.modal({
-                    header: function(row) {
-                        var data = row.data();
-                        return 'Details for ' + data[1];
-                    }
-                }),
-                renderer: $.fn.dataTable.Responsive.renderer.tableAll()
-            }
-        },
+        order: [[0, 'desc']],
+        responsive: true,
         columnDefs: [
             {
-                targets: [7], // Actions column
+                targets: [9], // Actions column
                 orderable: false
             }
         ],
-        buttons: [
-            {
-                extend: 'copy',
-                className: 'btn btn-sm btn-primary'
-            },
-            {
-                extend: 'excel',
-                className: 'btn btn-sm btn-primary'
-            },
-            {
-                extend: 'pdf',
-                className: 'btn btn-sm btn-primary'
-            },
-            {
-                extend: 'print',
-                className: 'btn btn-sm btn-primary'
-            }
-        ],
         initComplete: function () {
-            // Add Bootstrap classes to DataTables elements
             $('.dataTables_length select').addClass('form-select form-select-sm');
             $('.dataTables_filter input').addClass('form-control form-control-sm');
-            
-            // Create button container
-            var buttonContainer = $('<div class="text-end mb-3"></div>');
-            table.buttons().container().appendTo(buttonContainer);
-            $('.dataTables_length').parent().after(buttonContainer);
         }
     });
 });
@@ -510,22 +400,7 @@ function deleteUser(userId, userName) {
         }
     }).then((result) => {
         if (result.isConfirmed) {
-            // Get current search parameters to preserve them after deletion
-            const urlParams = new URLSearchParams(window.location.search);
-            let deleteUrl = `users.php?delete=${userId}`;
-            
-            // Preserve search parameter if exists
-            if (urlParams.has('search')) {
-                deleteUrl += `&search=${encodeURIComponent(urlParams.get('search'))}`;
-            }
-            
-            // Preserve page parameter if exists
-            if (urlParams.has('page')) {
-                deleteUrl += `&page=${urlParams.get('page')}`;
-            }
-            
-            // Redirect to delete URL with preserved parameters
-            window.location.href = deleteUrl;
+            window.location.href = `users.php?delete=${userId}`;
         }
     });
 }

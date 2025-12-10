@@ -319,18 +319,7 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
     exit;
 }
 
-// Pagination settings
-$limit = 50;
-$page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
-$offset = ($page - 1) * $limit;
-
-// Get total count for pagination
-$total_query = "SELECT COUNT(*) FROM waitlist_users WHERE knowledge_test_result IS NOT NULL";
-$total_stmt = $pdo->query($total_query);
-$total_users = $total_stmt->fetchColumn();
-$total_pages = ceil($total_users / $limit);
-
-// Get users who have completed knowledge test with pagination
+// Get all users who have completed knowledge test
 $query = "
     SELECT
         wu.id,
@@ -365,7 +354,6 @@ $query = "
     LEFT JOIN knowledge_test_approvals kta ON wu.id = kta.user_id
     WHERE wu.knowledge_test_result IS NOT NULL
     ORDER BY wu.created_at DESC
-    LIMIT $limit OFFSET $offset
 ";
 $stmt = $pdo->prepare($query);
 $stmt->execute();
@@ -529,62 +517,6 @@ ob_start();
     </div>
 </div>
 
-<!-- Pagination -->
-<?php if ($total_pages > 1): ?>
-<div class="d-flex justify-content-center mt-4">
-    <nav aria-label="Page navigation">
-        <ul class="pagination">
-            <?php if ($page > 1): ?>
-                <li class="page-item">
-                    <a class="page-link" href="?page=<?php echo $page - 1; ?>" aria-label="Previous">
-                        <span aria-hidden="true">&laquo;</span>
-                    </a>
-                </li>
-            <?php endif; ?>
-
-            <?php
-            $start_page = max(1, $page - 2);
-            $end_page = min($total_pages, $page + 2);
-
-            if ($start_page > 1): ?>
-                <li class="page-item">
-                    <a class="page-link" href="?page=1">1</a>
-                </li>
-                <?php if ($start_page > 2): ?>
-                    <li class="page-item disabled">
-                        <span class="page-link">...</span>
-                    </li>
-                <?php endif; ?>
-            <?php endif; ?>
-
-            <?php for ($i = $start_page; $i <= $end_page; $i++): ?>
-                <li class="page-item <?php echo $i == $page ? 'active' : ''; ?>">
-                    <a class="page-link" href="?page=<?php echo $i; ?>"><?php echo $i; ?></a>
-                </li>
-            <?php endfor; ?>
-
-            <?php if ($end_page < $total_pages): ?>
-                <?php if ($end_page < $total_pages - 1): ?>
-                    <li class="page-item disabled">
-                        <span class="page-link">...</span>
-                    </li>
-                <?php endif; ?>
-                <li class="page-item">
-                    <a class="page-link" href="?page=<?php echo $total_pages; ?>"><?php echo $total_pages; ?></a>
-                </li>
-            <?php endif; ?>
-
-            <?php if ($page < $total_pages): ?>
-                <li class="page-item">
-                    <a class="page-link" href="?page=<?php echo $page + 1; ?>" aria-label="Next">
-                        <span aria-hidden="true">&raquo;</span>
-                    </a>
-                </li>
-            <?php endif; ?>
-        </ul>
-    </nav>
-</div>
-<?php endif; ?>
 
 <?php
 $content = ob_get_clean();
@@ -652,7 +584,8 @@ $(document).ready(function() {
             infoEmpty: "No entries found",
             infoFiltered: "(filtered from _MAX_ total entries)"
         },
-        paging: false,
+        pageLength: 10,
+        lengthMenu: [[5, 10, 25, 50, -1], [5, 10, 25, 50, "All"]],
         ordering: true,
         order: [[0, 'desc']],
         responsive: true,
