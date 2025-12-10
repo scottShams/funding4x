@@ -1471,17 +1471,51 @@ if ($user) {
 
     </script>
     <script>
+
+        
         const USER_EMAIL_VERIFIED = <?php echo ($user && $user['email_verified'] == 1) ? 'true' : 'false'; ?>;
         const USER_QUIZ_COMPLETED = <?php echo ($user && !empty($user['quiz_result'])) ? 'true' : 'false'; ?>;
         const USER_KNOWLEDGE_TEST_COMPLETED = <?php echo ($user && !empty($user['knowledge_test_result'])) ? 'true' : 'false'; ?>;
         const USERCREDIT = <?php echo ($user && !empty($user['user_credit'])) ? 'true' : 'false'; ?>;
         const USER_MT5_DETAILS_STATUS = <?php echo ($mt5_details && isset($mt5_details['status'])) ? '"' . $mt5_details['status'] . '"' : 'null'; ?>;
         
+        <?php
+            $testStatus = $mt5_details['status'] ?? null;
+
+            $badgeHtml = '';
+
+            if ($testStatus) {
+                $color = match ($testStatus) {
+                    'pass'         => '#28a745',
+                    'fail'         => '#dc3545',
+                    'running'      => '#0d6efd',
+                    'under_review' => '#6f42c1',
+                    default        => '#ffc107', // pending
+                };
+
+                $label = strtoupper(str_replace('_', ' ', $testStatus));
+
+                $badgeHtml = "<span style='
+                    background: {$color};
+                    color: white;
+                    padding: 3px 8px;
+                    font-size: 12px;
+                    border-radius: 5px;
+                    margin-left: 10px;
+                '>{$label}</span>";
+            }
+        ?>
+
         const topics = [
             { id: 1, name: "1. Verify your Email Address", isCompleted: <?php echo ($user && $user['email_verified'] == 1) ? 'true' : 'false'; ?> },
             { id: 2, name: "2. Refer 5 Forex Traders (optional)", isCompleted: <?php echo ($user && $verifiedReferrals >= 5) ? 'true' : 'false'; ?> },
             { id: 3, name: "3. Complete the Knowledge Check", redirectTo: "knowledge-test.php", isCompleted: <?php echo ($user && !empty($user['knowledge_test_result'])) ? 'true' : 'false'; ?> },
-            { id: 4, name: "4. Pass the Trading Test 1", redirectTo: "rule.php", isCompleted: <?php echo ($user && !empty($mt5_details['status'])) ? 'true' : 'false'; ?> },
+            {
+                id: 4,
+                name: `4. Pass the Trading Test 1 <?php echo $badgeHtml; ?>`,
+                redirectTo: "rule.php",
+                isCompleted: <?php echo ($user && !empty($mt5_details['status'])) ? 'true' : 'false'; ?>
+            },
             { id: 5, name: "5. Pass the Trading Test 2", redirectTo: "choose-broker-second.php", isCompleted: false },
             { id: 6, name: "6. Get your $5000 Funded Account", isCompleted: false }
         ];
