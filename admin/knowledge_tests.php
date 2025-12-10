@@ -330,12 +330,30 @@ $query = "
         wu.user_credit,
         wu.created_at,
         wu.paid_user,
+
+        -- Total and completed referrals
+        COALESCE(total_ref.total_referrals, 0) AS total_referrals,
         COALESCE(referral_counts.completed_referrals, 0) AS completed_referrals,
+        
         m.status AS mt5_status,
         COALESCE(kta.approval_status, 'pending') AS approval_status,
         kta.declined_reason,
         kta.approved_at
+
     FROM waitlist_users wu
+
+    -- TOTAL referrals (all)
+    LEFT JOIN (
+        SELECT 
+            parent_user_id,
+            COUNT(*) AS total_referrals
+        FROM waitlist_users
+        WHERE parent_user_id IS NOT NULL
+        GROUP BY parent_user_id
+    ) total_ref
+    ON wu.id = total_ref.parent_user_id
+
+    -- COMPLETED referrals
     LEFT JOIN (
         SELECT
             child.parent_user_id,
@@ -350,11 +368,14 @@ $query = "
         GROUP BY child.parent_user_id
     ) referral_counts
     ON wu.id = referral_counts.parent_user_id
+
     LEFT JOIN mt5_details m ON wu.id = m.user_id
     LEFT JOIN knowledge_test_approvals kta ON wu.id = kta.user_id
+
     WHERE wu.knowledge_test_result IS NOT NULL
     ORDER BY wu.created_at DESC
 ";
+
 $stmt = $pdo->prepare($query);
 $stmt->execute();
 $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -409,7 +430,7 @@ ob_start();
                         <td>
                             <span id="credit-<?php echo $user['id']; ?>"><?php echo $user['user_credit'] ?? 0; ?></span>
                         </td>
-                        <td><?php echo $user['credits']; ?></td>
+                        <td><?php echo $user['total_referrals']; ?></td>
                         <td><?php echo $user['completed_referrals']; ?></td>
                         <td>
                             <?php
