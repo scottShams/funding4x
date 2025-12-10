@@ -368,7 +368,7 @@ $(document).ready(function() {
         pageLength: 10,
         lengthMenu: [[5, 10, 25, 50, -1], [5, 10, 25, 50, "All"]],
         ordering: true,
-        order: [[0, 'desc']],
+        order: [], 
         responsive: true,
         columnDefs: [
             {
