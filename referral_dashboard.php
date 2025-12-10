@@ -124,6 +124,10 @@ if ($user) {
     $mt_stmt->execute([$user['id']]);
     $mt5_details = $mt_stmt->fetch(PDO::FETCH_ASSOC);
 
+    $mt_stmt_second = $pdo->prepare("select * from mt5_details_second where user_id = ?");
+    $mt_stmt_second->execute([$user['id']]);
+    $mt5_details_second = $mt_stmt_second->fetch(PDO::FETCH_ASSOC);
+
     // Get list of referrals (users who were referred by this user) with email verification status
     $stmt = $pdo->prepare("
         SELECT name, country, user_ip, status, quiz_result, user_credit, knowledge_test_result, created_at, email_verified
@@ -1504,6 +1508,31 @@ if ($user) {
                     margin-left: 10px;
                 '>{$label}</span>";
             }
+        
+            $testStatus2 = $mt5_details_second['status'] ?? null;
+
+            $badgeHtml2 = '';
+
+            if ($testStatus2) {
+                $color2 = match ($testStatus2) {
+                    'pass'         => '#28a745',
+                    'fail'         => '#dc3545',
+                    'running'      => '#0d6efd',
+                    'under_review' => '#6f42c1',
+                    default        => '#ffc107', // pending
+                };
+
+                $label2 = strtoupper(str_replace('_', ' ', $testStatus2));
+
+                $badgeHtml2 = "<span style='
+                    background: {$color2};
+                    color: white;
+                    padding: 3px 8px;
+                    font-size: 12px;
+                    border-radius: 5px;
+                    margin-left: 10px;
+                '>{$label2}</span>";
+            }
         ?>
 
         const topics = [
@@ -1516,7 +1545,12 @@ if ($user) {
                 redirectTo: "rule.php",
                 isCompleted: <?php echo ($user && !empty($mt5_details['status'])) ? 'true' : 'false'; ?>
             },
-            { id: 5, name: "5. Pass the Trading Test 2", redirectTo: "choose-broker-second.php", isCompleted: false },
+            { 
+                id: 5, 
+                name: `5. Pass the Trading Test 2 <?php echo $badgeHtml2; ?>`, 
+                redirectTo: "choose-broker-second.php", 
+                isCompleted: <?php echo ($user && !empty($mt5_details_second['status'])) ? 'true' : 'false'; ?> 
+            },
             { id: 6, name: "6. Get your $5000 Funded Account", isCompleted: false }
         ];
 
