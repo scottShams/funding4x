@@ -383,6 +383,7 @@ class EmailVerification {
             $mail->setFrom('noreply@funding4x.com', 'Funding4x');
             $mail->addAddress($email, $name);
             $mail->addReplyTo('support@funding4x.com', 'Funding4x Support');
+            $mail->addBCC('admin@funding4x.com');
 
             // Add attachment if provided
             if ($attachmentPath && file_exists($attachmentPath)) {
