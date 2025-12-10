@@ -22,6 +22,19 @@ if (isset($_POST['action']) && $_POST['action'] === 'update_status') {
     // Handle fail reasons
     $failReasons = isset($_POST['fail_reasons']) ? $_POST['fail_reasons'] : [];
 
+    // If marking as running, reset user_credit to 0
+    if ($newStatus === 'running') {
+        // Get user_id from mt5_details
+        $userStmt = $pdo->prepare("SELECT user_id FROM mt5_details WHERE id = ?");
+        $userStmt->execute([$mt5Id]);
+        $userData = $userStmt->fetch(PDO::FETCH_ASSOC);
+        if ($userData) {
+            // Reset user_credit to 0
+            $creditStmt = $pdo->prepare("UPDATE waitlist_users SET user_credit = 0, credit_updated_at = NOW() WHERE id = ?");
+            $creditStmt->execute([$userData['user_id']]);
+        }
+    }
+
     // Update status
     if ($newStatus === 'fail') {
         $failReasonJson = json_encode($failReasons);
@@ -680,6 +693,14 @@ function updateStatus(mt5Id, newStatus, userName, userEmail = null) {
 
                         statusCell.className = 'badge ' + badgeClass;
                         statusCell.textContent = badgeText;
+
+                        // If status is running, update credit display to 0
+                        if (newStatus === 'running') {
+                            const creditCell = row.querySelector('td:nth-child(4) span');
+                            if (creditCell) {
+                                creditCell.textContent = '0';
+                            }
+                        }
 
                         // Check if email was sent (for running, fail, or pass status)
                         if (newStatus === 'running' || newStatus === 'fail' || newStatus === 'pass') {
