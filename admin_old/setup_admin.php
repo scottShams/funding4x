@@ -1,5 +1,6 @@
 <?php
-// Include database connection
+require_once 'functions/auth.php';
+checkAdminAuth();
 require_once '../database.php';
 
 // Get database connection
@@ -35,38 +36,30 @@ if ($stmt->fetch()) {
     }
 }
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Setup Admin Account</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body class="bg-dark text-white">
-    <div class="container">
-        <div class="row justify-content-center align-items-center min-vh-100">
-            <div class="col-md-6">
-                <div class="card bg-secondary">
-                    <div class="card-body p-5">
-                        <h2 class="text-center mb-4">Setup Admin Account</h2>
-                        
-                        <?php if (isset($message)): ?>
-                            <div class="alert alert-info" role="alert">
-                                <?php echo $message; ?>
-                            </div>
-                        <?php endif; ?>
 
-                        <div class="text-center">
-                            <a href="login.php" class="btn btn-primary">Go to Login</a>
-                            <a href="index.php" class="btn btn-outline-light ms-2">Back to Dashboard</a>
-                        </div>
-                    </div>
-                </div>
+<?php
+ob_start();
+?>
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Setup Admin Account</h1>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <?php if (isset($message)): ?>
+            <div class="alert alert-info" role="alert">
+                <?php echo $message; ?>
             </div>
+        <?php endif; ?>
+
+        <div class="text-center">
+            <a href="login.php" class="btn btn-primary">Go to Login</a>
+            <a href="index.php" class="btn btn-outline-light ms-2">Back to Dashboard</a>
         </div>
     </div>
-    
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+</div>
+
+<?php
+$content = ob_get_clean();
+include 'layout/app.php';
+?>

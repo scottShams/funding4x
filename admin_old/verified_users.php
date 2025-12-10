@@ -9,30 +9,30 @@ $pdo = getPDO();
 // Handle AJAX status update
 if (isset($_POST['action']) && $_POST['action'] === 'update_status') {
     header('Content-Type: application/json');
-    
+
     $userId = (int)$_POST['user_id'];
     $newStatus = $_POST['status'];
-    
+
     // Validate status
     if (!in_array($newStatus, ['active', 'inactive'])) {
         echo json_encode(['success' => false, 'message' => 'Invalid status']);
         exit;
     }
-    
+
     // Prevent changing admin status
     $stmt = $pdo->prepare("SELECT email FROM waitlist_users WHERE id = ?");
     $stmt->execute([$userId]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
-    
+
     if ($user && $user['email'] === 'admin@gmail.com') {
         echo json_encode(['success' => false, 'message' => 'Cannot change admin status']);
         exit;
     }
-    
+
     // Update status
     $updateStmt = $pdo->prepare("UPDATE waitlist_users SET status = ? WHERE id = ?");
     $success = $updateStmt->execute([$newStatus, $userId]);
-    
+
     if ($success) {
         echo json_encode(['success' => true, 'message' => 'Status updated successfully']);
     } else {
@@ -44,26 +44,26 @@ if (isset($_POST['action']) && $_POST['action'] === 'update_status') {
 // Handle delete action
 if (isset($_GET['delete']) && is_numeric($_GET['delete'])) {
     $userId = (int) $_GET['delete'];
-    
+
     // Prevent deleting main admin
     $stmt = $pdo->prepare("SELECT email FROM waitlist_users WHERE id = ?");
     $stmt->execute([$userId]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
-    
+
     if ($user && $user['email'] !== 'admin@gmail.com') {
         // Delete the user
         $deleteStmt = $pdo->prepare("DELETE FROM waitlist_users WHERE id = ?");
         $deleteStmt->execute([$userId]);
-        
+
         // Build redirect URL with preserved search parameters
-        $redirectUrl = 'users.php?deleted=1';
+        $redirectUrl = 'verified_users.php?deleted=1';
         if (isset($_GET['search']) && !empty($_GET['search'])) {
             $redirectUrl .= '&search=' . urlencode($_GET['search']);
         }
         if (isset($_GET['page']) && is_numeric($_GET['page'])) {
             $redirectUrl .= '&page=' . (int)$_GET['page'];
         }
-        
+
         // Redirect back to avoid resubmission
         header('Location: ' . $redirectUrl);
         exit;
@@ -76,22 +76,20 @@ $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
 $offset = ($page - 1) * $limit;
 
 // Get total count for pagination
-$total_query = "SELECT COUNT(*) FROM waitlist_users WHERE email != 'admin@gmail.com'";
+$total_query = "SELECT COUNT(*) FROM waitlist_users WHERE email != 'admin@gmail.com' AND email_verified = 1";
 $total_stmt = $pdo->query($total_query);
 $total_users = $total_stmt->fetchColumn();
 $total_pages = ceil($total_users / $limit);
 
-// Get users with pagination
+// Get all verified users except admin with their referral counts and pagination
 $query = "
     SELECT
         u.*,
-        (
-            SELECT COUNT(*)
-            FROM waitlist_users r
-            WHERE r.parent_user_id = u.id
-        ) AS referral_count
+        COUNT(r.id) as referral_count
     FROM waitlist_users u
-    WHERE u.email != 'admin@gmail.com'
+    LEFT JOIN waitlist_users r ON u.id = r.parent_user_id
+    WHERE u.email != 'admin@gmail.com' AND u.email_verified = 1
+    GROUP BY u.id
     ORDER BY u.created_at DESC
     LIMIT $limit OFFSET $offset
 ";
@@ -103,14 +101,14 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
 // CSV EXPORT
 // ----------------------
 if (isset($_GET['export']) && $_GET['export'] === 'csv') {
-    // Prepare query to fetch all users with referral counts
+    // Prepare query to fetch all verified users with referral counts
     $export_query = "
-        SELECT 
+        SELECT
             u.*,
             COUNT(r.id) as referral_count
         FROM waitlist_users u
         LEFT JOIN waitlist_users r ON u.id = r.parent_user_id
-        WHERE u.email != 'admin@gmail.com'
+        WHERE u.email != 'admin@gmail.com' AND u.email_verified = 1
         GROUP BY u.id
         ORDER BY u.created_at DESC
     ";
@@ -120,7 +118,7 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
 
     // Set CSV headers
     header('Content-Type: text/csv; charset=utf-8');
-    header('Content-Disposition: attachment; filename=waitlist_users_' . date('Y-m-d_H-i-s') . '.csv');
+    header('Content-Disposition: attachment; filename=verified_users_' . date('Y-m-d_H-i-s') . '.csv');
     header('Pragma: no-cache');
     header('Expires: 0');
 
@@ -142,8 +140,8 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
             !empty($user['user_ip']) ? $user['user_ip'] : 'N/A',
             ($user['email_verified'] == 1) ? 'Yes' : 'No',
             $user['referral_count'] ?? 0,
-            !empty($user['created_at']) 
-                ? date('d/m/Y H:i:s', strtotime($user['created_at'])) 
+            !empty($user['created_at'])
+                ? date('d/m/Y H:i:s', strtotime($user['created_at']))
                 : 'N/A'
         ]);
     }
@@ -157,7 +155,7 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
 ob_start();
 ?>
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-    <h1 class="h2">Waitlist Users Management</h1>
+    <h1 class="h2">Verified Users Management</h1>
     <div class="btn-toolbar mb-2 mb-md-0">
         <div class="btn-group me-2">
             <a href="?export=csv" class="btn btn-sm btn-success">
@@ -186,7 +184,7 @@ ob_start();
                     </tr>
                 </thead>
                 <tbody>
-                    <?php foreach ($users as $user): 
+                    <?php foreach ($users as $user):
                         $referral_count = $user['referral_count'] ?? 0;
                         $referral_class = 'low';
                         if ($referral_count >= 5) {
@@ -225,8 +223,8 @@ ob_start();
                             </span>
                         </td>
                         <td>
-                            <select class="form-select form-select-sm status-dropdown" 
-                                    data-user-id="<?php echo $user['id']; ?>" 
+                            <select class="form-select form-select-sm status-dropdown"
+                                    data-user-id="<?php echo $user['id']; ?>"
                                     data-user-name="<?php echo htmlspecialchars($user['name']); ?>"
                                     onchange="changeUserStatus(this)">
                                 <option value="active" <?php echo ($user['status'] === 'active') ? 'selected' : ''; ?>>Active</option>
@@ -436,10 +434,10 @@ $(document).ready(function() {
              '<"row mt-3"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>',
         language: {
             search: "_INPUT_",
-            searchPlaceholder: "Search users...",
+            searchPlaceholder: "Search verified users...",
             lengthMenu: "_MENU_ users per page",
             info: "Showing _START_ to _END_ of _TOTAL_ users",
-            infoEmpty: "No users found",
+            infoEmpty: "No verified users found",
             infoFiltered: "(filtered from _MAX_ total users)"
         },
         paging: false,
@@ -484,7 +482,7 @@ $(document).ready(function() {
             // Add Bootstrap classes to DataTables elements
             $('.dataTables_length select').addClass('form-select form-select-sm');
             $('.dataTables_filter input').addClass('form-control form-control-sm');
-            
+
             // Create button container
             var buttonContainer = $('<div class="text-end mb-3"></div>');
             table.buttons().container().appendTo(buttonContainer);
@@ -512,18 +510,18 @@ function deleteUser(userId, userName) {
         if (result.isConfirmed) {
             // Get current search parameters to preserve them after deletion
             const urlParams = new URLSearchParams(window.location.search);
-            let deleteUrl = `users.php?delete=${userId}`;
-            
+            let deleteUrl = `verified_users.php?delete=${userId}`;
+
             // Preserve search parameter if exists
             if (urlParams.has('search')) {
                 deleteUrl += `&search=${encodeURIComponent(urlParams.get('search'))}`;
             }
-            
+
             // Preserve page parameter if exists
             if (urlParams.has('page')) {
                 deleteUrl += `&page=${urlParams.get('page')}`;
             }
-            
+
             // Redirect to delete URL with preserved parameters
             window.location.href = deleteUrl;
         }
@@ -549,10 +547,10 @@ function changeUserStatus(selectElement) {
     const userName = selectElement.getAttribute('data-user-name');
     const newStatus = selectElement.value;
     const oldStatus = newStatus === 'active' ? 'inactive' : 'active';
-    
+
     // Store the old value in case user cancels
     const previousValue = oldStatus;
-    
+
     Swal.fire({
         title: 'Confirm Status Change',
         html: `Are you sure you want to change <strong>${userName}</strong>'s status to <strong>${newStatus.toUpperCase()}</strong>?`,
@@ -578,10 +576,10 @@ function changeUserStatus(selectElement) {
                     Swal.showLoading();
                 }
             });
-            
+
             // Send AJAX request to update status
             $.ajax({
-                url: 'users.php',
+                url: 'verified_users.php',
                 type: 'POST',
                 data: {
                     action: 'update_status',
