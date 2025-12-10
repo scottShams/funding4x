@@ -120,37 +120,95 @@ if ($user) {
 
 if ($user) {
 
-    $mt_stmt = $pdo->prepare("select * from mt5_details where user_id = ?");
+    // Load mt5_details
+    $mt_stmt = $pdo->prepare("SELECT * FROM mt5_details WHERE user_id = ?");
     $mt_stmt->execute([$user['id']]);
     $mt5_details = $mt_stmt->fetch(PDO::FETCH_ASSOC);
 
-    $mt_stmt_second = $pdo->prepare("select * from mt5_details_second where user_id = ?");
+    // Load mt5_details_second
+    $mt_stmt_second = $pdo->prepare("SELECT * FROM mt5_details_second WHERE user_id = ?");
     $mt_stmt_second->execute([$user['id']]);
     $mt5_details_second = $mt_stmt_second->fetch(PDO::FETCH_ASSOC);
 
-    // Get list of referrals (users who were referred by this user) with email verification status
+    // Fetch direct referrals
     $stmt = $pdo->prepare("
-        SELECT name, country, user_ip, status, quiz_result, user_credit, knowledge_test_result, created_at, email_verified
+        SELECT id, name, country, user_ip, status, quiz_result, user_credit, knowledge_test_result, created_at, email_verified
         FROM waitlist_users 
         WHERE parent_user_id = ? 
         ORDER BY created_at DESC
     ");
     $stmt->execute([$user['id']]);
     $referrals = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    
-    // Calculate verified vs pending referrals
+
+    // First level counts
     $totalReferrals = count($referrals);
     $verifiedReferrals = 0;
     $pendingReferrals = 0;
-    
+
+    $congratulationsAwarded = false;
+    // Array of verified referral IDs (your 5 verified users)
+    $verifiedReferralIDs = [];
+
     foreach ($referrals as $referral) {
-        if ($referral['email_verified'] == 1 && $referral['quiz_result'] != null && $referral['user_ip'] !== $user['user_ip']) {
+        if ($referral['email_verified'] == 1 &&
+            $referral['quiz_result'] != null &&
+            $referral['user_ip'] !== $user['user_ip']
+        ) {
             $verifiedReferrals++;
+            $verifiedReferralIDs[] = [
+                'id' => $referral['id'],
+                'user_ip' => $referral['user_ip']
+            ];
         } else {
             $pendingReferrals++;
         }
     }
+
+    $secondLevelVerifiedCount = 0;
+
+    if (!$mt5_details && $verifiedReferrals >= 5) {
+
+        $verifiedCheckStmt = $pdo->prepare("
+            SELECT
+                email_verified,
+                quiz_result,
+                user_ip,
+                parent_user_id
+            FROM waitlist_users
+            WHERE parent_user_id = ?
+        ");
+
+        foreach ($verifiedReferralIDs as $verifiedUser) {
+            $verifiedCheckStmt->execute([$verifiedUser['id']]);
+            $childRefs = $verifiedCheckStmt->fetchAll(PDO::FETCH_ASSOC);
+
+            foreach ($childRefs as $child) {
+                // count only *verified* referrals
+                if ($child['email_verified'] == 1 &&
+                    $child['quiz_result'] != null &&
+                    $verifiedUser['user_ip'] !== $child['user_ip']
+                ) {
+                    $secondLevelVerifiedCount++;
+                }
+            }
+        }
+    }
+
+    if ($secondLevelVerifiedCount >= 1) {
+
+        $updateCreditStmt = $pdo->prepare("
+            UPDATE waitlist_users 
+            SET user_credit = 1 
+            WHERE id = ?
+        ");
+
+        $updateCreditStmt->execute([$user['id']]);
+        $congratulationsAwarded = true;
+    }else{
+        $congratulationsAwarded = false;
+    }
 }
+
 
 // Generate referral link
 if ($user) {
@@ -741,7 +799,7 @@ if ($user) {
                                     </div>
                                 </div>
                                 <p class="text-sm text-gray-600 mt-3 text-center">
-                                    <?php if ($credits >= $goalCredits): ?>
+                                    <?php if ($congratulationsAwarded): ?>
                                         <div class="bg-white p-8 rounded-2xl shadow-2xl border-2 border-primary-purple h-fit lg:sticky lg:top-24">
                                             <h2 class="text-2xl font-bold text-primary-purple mb-2">Congratulations! 1 Free Trading Test Unlocked<del class="text-red-600"> (no need to pay $59)</del></h2>
                                             <p class="text-sm text-gray-600 mb-6">
