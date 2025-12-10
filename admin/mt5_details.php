@@ -333,6 +333,9 @@ ob_start();
                             } elseif ($status === 'running') {
                                 $badgeClass = 'bg-primary';
                                 $statusText = 'Running';
+                            } elseif ($status === 'under_review') {
+                                $badgeClass = 'bg-info';
+                                $statusText = 'Under Review';
                             }
                             ?>
                             <span class="badge <?php echo $badgeClass; ?>"><?php echo $statusText; ?></span>

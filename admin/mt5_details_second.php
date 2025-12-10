@@ -27,9 +27,15 @@ if (isset($_POST['action']) && $_POST['action'] === 'update_status') {
         $failReasonJson = json_encode($failReasons);
         $stmt = $pdo->prepare("UPDATE mt5_details_second SET status = ?, fail_reason = ?, status_updated_at = NOW() WHERE id = ?");
         $success = $stmt->execute([$newStatus, $failReasonJson, $mt5Id]);
+        if (!$success) {
+            error_log("Failed to update mt5_details_second for fail status. MT5 ID: $mt5Id, Error: " . implode(", ", $stmt->errorInfo()));
+        }
     } else {
         $stmt = $pdo->prepare("UPDATE mt5_details_second SET status = ?, status_updated_at = NOW() WHERE id = ?");
         $success = $stmt->execute([$newStatus, $mt5Id]);
+        if (!$success) {
+            error_log("Failed to update mt5_details_second for $newStatus status. MT5 ID: $mt5Id, Error: " . implode(", ", $stmt->errorInfo()));
+        }
     }
 
     if ($success) {
@@ -333,6 +339,9 @@ ob_start();
                             } elseif ($status === 'running') {
                                 $badgeClass = 'bg-primary';
                                 $statusText = 'Running';
+                            } elseif ($status === 'under_review') {
+                                $badgeClass = 'bg-info';
+                                $statusText = 'Under Review';
                             }
                             ?>
                             <span class="badge <?php echo $badgeClass; ?>"><?php echo $statusText; ?></span>
