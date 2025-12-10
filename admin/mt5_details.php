@@ -14,7 +14,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'update_status') {
     $newStatus = $_POST['status'];
 
     // Validate status
-    if (!in_array($newStatus, ['pass', 'fail', 'pending', 'running'])) {
+    if (!in_array($newStatus, ['pass', 'fail', 'pending', 'running', 'under_review'])) {
         echo json_encode(['success' => false, 'message' => 'Invalid status']);
         exit;
     }
@@ -339,6 +339,9 @@ ob_start();
                                     <li><a class="dropdown-item text-danger" href="#" onclick="updateStatus(<?php echo $detail['id']; ?>, 'fail', '<?php echo htmlspecialchars($detail['name']); ?>')">
                                         <i class="bi bi-x-circle me-2"></i>Mark as Fail
                                     </a></li>
+                                    <li><a class="dropdown-item text-info" href="#" onclick="updateStatus(<?php echo $detail['id']; ?>, 'under_review', '<?php echo htmlspecialchars($detail['name']); ?>')">
+                                        <i class="bi bi-clock me-2"></i>Mark as Under Review
+                                    </a></li>
                                     <li><a class="dropdown-item text-warning" href="#" onclick="updateStatus(<?php echo $detail['id']; ?>, 'pending', '<?php echo htmlspecialchars($detail['name']); ?>')">
                                         <i class="bi bi-clock me-2"></i>Mark as Pending
                                     </a></li>
@@ -539,8 +542,15 @@ function updateStatus(mt5Id, newStatus, userName, userEmail = null) {
         return;
     }
 
-    const statusText = newStatus === 'pass' ? 'Pass' : (newStatus === 'fail' ? 'Fail' : (newStatus === 'running' ? 'Running' : 'Pending'));
-    const confirmColor = newStatus === 'pass' ? '#28a745' : (newStatus === 'fail' ? '#dc3545' : (newStatus === 'running' ? '#0d6efd' : '#ffc107'));
+    const statusMap = {
+        pass: { text: 'Pass', color: '#28a745' },
+        fail: { text: 'Fail', color: '#dc3545' },
+        running: { text: 'Running', color: '#0d6efd' },
+        under_review: { text: 'Under Review', color: '#fd7e14' },
+        pending: { text: 'Pending', color: '#ffc107' }
+    };
+
+    const { text: statusText, color: confirmColor } = statusMap[newStatus] || statusMap.pending;
 
     Swal.fire({
         title: `Mark as ${statusText}`,
@@ -598,6 +608,9 @@ function updateStatus(mt5Id, newStatus, userName, userEmail = null) {
                         } else if (newStatus === 'running') {
                             badgeClass = 'bg-primary';
                             badgeText = 'Running';
+                        } else if (newStatus === 'under_review') {
+                            badgeClass = 'bg-info';
+                            badgeText = 'Under Review';
                         }
 
                         statusCell.className = 'badge ' + badgeClass;
