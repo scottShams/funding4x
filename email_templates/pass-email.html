@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Congratulations! You Passed Phase 1!</title>
+    <!-- Load Tailwind CSS for design utilities (will be partially inlined for email compatibility) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Define colors based on Funding4x theme for inline use */
+        :root {
+            --primary-purple: #4f009d; /* Deep Royal Purple */
+            --header-dark: #240046; /* Dark background */
+            --trophy-gold: #b49852; /* Muted Gold */
+            --success-green: #10b981; /* Tailwind green for success */
+        }
+        
+        /* General Email Container Styles */
+        body, table { font-family: 'Inter', Arial, sans-serif; line-height: 1.6; }
+        .main-wrapper { max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; }
+        .header-bg { background-color: var(--header-dark); }
+        /* CTA Button using a strong purple for the next step */
+        .cta-button { 
+            background-color: var(--primary-purple); 
+            color: #ffffff; 
+            text-decoration: none; 
+            border-radius: 6px; 
+            display: inline-block; 
+            padding: 12px 24px; 
+            font-weight: bold; 
+            font-size: 16px; 
+            transition: background-color 0.3s; 
+        }
+        .cta-button:hover { background-color: #7b2cbf; /* secondary-purple hover */ }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        'primary-purple': '#4f009d',
+                        'trophy-gold': '#b49852',
+                        'header-dark': '#240046',
+                        'success-green': '#10b981',
+                    },
+                }
+            }
+        }
+    </script>
+</head>
+
+<body style="margin: 0; padding: 0; background-color: #f3f4f6;">
+
+    <!-- Email Wrapper Table (Max Width 600px) -->
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #f3f4f6;">
+        <tr>
+            <td align="center" style="padding: 20px 0;">
+                <table class="main-wrapper" width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; background-color: #ffffff; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+                    
+                    <!-- Header/Logo Section -->
+                    <tr>
+                        <td class="header-bg" style="background-color: var(--header-dark); padding: 20px 20px; border-top-left-radius: 8px; border-top-right-radius: 8px;">
+                            <h1 style="color: var(--trophy-gold); font-size: 24px; font-weight: 800; margin: 0;">Funding4x</h1>
+                            <p style="color: #ffffff; font-size: 14px; margin: 0; opacity: 0.8;">Your Partner in Prop Trading</p>
+                        </td>
+                    </tr>
+
+                    <!-- Main Congratulatory Message -->
+                    <tr>
+                        <td style="padding: 30px 20px 10px 20px; color: #333333;" align="center">
+                            <h2 style="font-size: 30px; font-weight: 900; margin-bottom: 5px; color: var(--success-green); text-transform: uppercase;">
+                                Congratulations -FNAME-!
+                            </h2>
+                            <h1 style="font-size: 24px; font-weight: 700; margin-bottom: 20px; color: var(--header-dark);">
+                                You Have Passed Phase 1 of Your Evaluation!
+                            </h1>
+                            <p style="font-size: 16px; margin-bottom: 20px;">
+                                Your discipline and trading skills have paid off. You successfully met all the Profit Target and Trading Day requirements in the initial phase.
+                            </p>
+                            
+                        </td>
+                    </tr>
+                    
+                    <!-- SUCCESS Banner & Visual Element -->
+                    <tr>
+                        <td align="center" style="padding: 10px 20px;">
+                            <div style="background-color: var(--success-green); color: #ffffff; padding: 15px; border-radius: 6px; font-size: 20px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px;">
+                                PHASE 1 COMPLETE!
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- Certificate/Achievement Section -->
+                    <tr>
+                        <td align="center" style="padding: 20px;">
+                            <table border="0" cellspacing="0" cellpadding="0" style="width: 80%; background-color: #f7f7f7; border: 2px solid var(--trophy-gold); border-radius: 8px; padding: 20px;">
+                                <tr>
+                                    <td align="center">
+                                        <p style="font-size: 18px; color: var(--header-dark); font-weight: 600; margin-bottom: 5px;">
+                                            Official Phase 1 Completion
+                                        </p>
+                                        <p style="font-size: 28px; color: var(--primary-purple); font-weight: 900; margin-top: 0;">
+                                            CERTIFICATE OF ACHIEVEMENT ATTACHED
+                                        </p>
+                                        <p style="font-size: 14px; color: #6b7280; margin: 0;">
+                                            Verified by the Funding4x Compliance Team
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    
+                    <!-- Phase 2 Instructions -->
+                    <tr>
+                        <td style="padding: 10px 20px 30px 20px; color: #333333;">
+                            <h3 style="font-size: 20px; font-weight: 700; margin-bottom: 15px; color: var(--primary-purple); border-bottom: 2px solid #e5e7eb; padding-bottom: 5px;">
+                                Next Step: Phase 2 - The Final Evaluation
+                            </h3>
+                            
+                            <p style="font-size: 16px; margin-bottom: 20px;">
+                                You are just one step away from getting the $5,000 Funded Account. Your Phase 2 account will be ready soon, and the key rules are the same: maintain discipline and focus on consistency.
+                            </p>
+                            <br />
+
+                            <p class="--primary-purple">&#9989; <strong>Go to your Dashboard</strong></p>
+                            <p>Click the Trading Test 2 option.</p>
+                            
+                            <br />
+                            <p>&#9989; <strong>Submit new MT5 Details for us to Monitor.</strong></p>
+                            <p>Click on Trading Test 2 and follow the instructions.</p>
+                            
+                            
+                            <br />
+                            <p>&#9989; <strong>Changes in some Rules:</strong></p>
+                            <p>All rules are the same, except 2 important change as follow - remember these:</p>
+                            <br />
+                            <p><strong>1. Minimum Trading Days = 10 days </strong> <br />Be need to see you can manage a longer period of trading and show profitability. It must be 10 days of trading, not 10 days of waiting with no trades</p>
+                            <br />
+                            <p><strong>2. No Chances</strong> <br /> Try not to break any rules this time, last time we were giving chances to continue. There will be no chances this time, This time it is MORE SERIOUS</p>
+
+                            
+                        </td>
+                    </tr>
+                    
+                    <!-- Call to Action Button -->
+                    <tr>
+                        <td align="center" style="padding: 10px 20px 40px 20px;">
+                            <a href="[PHASE_2_START_LINK]" class="cta-button" style="background-color: var(--primary-purple); color: #ffffff; text-decoration: none; border-radius: 6px; display: inline-block; padding: 15px 40px; font-weight: bold; font-size: 18px;">
+                                GO TO PHASE 2 DASHBOARD
+                            </a>
+                        </td>
+                    </tr>
+
+                    <!-- Closing -->
+                    <tr>
+                        <td style="padding: 0 20px 30px 20px; color: #333333;">
+                            <p style="font-size: 16px; margin-bottom: 15px;">
+                                We believe in your potential. Keep up the excellent work, and we look forward to welcoming you to the Funding4x Funded Trader team!
+                            </p>
+                            <p style="font-size: 16px; margin-bottom: 0; font-weight: 600;">
+                                To Your Success,
+                            </p>
+                            <p style="font-size: 16px; margin-bottom: 0;">
+                                The Funding4x Team
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td class="header-bg" style="background-color: var(--header-dark); color: #9ca3af; font-size: 12px; padding: 15px 20px; text-align: center; border-bottom-left-radius: 8px; border-bottom-right-radius: 8px;">
+                            <p style="margin: 0;">&copy; 2024 Funding4x. All rights reserved.</p>
+                            <p style="margin: 5px 0 0 0;">[UNSUBSCRIBE_LINK_HERE]</p>
+                        </td>
+                    </tr>
+
+                </table>
+            </td>
+        </tr>
+    </table>
+
+</body>
+</html>

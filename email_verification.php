@@ -345,6 +345,64 @@ class EmailVerification {
     }
 
     /**
+     * Send trading test passed email with certificate
+     * @param string $email User email
+     * @param string $name User name
+     * @param string|null $attachmentPath Path to pass certificate file
+     * @return bool Success status
+     */
+    public static function sendPassEmail($email, $name, $attachmentPath = null) {
+        try {
+            // Get SMTP config
+            $smtpHost = EnvLoader::get('SMTP_HOST', 'localhost');
+            $smtpUsername = EnvLoader::get('SMTP_USERNAME', '');
+            $smtpPassword = EnvLoader::get('SMTP_PASSWORD', '');
+            $smtpPort = EnvLoader::get('SMTP_PORT', 587);
+            $smtpEncryption = EnvLoader::get('SMTP_ENCRYPTION', 'tls');
+
+            // Load pass email template (HTML)
+            $templatePath = __DIR__ . "/email_templates/pass-email.html";
+            $body = file_exists($templatePath) ? file_get_contents($templatePath) : "";
+
+            // Replace placeholders
+            $body = str_replace("-FNAME-", htmlspecialchars($name), $body);
+
+            $subject = "Congratulations! You Passed Phase 1!";
+
+            // PHPMailer
+            $mail = new PHPMailer(true);
+
+            $mail->isSMTP();
+            $mail->Host = $smtpHost;
+            $mail->SMTPAuth = !empty($smtpUsername);
+            $mail->Username = $smtpUsername;
+            $mail->Password = $smtpPassword;
+            $mail->SMTPSecure = $smtpEncryption;
+            $mail->Port = (int)$smtpPort;
+
+            $mail->setFrom('noreply@funding4x.com', 'Funding4x');
+            $mail->addAddress($email, $name);
+            $mail->addReplyTo('support@funding4x.com', 'Funding4x Support');
+
+            // Add attachment if provided
+            if ($attachmentPath && file_exists($attachmentPath)) {
+                $mail->addAttachment($attachmentPath);
+            }
+
+            $mail->isHTML(true);
+            $mail->Subject = $subject;
+            $mail->Body = $body;
+            $mail->AltBody = strip_tags(str_replace(['<br>', '</p>', '</div>'], ["\n", "\n\n", "\n"], $body));
+
+            return $mail->send();
+
+        } catch (Exception $e) {
+            error_log("Pass Email failed for $email: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
      * Get email template
      * @param string $name User name
      * @param string $email User email

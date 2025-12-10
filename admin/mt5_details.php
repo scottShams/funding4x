@@ -33,7 +33,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'update_status') {
     }
 
     if ($success) {
-        // Send email if status is "running" or "fail"
+        // Send email if status is "running", "fail", or "pass"
         $emailSent = true;
         if ($newStatus === 'running') {
             // Get user email for sending notification
@@ -70,6 +70,31 @@ if (isset($_POST['action']) && $_POST['action'] === 'update_status') {
                 }
 
                 $emailSent = EmailVerification::sendFailEmail($userData['email'], $userData['name'], $failReasons, $attachmentPath);
+            }
+        } elseif ($newStatus === 'pass') {
+            // Get user email for sending pass notification
+            $userStmt = $pdo->prepare("SELECT u.email, u.name FROM mt5_details m JOIN waitlist_users u ON m.user_id = u.id WHERE m.id = ?");
+            $userStmt->execute([$mt5Id]);
+            $userData = $userStmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($userData) {
+                require_once '../email_verification.php';
+
+                // Handle pass certificate file upload
+                $attachmentPath = null;
+                if (isset($_FILES['passCertificateFile']) && $_FILES['passCertificateFile']['error'] === UPLOAD_ERR_OK) {
+                    $uploadDir = __DIR__ . '/testResults/';
+                    if (!is_dir($uploadDir)) {
+                        mkdir($uploadDir, 0755, true);
+                    }
+                    $fileName = uniqid() . '_pass_' . basename($_FILES['passCertificateFile']['name']);
+                    $filePath = $uploadDir . $fileName;
+                    if (move_uploaded_file($_FILES['passCertificateFile']['tmp_name'], $filePath)) {
+                        $attachmentPath = $filePath;
+                    }
+                }
+
+                $emailSent = EmailVerification::sendPassEmail($userData['email'], $userData['name'], $attachmentPath);
             }
         }
 
@@ -436,8 +461,8 @@ ob_start();
                         </div>
                     </div>
                     <div class="mb-3">
-                        <label for="failFile" class="form-label">Attach a file (optional - PDF, DOC, DOCX, JPG, PNG):</label>
-                        <input type="file" class="form-control" id="failFile" name="failFile" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
+                        <label for="failFile" class="form-label">Attach a file (optional - PDF, DOC, DOCX, JPG, PNG, CSV, XLS, XLSX):</label>
+                        <input type="file" class="form-control" id="failFile" name="failFile" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.csv,.xls,.xlsx">
                         <small class="form-text text-muted">Max file size: 5MB</small>
                     </div>
                 </form>
@@ -445,6 +470,31 @@ ob_start();
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-danger" id="submitFail">Mark as Fail</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Pass Certificate Modal -->
+<div class="modal fade" id="passCertificateModal" tabindex="-1" aria-labelledby="passCertificateModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="passCertificateModalLabel">Upload Passing Certificate</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="passCertificateForm">
+                    <div class="mb-3">
+                        <label class="form-label">Please upload Passing Certificate:</label>
+                        <input type="file" class="form-control" id="passCertificateFile" name="passCertificateFile" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.csv,.xls,.xlsx" required>
+                        <small class="form-text text-muted">Max file size: 5MB. Accepted formats: PDF, DOC, DOCX, JPG, PNG, CSV, XLS, XLSX</small>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" id="submitPass">Mark as Pass</button>
             </div>
         </div>
     </div>
@@ -542,6 +592,18 @@ function updateStatus(mt5Id, newStatus, userName, userEmail = null) {
         return;
     }
 
+    if (newStatus === 'pass') {
+        // Show pass certificate modal
+        $('#passCertificateModalLabel').text('Upload Passing Certificate for ' + userName);
+        $('#passCertificateModal').modal('show');
+        // Clear file input
+        $('#passCertificateFile').val('');
+        // Store current data
+        window.currentMt5Id = mt5Id;
+        window.currentUserName = userName;
+        return;
+    }
+
     const statusMap = {
         pass: { text: 'Pass', color: '#28a745' },
         fail: { text: 'Fail', color: '#dc3545' },
@@ -616,8 +678,8 @@ function updateStatus(mt5Id, newStatus, userName, userEmail = null) {
                         statusCell.className = 'badge ' + badgeClass;
                         statusCell.textContent = badgeText;
 
-                        // Check if email was sent (for running or fail status)
-                        if (newStatus === 'running' || newStatus === 'fail') {
+                        // Check if email was sent (for running, fail, or pass status)
+                        if (newStatus === 'running' || newStatus === 'fail' || newStatus === 'pass') {
                             if (response.email_sent) {
                                 Swal.fire({
                                     title: 'Success!',
@@ -737,6 +799,97 @@ $(document).ready(function() {
 
                     // Clear file input
                     $('#failFile').val('');
+
+                    // Check if email was sent
+                    if (response.email_sent) {
+                        Swal.fire({
+                            title: 'Success!',
+                            text: 'Status updated and email sent successfully.',
+                            icon: 'success',
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+                    } else {
+                        Swal.fire({
+                            title: 'Status Updated',
+                            text: 'Status updated but email sending failed.',
+                            icon: 'warning',
+                            confirmButtonText: 'OK'
+                        });
+                    }
+                } else {
+                    Swal.fire({
+                        title: 'Error!',
+                        text: response.message || 'Failed to update status.',
+                        icon: 'error',
+                        confirmButtonText: 'OK'
+                    });
+                }
+            },
+            error: function() {
+                Swal.fire({
+                    title: 'Error!',
+                    text: 'An error occurred while updating the status.',
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
+            }
+        });
+    });
+});
+
+// Handle pass certificate submission
+$(document).ready(function() {
+    $('#submitPass').on('click', function() {
+        const fileInput = document.getElementById('passCertificateFile');
+        if (fileInput.files.length === 0) {
+            Swal.fire({
+                title: 'No file selected',
+                text: 'Please select a passing certificate file.',
+                icon: 'warning',
+                confirmButtonText: 'OK'
+            });
+            return;
+        }
+        // Hide modal
+        $('#passCertificateModal').modal('hide');
+        // Show loading
+        Swal.fire({
+            title: 'Updating...',
+            text: 'Please wait while we update the status',
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        // Prepare FormData for file upload
+        const formData = new FormData();
+        formData.append('action', 'update_status');
+        formData.append('mt5_id', window.currentMt5Id);
+        formData.append('status', 'pass');
+        formData.append('passCertificateFile', fileInput.files[0]);
+
+        // Send AJAX request with FormData
+        $.ajax({
+            url: 'mt5_details.php',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            dataType: 'json',
+            success: function(response) {
+                if (response.success) {
+                    // Update the status badge in the same row
+                    const dropdownButton = document.querySelector(`#dropdownMenuButton${window.currentMt5Id}`);
+                    const row = dropdownButton.closest('tr');
+                    const statusCell = row.querySelector('td:nth-child(8) .badge'); // Status is 8th column
+                    statusCell.className = 'badge bg-success';
+                    statusCell.textContent = 'Pass';
+
+                    // Clear file input
+                    $('#passCertificateFile').val('');
 
                     // Check if email was sent
                     if (response.email_sent) {
