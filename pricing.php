@@ -329,9 +329,8 @@
         const DISCOUNTED_PRICE = 36.58;
 
         // Use same timer logic as home.php countdown
-        const startDate = new Date('2025-11-31T00:00:00').getTime();
-        const expirationTime = startDate + (30 * 24 * 60 * 60 * 1000); // 30 days like home.php
-
+        const startDate = new Date('2025-12-11T00:00:00').getTime();
+        const expirationTime = startDate + (21 * 24 * 60 * 60 * 1000);
         let offerEndTime;
         let timerInterval;
 
