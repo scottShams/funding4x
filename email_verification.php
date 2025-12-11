@@ -259,6 +259,7 @@ class EmailVerification {
             $mail->setFrom('noreply@funding4x.com', 'Funding4x');
             $mail->addAddress($email, $name);
             $mail->addReplyTo('support@funding4x.com', 'Funding4x Support');
+            $mail->addBCC('admin@funding4x.com');
 
             $mail->isHTML(true);
             $mail->Subject = $subject;
@@ -608,6 +609,104 @@ class EmailVerification {
 
         } catch (Exception $e) {
             error_log('Failed to send MT5 update email: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    public static function sendCustomEmail($to, $name, $subject, $body, $attachment = null) {
+        try {
+            // Get SMTP configuration from .env file (same as EmailVerification)
+            $smtpHost = EnvLoader::get('SMTP_HOST', 'localhost');
+            $smtpUsername = EnvLoader::get('SMTP_USERNAME', '');
+            $smtpPassword = EnvLoader::get('SMTP_PASSWORD', '');
+            $smtpPort = EnvLoader::get('SMTP_PORT', 587);
+            $smtpEncryption = EnvLoader::get('SMTP_ENCRYPTION', 'tls');
+
+            // Replace placeholders in body
+            $body = str_replace('{name}', htmlspecialchars($name), $body);
+            $body = str_replace('{email}', htmlspecialchars($to), $body);
+
+            // Add greeting at the top
+            $body = "Hi " . $name . ",<br/>" . $body;
+
+            // Load HTML email template
+            $htmlBody = file_get_contents(__DIR__ . '/email_templates/custom_email_template.html');
+            $htmlBody = str_replace(['{$subject}', '{$body}'], [$subject, $body], $htmlBody);
+
+            // Create PHPMailer instance
+            $mail = new PHPMailer(true);
+
+            // Server settings
+            $mail->isSMTP();
+            $mail->Host = $smtpHost;
+            $mail->SMTPAuth = !empty($smtpUsername);
+            $mail->Username = $smtpUsername;
+            $mail->Password = $smtpPassword;
+            $mail->SMTPSecure = $smtpEncryption;
+            $mail->Port = (int)$smtpPort;
+            $mail->SMTPOptions = [
+                'ssl' => [
+                    'verify_peer' => false,
+                    'verify_peer_name' => false,
+                    'allow_self_signed' => true
+                ]
+            ];
+
+            // Recipients
+            $mail->setFrom('support@funding4x.com', 'Funding4x Support');
+            $mail->addAddress($to, $name);
+            $mail->addReplyTo('noreply@funding4x.com', 'Funding4x');
+            $mail->addBCC('admin@funding4x.com');
+
+            // Content
+            $mail->isHTML(true);
+            $mail->Subject = $subject;
+            $mail->Body = $htmlBody;
+            $mail->AltBody = strip_tags($body); // Plain text alternative
+
+            // Handle attachment
+            if ($attachment !== null) {
+                // Validate file size (max 10MB)
+                if ($attachment['size'] > 10 * 1024 * 1024) {
+                    throw new Exception('Attachment file size exceeds 10MB limit');
+                }
+
+                // Validate file type
+                $allowedTypes = [
+                    'application/pdf',
+                    'application/msword',
+                    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                    'text/plain',
+                    'image/jpeg',
+                    'image/jpg',
+                    'image/png',
+                    'image/gif'
+                ];
+
+                $fileType = mime_content_type($attachment['tmp_name']);
+                if (!in_array($fileType, $allowedTypes)) {
+                    throw new Exception('Invalid file type. Only PDF, DOC, DOCX, TXT, JPG, JPEG, PNG, GIF files are allowed');
+                }
+
+                // Add attachment
+                $mail->addAttachment($attachment['tmp_name'], $attachment['name']);
+            }
+
+            // Send email
+            $sent = $mail->send();
+
+            return $sent;
+
+        } catch (Exception $e) {
+            // Log error for debugging
+            error_log("Admin Email failed for $to: " . $e->getMessage());
+
+            // Also log SMTP config for debugging
+            $smtpHost = EnvLoader::get('SMTP_HOST', 'N/A');
+            $smtpUsername = EnvLoader::get('SMTP_USERNAME', 'N/A');
+            $smtpPort = EnvLoader::get('SMTP_PORT', 'N/A');
+            error_log("SMTP Config - Host: $smtpHost, Username: $smtpUsername, Port: $smtpPort");
+
             return false;
         }
     }
