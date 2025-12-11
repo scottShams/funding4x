@@ -203,8 +203,17 @@ if ($user) {
         ");
 
         $updateCreditStmt->execute([$user['id']]);
-        require_once __DIR__ . "/email_verification.php";
-        EmailVerification::sendAccountReadyEmail($user['email'], $user['name']);
+
+        // Fetch email template id 2
+        $templateStmt = $pdo->prepare("SELECT name, subject, body FROM email_templates WHERE id = ?");
+        $templateStmt->execute([2]);
+        $template = $templateStmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($template) {
+            require_once __DIR__ . "/email_verification.php";
+            EmailVerification::sendCustomEmail($user['email'], $user['name'], $template['subject'], $template['body']);
+        }
+
         $congratulationsAwarded = true;
     }else{
         $congratulationsAwarded = false;
