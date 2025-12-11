@@ -1,6 +1,6 @@
 <?php
-require_once 'functions/auth.php';
-checkAdminAuth();
+// require_once 'functions/auth.php';
+// checkAdminAuth();
 require_once '../database.php';
 
 // Get database connection
