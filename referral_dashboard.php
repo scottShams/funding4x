@@ -165,8 +165,9 @@ if ($user) {
     }
 
     $secondLevelVerifiedCount = 0;
+    $hasAnySecondLevelChild = false;
 
-    if (!$mt5_details && $verifiedReferrals >= 5) {
+    if (!$mt5_details && $verifiedReferrals >= 5 && $user['user_credit'] == 0) {
 
         $verifiedCheckStmt = $pdo->prepare("
             SELECT
@@ -182,6 +183,11 @@ if ($user) {
             $verifiedCheckStmt->execute([$verifiedUser['id']]);
             $childRefs = $verifiedCheckStmt->fetchAll(PDO::FETCH_ASSOC);
 
+            // Track whether this verified user has ANY children
+            if (!empty($childRefs)) {
+                $hasAnySecondLevelChild = true;
+            }
+            
             foreach ($childRefs as $child) {
                 // count only *verified* referrals
                 if ($child['email_verified'] == 1 &&
@@ -204,6 +210,17 @@ if ($user) {
 
         $updateCreditStmt->execute([$user['id']]);
 
+        // Approve knowledge test
+        $approveStmt = $pdo->prepare("
+            INSERT INTO knowledge_test_approvals (user_id, approval_status, approved_at)
+            VALUES (?, 'approved', NOW())
+            ON DUPLICATE KEY UPDATE
+            approval_status = 'approved',
+            approved_at = VALUES(approved_at),
+            declined_reason = NULL
+        ");
+        $approveStmt->execute([$user['id']]);
+
         // Fetch email template id 2
         $templateStmt = $pdo->prepare("SELECT name, subject, body FROM email_templates WHERE id = ?");
         $templateStmt->execute([2]);
@@ -215,7 +232,22 @@ if ($user) {
         }
 
         $congratulationsAwarded = true;
+    }else if ($verifiedReferrals >= 5 && $hasAnySecondLevelChild === true) {
+
+        // DECLINE only when user has NO second-level users
+        $declineStmt = $pdo->prepare("
+            INSERT INTO knowledge_test_approvals (user_id, approval_status, declined_reason)
+            VALUES (?, 'declined', 'User has no second-level referrals')
+            ON DUPLICATE KEY UPDATE
+                approval_status = 'declined',
+                declined_reason = VALUES(declined_reason),
+                approved_at = NULL
+        ");
+        $declineStmt->execute([$user['id']]);
+
+        $congratulationsAwarded = false;
     }else{
+        // Neither approve nor decline yet
         $congratulationsAwarded = false;
     }
 }
