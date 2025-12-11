@@ -64,7 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     <div class="text-center mt-3">
                         <a href="forgot_password.php">Forgot Password?</a>
                         <br>
-                        <a href="signup.php">Don't have an account? Sign up here</a>
+                        <!-- <a href="signup.php">Don't have an account? Sign up here</a> -->
                     </div>
                 </div>
             </div>
