@@ -94,6 +94,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['lookup_email'])) {
     }
 }
 
+function sendTemplateEmail($templateId, $user)
+{
+    // Fetch template
+    global $pdo;
+
+    $templateStmt = $pdo->prepare("
+        SELECT name, subject, body 
+        FROM email_templates 
+        WHERE id = ?
+    ");
+    $templateStmt->execute([$templateId]);
+    $template = $templateStmt->fetch(PDO::FETCH_ASSOC);
+
+    // Send email if template found
+    if ($template) {
+        require_once __DIR__ . "/email_verification.php";
+
+        EmailVerification::sendCustomEmail(
+            $user['email'],
+            $user['name'],
+            $template['subject'],
+            $template['body']
+        );
+    }
+}
 
 // Get current user data from session
 $userId = $_SESSION['user_id'];
@@ -164,92 +189,87 @@ if ($user) {
         }
     }
 
-    $secondLevelVerifiedCount = 0;
-    $hasAnySecondLevelChild = false;
+    // ONLY EXECUTE LOGIC FIRST TIME
+    if ($user['user_credit'] === 0) {
 
-    if (!$mt5_details && $verifiedReferrals >= 5 && $user['user_credit'] == 0) {
+        $secondLevelVerifiedCount = 0;
+        $hasAnySecondLevelChild = false;
 
-        $verifiedCheckStmt = $pdo->prepare("
-            SELECT
-                email_verified,
-                quiz_result,
-                user_ip,
-                parent_user_id
-            FROM waitlist_users
-            WHERE parent_user_id = ?
-        ");
+        if (!$mt5_details && $verifiedReferrals >= 5) {
 
-        foreach ($verifiedReferralIDs as $verifiedUser) {
-            $verifiedCheckStmt->execute([$verifiedUser['id']]);
-            $childRefs = $verifiedCheckStmt->fetchAll(PDO::FETCH_ASSOC);
+            $verifiedCheckStmt = $pdo->prepare("
+                SELECT
+                    email_verified,
+                    quiz_result,
+                    user_ip,
+                    parent_user_id
+                FROM waitlist_users
+                WHERE parent_user_id = ?
+            ");
 
-            // Track whether this verified user has ANY children
-            if (!empty($childRefs)) {
-                $hasAnySecondLevelChild = true;
-            }
-            
-            foreach ($childRefs as $child) {
-                // count only *verified* referrals
-                if ($child['email_verified'] == 1 &&
-                    $child['quiz_result'] != null &&
-                    $verifiedUser['user_ip'] !== $child['user_ip']
-                ) {
-                    $secondLevelVerifiedCount++;
+            foreach ($verifiedReferralIDs as $verifiedUser) {
+                $verifiedCheckStmt->execute([$verifiedUser['id']]);
+                $childRefs = $verifiedCheckStmt->fetchAll(PDO::FETCH_ASSOC);
+
+                // Track ANY second-level children
+                if (!empty($childRefs)) {
+                    $hasAnySecondLevelChild = true;
+                }
+
+                foreach ($childRefs as $child) {
+                    if (
+                        $child['email_verified'] == 1 &&
+                        $child['quiz_result'] != null &&
+                        $verifiedUser['user_ip'] !== $child['user_ip']
+                    ) {
+                        $secondLevelVerifiedCount++;
+                    }
                 }
             }
+
+            if($secondLevelVerifiedCount == 0) {
+                $hasAnySecondLevelChild = true;
+            }
+        }
+
+        // APPROVE — only first time
+        if ($secondLevelVerifiedCount >= 1) {
+
+            $pdo->prepare("UPDATE waitlist_users SET user_credit = 1 WHERE id = ?")
+                ->execute([$user['id']]);
+
+            // APPROVE knowledge test
+            $pdo->prepare("
+                INSERT INTO knowledge_test_approvals (user_id, approval_status, approved_at)
+                VALUES (?, 'approved', NOW())
+                ON DUPLICATE KEY UPDATE approval_status = 'approved', approved_at = NOW(), declined_reason = NULL
+            ")->execute([$user['id']]);
+
+            sendTemplateEmail(2, $user);
+            $congratulationsAwarded = true;
+        }
+
+        // DECLINE — only first time
+        else if ($verifiedReferrals >= 5 && $hasAnySecondLevelChild) {
+
+            $pdo->prepare("UPDATE waitlist_users SET user_credit = -1 WHERE id = ?")
+                ->execute([$user['id']]);
+
+            $pdo->prepare("
+                INSERT INTO knowledge_test_approvals (user_id, approval_status, declined_reason)
+                VALUES (?, 'declined', 'User has no second-level referrals')
+                ON DUPLICATE KEY UPDATE approval_status = 'declined', declined_reason = 'User has no second-level referrals', approved_at = NULL
+            ")->execute([$user['id']]);
+
+            sendTemplateEmail(24, $user);
+
+            $congratulationsAwarded = false;
+        } else {
+            // Do nothing, wait for more referrals
+            $congratulationsAwarded = false;
         }
     }
 
-    if ($secondLevelVerifiedCount >= 1) {
-
-        $updateCreditStmt = $pdo->prepare("
-            UPDATE waitlist_users
-            SET user_credit = 1
-            WHERE id = ?
-        ");
-
-        $updateCreditStmt->execute([$user['id']]);
-
-        // Approve knowledge test
-        $approveStmt = $pdo->prepare("
-            INSERT INTO knowledge_test_approvals (user_id, approval_status, approved_at)
-            VALUES (?, 'approved', NOW())
-            ON DUPLICATE KEY UPDATE
-            approval_status = 'approved',
-            approved_at = VALUES(approved_at),
-            declined_reason = NULL
-        ");
-        $approveStmt->execute([$user['id']]);
-
-        // Fetch email template id 2
-        $templateStmt = $pdo->prepare("SELECT name, subject, body FROM email_templates WHERE id = ?");
-        $templateStmt->execute([2]);
-        $template = $templateStmt->fetch(PDO::FETCH_ASSOC);
-
-        if ($template) {
-            require_once __DIR__ . "/email_verification.php";
-            EmailVerification::sendCustomEmail($user['email'], $user['name'], $template['subject'], $template['body']);
-        }
-
-        $congratulationsAwarded = true;
-    }else if ($verifiedReferrals >= 5 && $hasAnySecondLevelChild === true) {
-
-        // DECLINE only when user has NO second-level users
-        $declineStmt = $pdo->prepare("
-            INSERT INTO knowledge_test_approvals (user_id, approval_status, declined_reason)
-            VALUES (?, 'declined', 'User has no second-level referrals')
-            ON DUPLICATE KEY UPDATE
-                approval_status = 'declined',
-                declined_reason = VALUES(declined_reason),
-                approved_at = NULL
-        ");
-        $declineStmt->execute([$user['id']]);
-
-        $congratulationsAwarded = false;
-    }else{
-        // Neither approve nor decline yet
-        $congratulationsAwarded = false;
-    }
 }
 
 
@@ -842,7 +862,7 @@ if ($user) {
                                     </div>
                                 </div>
                                 <p class="text-sm text-gray-600 mt-3 text-center">
-                                    <?php if ($congratulationsAwarded): ?>
+                                    <?php if ($congratulationsAwarded || $user['user_credit'] > 0): ?>
                                         <div class="bg-white p-8 rounded-2xl shadow-2xl border-2 border-primary-purple h-fit lg:sticky lg:top-24">
                                             <h2 class="text-2xl font-bold text-primary-purple mb-2">Congratulations! 1 Free Trading Test Unlocked<del class="text-red-600"> (no need to pay $59)</del></h2>
                                             <p class="text-sm text-gray-600 mb-6">
