@@ -79,7 +79,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'approve_test') {
     $adminId = null;
 
     if (!empty($adminEmail)) {
-        $adminStmt = $pdo->prepare("SELECT id FROM waitlist_users WHERE email = ?");
+        $adminStmt = $pdo->prepare("SELECT id FROM admins WHERE email = ?");
         $adminStmt->execute([$adminEmail]);
         $adminUser = $adminStmt->fetch(PDO::FETCH_ASSOC);
         $adminId = $adminUser ? $adminUser['id'] : null;
@@ -132,7 +132,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'decline_test') {
     $adminId = null;
 
     if (!empty($adminEmail)) {
-        $adminStmt = $pdo->prepare("SELECT id FROM waitlist_users WHERE email = ?");
+        $adminStmt = $pdo->prepare("SELECT id FROM admins WHERE email = ?");
         $adminStmt->execute([$adminEmail]);
         $adminUser = $adminStmt->fetch(PDO::FETCH_ASSOC);
         $adminId = $adminUser ? $adminUser['id'] : null;

@@ -6,16 +6,16 @@ require_once '../database.php';
 // Get database connection
 $pdo = getPDO();
 
-// Get stats from waitlist_users table (excluding admin)
-$userCount = $pdo->query("SELECT COUNT(*) FROM waitlist_users WHERE email != 'admin@gmail.com'")->fetchColumn();
-$verifiedCount = $pdo->query("SELECT COUNT(*) FROM waitlist_users WHERE email_verified = 1 AND email != 'admin@gmail.com'")->fetchColumn();
+// Get stats from waitlist_users table
+$userCount = $pdo->query("SELECT COUNT(*) FROM waitlist_users")->fetchColumn();
+$verifiedCount = $pdo->query("SELECT COUNT(*) FROM waitlist_users WHERE email_verified = 1")->fetchColumn();
 $referralCount = $pdo->query("SELECT COUNT(*) FROM waitlist_users WHERE parent_user_id IS NOT NULL")->fetchColumn();
 
 // Get new users in last 24 hours
-$newUsers24h = $pdo->query("SELECT COUNT(*) FROM waitlist_users WHERE email != 'admin@gmail.com' AND created_at >= DATE_SUB(NOW(), INTERVAL 24 HOUR)")->fetchColumn();
+$newUsers24h = $pdo->query("SELECT COUNT(*) FROM waitlist_users WHERE created_at >= DATE_SUB(NOW(), INTERVAL 24 HOUR)")->fetchColumn();
 
 // Get Knowledge Tests count (users who have completed knowledge test)
-$knowledgeTestCount = $pdo->query("SELECT COUNT(*) FROM waitlist_users WHERE knowledge_test_result IS NOT NULL AND email != 'admin@gmail.com'")->fetchColumn();
+$knowledgeTestCount = $pdo->query("SELECT COUNT(*) FROM waitlist_users WHERE knowledge_test_result IS NOT NULL")->fetchColumn();
 
 // Get MT5 Details count (users who have submitted MT5 details)
 $mt5DetailsCount = $pdo->query("SELECT COUNT(DISTINCT user_id) FROM mt5_details")->fetchColumn();
@@ -30,7 +30,6 @@ $stmt = $pdo->query("
         SUM(CASE WHEN status = 'active' AND quiz_result IS NOT NULL THEN 1 ELSE 0 END) AS pass_count,
         SUM(CASE WHEN status = 'active' AND (quiz_result IS NULL OR quiz_result = '') THEN 1 ELSE 0 END) AS not_attempt_count
     FROM waitlist_users
-    WHERE email != 'admin@gmail.com'
 ");
 
 $quizStats = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -41,7 +40,7 @@ $passCount = $quizStats['pass_count'];
 $notAttemptCount = $quizStats['not_attempt_count'];
 
 // Get last 10 users
-$stmt = $pdo->prepare("SELECT id, name, email, email_verified, created_at FROM waitlist_users WHERE email != 'admin@gmail.com' ORDER BY created_at DESC LIMIT 10");
+$stmt = $pdo->prepare("SELECT id, name, email, email_verified, created_at FROM waitlist_users ORDER BY created_at DESC LIMIT 10");
 $stmt->execute();
 $recentUsers = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>

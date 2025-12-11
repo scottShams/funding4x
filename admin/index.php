@@ -10,30 +10,22 @@ $pdo = getPDO();
 if (isset($_GET['delete']) && is_numeric($_GET['delete'])) {
     $userId = (int) $_GET['delete'];
     
-    // Prevent deleting main admin
-    $stmt = $pdo->prepare("SELECT email FROM waitlist_users WHERE id = ?");
-    $stmt->execute([$userId]);
-    $user = $stmt->fetch(PDO::FETCH_ASSOC);
-    
-    if ($user && $user['email'] !== 'admin@gmail.com') {
-        // Delete the user
-        $deleteStmt = $pdo->prepare("DELETE FROM waitlist_users WHERE id = ?");
-        $deleteStmt->execute([$userId]);
-        
-        // Redirect back to avoid resubmission
-        header('Location: index.php?deleted=1');
-        exit;
-    }
+    // Delete the user
+    $deleteStmt = $pdo->prepare("DELETE FROM waitlist_users WHERE id = ?");
+    $deleteStmt->execute([$userId]);
+
+    // Redirect back to avoid resubmission
+    header('Location: index.php?deleted=1');
+    exit;
 }
 
-// Get all users except admin with their referral counts
+// Get all users with their referral counts
 $query = "
-    SELECT 
+    SELECT
         u.*,
         COUNT(r.id) as referral_count
     FROM waitlist_users u
     LEFT JOIN waitlist_users r ON u.id = r.parent_user_id
-    WHERE u.email != 'admin@gmail.com'
     GROUP BY u.id
     ORDER BY u.created_at DESC
 ";
@@ -47,12 +39,11 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
 if (isset($_GET['export']) && $_GET['export'] === 'csv') {
     // Prepare query to fetch all users with referral counts
     $export_query = "
-        SELECT 
+        SELECT
             u.*,
             COUNT(r.id) as referral_count
         FROM waitlist_users u
         LEFT JOIN waitlist_users r ON u.id = r.parent_user_id
-        WHERE u.email != 'admin@gmail.com'
         GROUP BY u.id
         ORDER BY u.id DESC
     ";

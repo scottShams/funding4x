@@ -15,14 +15,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         // Get database connection
         $pdo = getPDO();
 
-        $stmt = $pdo->prepare("SELECT password FROM waitlist_users WHERE email = ?");
+        $stmt = $pdo->prepare("SELECT id, name, password FROM admins WHERE email = ?");
         $stmt->execute([$email]);
         $user = $stmt->fetch();
 
         if ($user && password_verify($password, $user['password'])) {
             $_SESSION['admin_logged_in'] = true;
-            $_SESSION['admin_name'] = 'Admin';
+            $_SESSION['admin_name'] = $user['name'];
             $_SESSION['admin_email'] = $email;
+            $_SESSION['admin_id'] = $user['id'];
             header('Location: dashboard.php');
             exit;
         } else {
@@ -59,6 +60,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         </div>
                         <button type="submit" class="btn btn-primary w-100">Login</button>
                     </form>
+
+                    <div class="text-center mt-3">
+                        <a href="forgot_password.php">Forgot Password?</a>
+                        <br>
+                        <a href="signup.php">Don't have an account? Sign up here</a>
+                    </div>
                 </div>
             </div>
         </div>

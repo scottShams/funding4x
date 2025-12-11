@@ -13,24 +13,17 @@ $country = 'Admin';
 $password_hash = password_hash('admin123', PASSWORD_DEFAULT);
 
 // Check if admin already exists
-$stmt = $pdo->prepare("SELECT id FROM waitlist_users WHERE email = ?");
+$stmt = $pdo->prepare("SELECT id FROM admins WHERE email = ?");
 $stmt->execute([$email]);
 if ($stmt->fetch()) {
     $message = 'Admin account already exists.';
 } else {
     try {
         // Insert admin
-        $stmt = $pdo->prepare("INSERT INTO waitlist_users (name, email, country, password) VALUES (?, ?, ?, ?)");
-        $stmt->execute([$name, $email, $country, $password_hash]);
-        
-        // Generate referral code for admin
-        $adminId = $pdo->lastInsertId();
-        $referralCode = 'ADMIN' . str_pad($adminId, 6, '0', STR_PAD_LEFT);
-        
-        $stmt = $pdo->prepare("UPDATE waitlist_users SET referral_code = ? WHERE id = ?");
-        $stmt->execute([$referralCode, $adminId]);
-        
-        $message = 'Admin account created successfully!<br>Email: ' . $email . '<br>Password: admin123<br>Referral Code: ' . $referralCode;
+        $stmt = $pdo->prepare("INSERT INTO admins (name, email, password) VALUES (?, ?, ?)");
+        $stmt->execute([$name, $email, $password_hash]);
+
+        $message = 'Admin account created successfully!<br>Email: ' . $email . '<br>Password: admin123';
     } catch (PDOException $e) {
         $message = 'Error creating admin account: ' . $e->getMessage();
     }
