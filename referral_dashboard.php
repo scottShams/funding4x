@@ -197,12 +197,14 @@ if ($user) {
     if ($secondLevelVerifiedCount >= 1) {
 
         $updateCreditStmt = $pdo->prepare("
-            UPDATE waitlist_users 
-            SET user_credit = 1 
+            UPDATE waitlist_users
+            SET user_credit = 1
             WHERE id = ?
         ");
 
         $updateCreditStmt->execute([$user['id']]);
+        require_once __DIR__ . "/email_verification.php";
+        EmailVerification::sendAccountReadyEmail($user['email'], $user['name']);
         $congratulationsAwarded = true;
     }else{
         $congratulationsAwarded = false;
