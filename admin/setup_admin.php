@@ -13,7 +13,7 @@ $country = 'Admin';
 $password_hash = password_hash('admin123', PASSWORD_DEFAULT);
 
 // Role for initial account (super admin)
-$role = 'superadmin';
+$role = 'super_admin';
 
 // Check if admin already exists
 $stmt = $pdo->prepare("SELECT id FROM admins WHERE email = ?");

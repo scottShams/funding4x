@@ -76,12 +76,12 @@
                     $stmt_check = $pdo_check->prepare("SELECT role FROM admins WHERE id = ?");
                     $stmt_check->execute([$_SESSION['admin_id']]);
                     $r = $stmt_check->fetch();
-                    if ($r && isset($r['role']) && $r['role'] === 'superadmin') {
+                    if ($r && isset($r['role']) && $r['role'] === 'super_admin') {
                         ?>
                         <li class="nav-item">
-                            <a class="nav-link d-flex align-items-center <?php echo basename($_SERVER['PHP_SELF']) == 'create_admin.php' ? 'active' : ''; ?>" href="create_admin.php">
+                            <a class="nav-link d-flex align-items-center <?php echo basename($_SERVER['PHP_SELF']) == 'manage_admins.php' ? 'active' : ''; ?>" href="manage_admins.php">
                                 <i class="bi bi-person-plus me-2"></i>
-                                <span>Create Admin</span>
+                                <span>Manage Admins</span>
                             </a>
                         </li>
                         <?php

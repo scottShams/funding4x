@@ -15,7 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         // Get database connection
         $pdo = getPDO();
 
-        $stmt = $pdo->prepare("SELECT id, name, password FROM admins WHERE email = ?");
+        $stmt = $pdo->prepare("SELECT id, name, password, role FROM admins WHERE email = ?");
         $stmt->execute([$email]);
         $user = $stmt->fetch();
 
@@ -24,6 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $_SESSION['admin_name'] = $user['name'];
             $_SESSION['admin_email'] = $email;
             $_SESSION['admin_id'] = $user['id'];
+            $_SESSION['admin_role'] = $user['role'] ?? 'admin'; // Store role in session
             header('Location: dashboard.php');
             exit;
         } else {

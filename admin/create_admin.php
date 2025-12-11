@@ -3,7 +3,7 @@
 ini_set('session.gc_maxlifetime', 25200);
 session_set_cookie_params(25200);
 session_start();
-require_once '../functions/auth.php';
+require_once 'functions/auth.php';
 require_once '../database.php';
 
 checkAdminAuth();
@@ -18,7 +18,7 @@ if ($currentAdminId) {
         $stmt = $pdo->prepare("SELECT role FROM admins WHERE id = ?");
         $stmt->execute([$currentAdminId]);
         $row = $stmt->fetch();
-        if ($row && isset($row['role']) && $row['role'] === 'superadmin') {
+        if ($row && isset($row['role']) && $row['role'] === 'super_admin') {
             $isSuper = true;
         }
     } catch (PDOException $e) {
@@ -37,7 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $name = trim($_POST['name'] ?? '');
     $email = trim($_POST['email'] ?? '');
     $password = $_POST['password'] ?? '';
-    $role = in_array($_POST['role'] ?? 'admin', ['admin','superadmin']) ? $_POST['role'] : 'admin';
+    $role = in_array($_POST['role'] ?? 'admin', ['admin','super_admin']) ? $_POST['role'] : 'admin';
 
     // Basic validation
     if (empty($name) || empty($email) || empty($password)) {
@@ -55,8 +55,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $message = 'An admin with that email already exists.';
             } else {
                 $hashed = password_hash($password, PASSWORD_DEFAULT);
-                $stmt = $pdo->prepare("INSERT INTO admins (name, email, password, role, created_by) VALUES (?, ?, ?, ?, ?)");
-                $stmt->execute([$name, $email, $hashed, $role, $currentAdminId]);
+                $stmt = $pdo->prepare("INSERT INTO admins (name, email, password, role) VALUES (?, ?, ?, ?)");
+                $stmt->execute([$name, $email, $hashed, $role]);
                 $message = 'New admin created successfully.';
             }
         } catch (PDOException $e) {
@@ -99,7 +99,7 @@ include 'includes/header.php';
                             <label class="form-label">Role</label>
                             <select name="role" class="form-select">
                                 <option value="admin">Admin</option>
-                                <option value="superadmin">Super Admin</option>
+                                <option value="super_admin">Super Admin</option>
                             </select>
                         </div>
                         <button class="btn btn-primary">Create Admin</button>
