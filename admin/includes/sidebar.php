@@ -67,6 +67,31 @@
                 </a>
             </li>
 
+            <?php
+            // Show Create Admin link only to superadmin users
+            if (isset($_SESSION['admin_id'])) {
+                try {
+                    require_once __DIR__ . '/../../database.php';
+                    $pdo_check = getPDO();
+                    $stmt_check = $pdo_check->prepare("SELECT role FROM admins WHERE id = ?");
+                    $stmt_check->execute([$_SESSION['admin_id']]);
+                    $r = $stmt_check->fetch();
+                    if ($r && isset($r['role']) && $r['role'] === 'superadmin') {
+                        ?>
+                        <li class="nav-item">
+                            <a class="nav-link d-flex align-items-center <?php echo basename($_SERVER['PHP_SELF']) == 'create_admin.php' ? 'active' : ''; ?>" href="create_admin.php">
+                                <i class="bi bi-person-plus me-2"></i>
+                                <span>Create Admin</span>
+                            </a>
+                        </li>
+                        <?php
+                    }
+                } catch (Exception $e) {
+                    // silently ignore sidebar role check errors
+                }
+            }
+            ?>
+
             <!-- Logout Link -->
             <li class="nav-item mt-4">
                 <a class="nav-link d-flex align-items-center text-danger" href="logout.php">

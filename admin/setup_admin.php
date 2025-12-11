@@ -12,6 +12,9 @@ $email = 'admin@gmail.com';
 $country = 'Admin';
 $password_hash = password_hash('admin123', PASSWORD_DEFAULT);
 
+// Role for initial account (super admin)
+$role = 'superadmin';
+
 // Check if admin already exists
 $stmt = $pdo->prepare("SELECT id FROM admins WHERE email = ?");
 $stmt->execute([$email]);
@@ -19,9 +22,15 @@ if ($stmt->fetch()) {
     $message = 'Admin account already exists.';
 } else {
     try {
-        // Insert admin
-        $stmt = $pdo->prepare("INSERT INTO admins (name, email, password) VALUES (?, ?, ?)");
-        $stmt->execute([$name, $email, $password_hash]);
+        // Insert admin. If the `role` column doesn't exist yet, fall back to inserting without it.
+        try {
+            $stmt = $pdo->prepare("INSERT INTO admins (name, email, password, role) VALUES (?, ?, ?, ?)");
+            $stmt->execute([$name, $email, $password_hash, $role]);
+        } catch (PDOException $inner) {
+            // Fallback for older schema: try without role column
+            $stmt = $pdo->prepare("INSERT INTO admins (name, email, password) VALUES (?, ?, ?)");
+            $stmt->execute([$name, $email, $password_hash]);
+        }
 
         $message = 'Admin account created successfully!<br>Email: ' . $email . '<br>Password: admin123';
     } catch (PDOException $e) {
