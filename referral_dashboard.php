@@ -190,7 +190,7 @@ if ($user) {
     }
 
     // ONLY EXECUTE LOGIC FIRST TIME
-    if ($user['user_credit'] === 0) {
+    if ($user['user_credit'] <= 0){
 
         $secondLevelVerifiedCount = 0;
         $hasAnySecondLevelChild = false;
@@ -250,7 +250,7 @@ if ($user) {
         }
 
         // DECLINE — only first time
-        else if ($verifiedReferrals >= 5 && $hasAnySecondLevelChild) {
+        else if ($user['user_credit'] == 0 && $verifiedReferrals >= 5 && $hasAnySecondLevelChild) {
 
             $pdo->prepare("UPDATE waitlist_users SET user_credit = -1 WHERE id = ?")
                 ->execute([$user['id']]);
