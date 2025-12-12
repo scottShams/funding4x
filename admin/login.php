@@ -24,7 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $_SESSION['admin_name'] = $user['name'];
             $_SESSION['admin_email'] = $email;
             $_SESSION['admin_id'] = $user['id'];
-            $_SESSION['admin_role'] = $user['role'] ?? 'admin'; // Store role in session
+            $_SESSION['admin_role'] = (!empty($user['role'])) ? $user['role'] : 'admin';
             header('Location: dashboard.php');
             exit;
         } else {
