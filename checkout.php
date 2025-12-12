@@ -492,12 +492,12 @@
                             <h3 class="text-xl font-bold text-primary-purple mb-6">Pay with Crypto (USDC)</h3>
                             <form action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>" method="POST" onsubmit="handlePayment(event, 'Crypto')">
                                 <p class="text-gray-600 mb-6">
-                                    Please send exactly <span class="font-bold text-lg text-primary-purple"><?php echo $finalPrice; ?> USDC</span> to the address below.
+                                    Please send exactly <span class="font-bold text-lg text-primary-purple"><?php echo $finalPrice; ?> USDC or USDT</span> to the address below.
                                 </p>
 
                                 
 								<div class="mb-6 bg-gray-50 p-4 rounded-lg border border-gray-200">
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">USDT TRC20 Wallet Address (Tron Network)</label>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">USDT TRC20 <strong>to this </strong>Wallet Address (Tron Network)</label>
                                     <div class="flex items-center space-x-3">
                                         <input type="text" value="TRTrqYNy2DwjJiQ15AcmJDMyyh39gqai17" readonly id="crypto-address"
                                             class="flex-grow font-mono text-sm px-3 py-2 border border-gray-300 rounded-lg bg-white cursor-text">
@@ -505,12 +505,15 @@
                                                 class="p-2 bg-primary-purple text-white rounded-lg hover:bg-header-dark transition duration-150 text-xs font-semibold">
                                             Copy Address
                                         </button>
+                                        
                                     </div>
+                                    <div style="display: flex; justify-content: center;"><img src="assets/usdt.PNG" alt="no consistency rule prop firm" ></div>
+                                    <br />
                                     <p id="copy-status" class="text-xs text-green-600 mt-2 hidden">Address copied!</p>
                                 </div>
                                 
                                 <div class="mb-6 bg-gray-50 p-4 rounded-lg border border-gray-200">
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">USDC Wallet Address (Arbitrium Network)</label>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">or... send USDC <strong>to this </strong>Wallet Address (Arbitrium Network)</label>
                                     <div class="flex items-center space-x-3">
                                         <input type="text" value="0xE1985A1d88552020152d16f86D6581c71E9D148f" readonly id="crypto-address"
                                             class="flex-grow font-mono text-sm px-3 py-2 border border-gray-300 rounded-lg bg-white cursor-text">
@@ -518,12 +521,15 @@
                                                 class="p-2 bg-primary-purple text-white rounded-lg hover:bg-header-dark transition duration-150 text-xs font-semibold">
                                             Copy Address
                                         </button>
+                                        
                                     </div>
+                                    <div style="display: flex; justify-content: center;"><img src="assets/usdc.PNG" alt="no consistency rule prop firm" ></div>
+                                    	<br />
                                     <p id="copy-status" class="text-xs text-green-600 mt-2 hidden">Address copied!</p>
                                 </div>
 
                                 <div class="mb-6">
-                                    <label for="tx_hash" class="block text-sm font-medium text-gray-700 mb-1">Transaction Hash / ID</label>
+                                    <label for="tx_hash" class="block text-sm font-medium text-gray-700 mb-1">When you make the Crypto Payment you will get a Transaction Hash / ID, which is the confirmation of the payment. Please provide this here:</label>
                                     <input type="text" id="tx_hash" required placeholder="0xabc123..."
                                         class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-trophy-gold focus:border-trophy-gold">
                                 </div>

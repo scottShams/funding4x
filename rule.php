@@ -274,7 +274,7 @@ We have clear transparent and easy to follow rules to help you be profitable and
                     </div>
                     <div class="bg-bg-light p-4 rounded-lg">
                         <p class="font-semibold text-primary-purple">2.3 No Huge Trades</p>
-                        <p class="text-gray-700">You must Trade safely without over exposing your account. We need to see you are a Safe Forex Trader. The maximum lot size you can do is 0.1 lot in any single Trade. The total combined lot size you are allowed is 0.5 lots. Breaching this limit will result in failure. </p>
+                        <p class="text-gray-700">You must Trade safely without over exposing your account. We need to see you are a Safe Forex Trader. The maximum lot size you can do is 0.05 lot in any single Trade. The total combined lot size you are allowed is 0.25 lots. Breaching this limit will result in failure. </p>
                     </div>
                     <div class="bg-bg-light p-4 rounded-lg">
                         <p class="font-semibold text-primary-purple">2.4 Minimum Trading Days</p>

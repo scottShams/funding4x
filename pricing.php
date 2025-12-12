@@ -170,7 +170,7 @@
                     </div>
                     
                     <h3 class="text-3xl font-extrabold text-header-dark mb-4 text-center">
-                        Instant Access
+                        FAST Access
                     </h3>
 
                     <!-- Discounted Price Block -->
@@ -204,6 +204,10 @@
                         </li>
                         <li>
                             <svg class="w-5 h-5 text-success-green" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            Start Trading within 1 hour
+                        </li>
+                        <li>
+                            <svg class="w-5 h-5 text-success-green" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                             $5,000 Starting Account Balance
                         </li>
                         <li>
@@ -226,7 +230,7 @@
                     </ul>
 
                     <!-- CTA Button -->
-                    <a href="signup.php?paid=1" class="w-full py-3 bg-primary-purple text-card-white font-extrabold text-lg rounded-lg shadow-lg hover:bg-secondary-purple transition duration-300 text-center block">
+                    <a href="login.php?paid=1" class="w-full py-3 bg-primary-purple text-card-white font-extrabold text-lg rounded-lg shadow-lg hover:bg-secondary-purple transition duration-300 text-center block">
                         Get My Account Now 
                     </a>
 
@@ -237,7 +241,7 @@
                 <div class="bg-card-white p-6 sm:p-8 rounded-xl shadow-lg transition duration-300 border border-border-light lg:hover:shadow-xl lg:hover:border-primary-purple">
                     
                     <h3 class="text-3xl font-extrabold text-primary-purple mb-4 text-center">
-                        Community Access
+                        SLOW Access
                     </h3>
                     
                     <!-- Discounted Price Block -->
@@ -270,6 +274,10 @@
                         </li>
                         <li>
                             <svg class="w-5 h-5 text-success-green" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            Start Trading AFTER you have 5 completed Referrals
+                        </li>
+                        <li>
+                            <svg class="w-5 h-5 text-success-green" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                             $5,000 Starting Account balance
                         </li>
                         <li>
@@ -295,7 +303,7 @@
                     </ul>
 
                     <!-- CTA Button -->
-                    <a href="signup.php" class="w-full py-3 bg-trophy-gold text-header-dark font-extrabold text-lg rounded-lg shadow-lg hover:bg-cta-hover transition duration-300 text-center block">
+                    <a href="login.php" class="w-full py-3 bg-trophy-gold text-header-dark font-extrabold text-lg rounded-lg shadow-lg hover:bg-cta-hover transition duration-300 text-center block">
                         Get My Account Now
                     </a>
                     
@@ -329,8 +337,9 @@
         const DISCOUNTED_PRICE = 36.58;
 
         // Use same timer logic as home.php countdown
-        const startDate = new Date('2025-12-11T00:00:00').getTime();
-        const expirationTime = startDate + (21 * 24 * 60 * 60 * 1000);
+        const startDate = new Date('2025-11-31T00:00:00').getTime();
+        const expirationTime = startDate + (30 * 24 * 60 * 60 * 1000); // 30 days like home.php
+
         let offerEndTime;
         let timerInterval;
 
