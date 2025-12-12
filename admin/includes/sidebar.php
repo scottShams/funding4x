@@ -69,25 +69,16 @@
 
             <?php
             // Show Create Admin link only to superadmin users
-            if (isset($_SESSION['admin_id'])) {
-                try {
-                    require_once __DIR__ . '/../../database.php';
-                    $pdo_check = getPDO();
-                    $stmt_check = $pdo_check->prepare("SELECT role FROM admins WHERE id = ?");
-                    $stmt_check->execute([$_SESSION['admin_id']]);
-                    $r = $stmt_check->fetch();
-                    if ($r && isset($r['role']) && $r['role'] === 'super_admin') {
-                        ?>
-                        <li class="nav-item">
-                            <a class="nav-link d-flex align-items-center <?php echo basename($_SERVER['PHP_SELF']) == 'manage_admins.php' ? 'active' : ''; ?>" href="manage_admins.php">
-                                <i class="bi bi-person-plus me-2"></i>
-                                <span>Manage Admins</span>
-                            </a>
-                        </li>
-                        <?php
-                    }
-                } catch (Exception $e) {
-                    // silently ignore sidebar role check errors
+            if (isset($_SESSION['admin_id']) && isset($_SESSION['admin_role'])) {
+                if ($_SESSION['admin_role'] === 'super_admin') {
+                    ?>
+                    <li class="nav-item">
+                        <a class="nav-link d-flex align-items-center <?php echo basename($_SERVER['PHP_SELF']) == 'manage_admins.php' ? 'active' : ''; ?>" href="manage_admins.php">
+                            <i class="bi bi-person-plus me-2"></i>
+                            <span>Manage Admins</span>
+                        </a>
+                    </li>
+                    <?php
                 }
             }
             ?>

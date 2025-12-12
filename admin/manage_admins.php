@@ -1,10 +1,8 @@
 <?php
 require_once 'functions/auth.php';
 checkAdminAuth();
-// checkSuperAdmin();
+checkSuperAdmin();
 
-// var_dump($_SESSION['admin_role']);
-// exit();
 require_once '../database.php';
 
 $message = '';
