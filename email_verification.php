@@ -349,10 +349,10 @@ class EmailVerification {
      * Send trading test passed email with certificate
      * @param string $email User email
      * @param string $name User name
-     * @param string|null $attachmentPath Path to pass certificate file
+     * @param array $attachmentPaths Array of paths to pass certificate files
      * @return bool Success status
      */
-    public static function sendPassEmail($email, $name, $attachmentPath = null) {
+    public static function sendPassEmail($email, $name, $attachmentPaths = []) {
         try {
             // Get SMTP config
             $smtpHost = EnvLoader::get('SMTP_HOST', 'localhost');
@@ -386,9 +386,13 @@ class EmailVerification {
             $mail->addReplyTo('support@funding4x.com', 'Funding4x Support');
             $mail->addBCC('admin@funding4x.com');
 
-            // Add attachment if provided
-            if ($attachmentPath && file_exists($attachmentPath)) {
-                $mail->addAttachment($attachmentPath);
+            // Add attachments if provided
+            if (!empty($attachmentPaths)) {
+                foreach ($attachmentPaths as $path) {
+                    if (file_exists($path)) {
+                        $mail->addAttachment($path);
+                    }
+                }
             }
 
             $mail->isHTML(true);

@@ -1,177 +1,245 @@
 <?php
-require_once 'functions/auth.php';
-checkAdminAuth();
-require_once '../database.php';
+    require_once 'functions/auth.php';
+    checkAdminAuth();
+    require_once '../database.php';
 
-// Get database connection
-$pdo = getPDO();
+    // Get database connection
+    $pdo = getPDO();
 
-// Handle status update action
-if (isset($_POST['action']) && $_POST['action'] === 'update_status') {
-    header('Content-Type: application/json');
+    // Handle status update action
+    if (isset($_POST['action']) && $_POST['action'] === 'update_status') {
+        header('Content-Type: application/json');
 
-    $mt5Id = (int)$_POST['mt5_id'];
-    $newStatus = $_POST['status'];
+        $mt5Id = (int)$_POST['mt5_id'];
+        $newStatus = $_POST['status'];
 
-    // Validate status
-    if (!in_array($newStatus, ['pass', 'fail', 'pending', 'running', 'under_review'])) {
-        echo json_encode(['success' => false, 'message' => 'Invalid status']);
+        // Validate status
+        if (!in_array($newStatus, ['pass', 'fail', 'pending', 'running', 'under_review'])) {
+            echo json_encode(['success' => false, 'message' => 'Invalid status']);
+            exit;
+        }
+
+        // Handle fail reasons
+        $failReasons = isset($_POST['fail_reasons']) ? $_POST['fail_reasons'] : [];
+
+        // If marking as running, reset user_credit to 0
+        if ($newStatus === 'running') {
+            // Get user_id from mt5_details
+            $userStmt = $pdo->prepare("SELECT user_id FROM mt5_details WHERE id = ?");
+            $userStmt->execute([$mt5Id]);
+            $userData = $userStmt->fetch(PDO::FETCH_ASSOC);
+            if ($userData) {
+                // Reset user_credit to 0
+                $creditStmt = $pdo->prepare("UPDATE waitlist_users SET user_credit = 0, credit_updated_at = NOW() WHERE id = ?");
+                $creditStmt->execute([$userData['user_id']]);
+            }
+        }
+
+        // Update status
+        if ($newStatus === 'fail') {
+            $failReasonJson = json_encode($failReasons);
+            $stmt = $pdo->prepare("UPDATE mt5_details SET status = ?, fail_reason = ?, status_updated_at = NOW() WHERE id = ?");
+            $success = $stmt->execute([$newStatus, $failReasonJson, $mt5Id]);
+        } else {
+            $stmt = $pdo->prepare("UPDATE mt5_details SET status = ?, status_updated_at = NOW() WHERE id = ?");
+            $success = $stmt->execute([$newStatus, $mt5Id]);
+        }
+
+        if ($success) {
+            // Send email if status is "running", "fail", or "pass"
+            $emailSent = true;
+            if ($newStatus === 'running') {
+                // Get user email for sending notification
+                $userStmt = $pdo->prepare("SELECT u.email, u.name FROM mt5_details m JOIN waitlist_users u ON m.user_id = u.id WHERE m.id = ?");
+                $userStmt->execute([$mt5Id]);
+                $userData = $userStmt->fetch(PDO::FETCH_ASSOC);
+
+                if ($userData) {
+                    require_once '../email_verification.php';
+                    $emailSent = EmailVerification::sendAccountReadyEmail($userData['email'], $userData['name']);
+                }
+            } elseif ($newStatus === 'fail') {
+                // Get user email and fail reasons for sending notification
+                $userStmt = $pdo->prepare("SELECT u.email, u.name, m.fail_reason FROM mt5_details m JOIN waitlist_users u ON m.user_id = u.id WHERE m.id = ?");
+                $userStmt->execute([$mt5Id]);
+                $userData = $userStmt->fetch(PDO::FETCH_ASSOC);
+
+                if ($userData) {
+                    require_once '../email_verification.php';
+                    $failReasons = json_decode($userData['fail_reason'], true) ?: [];
+
+                    // Handle file upload
+                    $attachmentPath = null;
+                    if (isset($_FILES['failFile']) && $_FILES['failFile']['error'] === UPLOAD_ERR_OK) {
+                        $uploadDir = __DIR__ . '/testResults/';
+                        if (!is_dir($uploadDir)) {
+                            mkdir($uploadDir, 0755, true);
+                        }
+                        $fileName = uniqid() . '_' . basename($_FILES['failFile']['name']);
+                        $filePath = $uploadDir . $fileName;
+                        if (move_uploaded_file($_FILES['failFile']['tmp_name'], $filePath)) {
+                            $attachmentPath = $filePath;
+                        }
+                    }
+
+                    $emailSent = EmailVerification::sendFailEmail($userData['email'], $userData['name'], $failReasons, $attachmentPath);
+                }
+            } elseif ($newStatus === 'pass') {
+                // Get user email for sending pass notification
+                $userStmt = $pdo->prepare("SELECT u.email, u.name FROM mt5_details m JOIN waitlist_users u ON m.user_id = u.id WHERE m.id = ?");
+                $userStmt->execute([$mt5Id]);
+                $userData = $userStmt->fetch(PDO::FETCH_ASSOC);
+
+                if ($userData) {
+                    require_once '../email_verification.php';
+
+                    // Handle pass certificate file upload (multiple files)
+                    $attachmentPaths = [];
+                    if (isset($_FILES['passCertificateFile'])) {
+                        $uploadDir = __DIR__ . '/testResults/';
+                        if (!is_dir($uploadDir)) {
+                            mkdir($uploadDir, 0755, true);
+                        }
+                        $files = $_FILES['passCertificateFile'];
+                        $fileCount = count($files['name']);
+                        for ($i = 0; $i < $fileCount; $i++) {
+                            if ($files['error'][$i] === UPLOAD_ERR_OK) {
+                                $fileName = uniqid() . '_pass_' . basename($files['name'][$i]);
+                                $filePath = $uploadDir . $fileName;
+                                if (move_uploaded_file($files['tmp_name'][$i], $filePath)) {
+                                    $attachmentPaths[] = $filePath;
+                                }
+                            }
+                        }
+                    }
+
+                    $emailSent = EmailVerification::sendPassEmail($userData['email'], $userData['name'], $attachmentPaths);
+                }
+            }
+
+            echo json_encode([
+                'success' => true,
+                'message' => 'Status updated successfully',
+                'email_sent' => $emailSent
+            ]);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Failed to update status']);
+        }
         exit;
     }
 
-    // Handle fail reasons
-    $failReasons = isset($_POST['fail_reasons']) ? $_POST['fail_reasons'] : [];
+    // Handle add credit action
+    if (isset($_POST['action']) && $_POST['action'] === 'add_credit') {
+        header('Content-Type: application/json');
 
-    // If marking as running, reset user_credit to 0
-    if ($newStatus === 'running') {
-        // Get user_id from mt5_details
-        $userStmt = $pdo->prepare("SELECT user_id FROM mt5_details WHERE id = ?");
-        $userStmt->execute([$mt5Id]);
-        $userData = $userStmt->fetch(PDO::FETCH_ASSOC);
-        if ($userData) {
-            // Reset user_credit to 0
-            $creditStmt = $pdo->prepare("UPDATE waitlist_users SET user_credit = 0, credit_updated_at = NOW() WHERE id = ?");
-            $creditStmt->execute([$userData['user_id']]);
+        $userId = (int)$_POST['user_id'];
+
+        // Increment user_credit by 1
+        $stmt = $pdo->prepare("UPDATE waitlist_users SET user_credit = user_credit + 1, credit_updated_at = NOW() WHERE id = ?");
+        $success = $stmt->execute([$userId]);
+
+        if ($success) {
+            // Get new credit value
+            $stmt = $pdo->prepare("SELECT user_credit FROM waitlist_users WHERE id = ?");
+            $stmt->execute([$userId]);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            echo json_encode(['success' => true, 'message' => 'Credit added successfully', 'new_credit' => $result['user_credit']]);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Failed to add credit']);
         }
+        exit;
     }
 
-    // Update status
-    if ($newStatus === 'fail') {
-        $failReasonJson = json_encode($failReasons);
-        $stmt = $pdo->prepare("UPDATE mt5_details SET status = ?, fail_reason = ?, status_updated_at = NOW() WHERE id = ?");
-        $success = $stmt->execute([$newStatus, $failReasonJson, $mt5Id]);
-    } else {
-        $stmt = $pdo->prepare("UPDATE mt5_details SET status = ?, status_updated_at = NOW() WHERE id = ?");
-        $success = $stmt->execute([$newStatus, $mt5Id]);
+    // Handle remove credit action
+    if (isset($_POST['action']) && $_POST['action'] === 'remove_credit') {
+        header('Content-Type: application/json');
+
+        $userId = (int)$_POST['user_id'];
+
+        // Decrement user_credit by 1, but not below 0
+        $stmt = $pdo->prepare("UPDATE waitlist_users SET user_credit = GREATEST(0, user_credit - 1), credit_updated_at = NOW() WHERE id = ?");
+        $success = $stmt->execute([$userId]);
+
+        if ($success) {
+            // Get new credit value
+            $stmt = $pdo->prepare("SELECT user_credit FROM waitlist_users WHERE id = ?");
+            $stmt->execute([$userId]);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            echo json_encode(['success' => true, 'message' => 'Credit removed successfully', 'new_credit' => $result['user_credit']]);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Failed to remove credit']);
+        }
+        exit;
     }
 
-    if ($success) {
-        // Send email if status is "running", "fail", or "pass"
-        $emailSent = true;
-        if ($newStatus === 'running') {
-            // Get user email for sending notification
-            $userStmt = $pdo->prepare("SELECT u.email, u.name FROM mt5_details m JOIN waitlist_users u ON m.user_id = u.id WHERE m.id = ?");
-            $userStmt->execute([$mt5Id]);
-            $userData = $userStmt->fetch(PDO::FETCH_ASSOC);
+    // ----------------------
+    // CSV EXPORT
+    // ----------------------
+    if (isset($_GET['export']) && $_GET['export'] === 'csv') {
+        // Prepare query to fetch all MT5 details
+        $export_query = "
+            SELECT
+                m.*,
+                u.name,
+                u.email,
+                u.user_credit
+            FROM mt5_details m
+            JOIN waitlist_users u ON m.user_id = u.id
+            ORDER BY m.submitted_at DESC
+        ";
+        $export_stmt = $pdo->prepare($export_query);
+        $export_stmt->execute();
+        $export_mt5_details = $export_stmt->fetchAll(PDO::FETCH_ASSOC);
 
-            if ($userData) {
-                require_once '../email_verification.php';
-                $emailSent = EmailVerification::sendAccountReadyEmail($userData['email'], $userData['name']);
-            }
-        } elseif ($newStatus === 'fail') {
-            // Get user email and fail reasons for sending notification
-            $userStmt = $pdo->prepare("SELECT u.email, u.name, m.fail_reason FROM mt5_details m JOIN waitlist_users u ON m.user_id = u.id WHERE m.id = ?");
-            $userStmt->execute([$mt5Id]);
-            $userData = $userStmt->fetch(PDO::FETCH_ASSOC);
+        // Set CSV headers
+        header('Content-Type: text/csv; charset=utf-8');
+        header('Content-Disposition: attachment; filename=mt5_details_' . date('Y-m-d_H-i-s') . '.csv');
+        header('Pragma: no-cache');
+        header('Expires: 0');
 
-            if ($userData) {
-                require_once '../email_verification.php';
-                $failReasons = json_decode($userData['fail_reason'], true) ?: [];
+        // Open output stream
+        $output = fopen('php://output', 'w');
 
-                // Handle file upload
-                $attachmentPath = null;
-                if (isset($_FILES['failFile']) && $_FILES['failFile']['error'] === UPLOAD_ERR_OK) {
-                    $uploadDir = __DIR__ . '/testResults/';
-                    if (!is_dir($uploadDir)) {
-                        mkdir($uploadDir, 0755, true);
-                    }
-                    $fileName = uniqid() . '_' . basename($_FILES['failFile']['name']);
-                    $filePath = $uploadDir . $fileName;
-                    if (move_uploaded_file($_FILES['failFile']['tmp_name'], $filePath)) {
-                        $attachmentPath = $filePath;
-                    }
-                }
+        // Add UTF-8 BOM for Excel compatibility
+        fprintf($output, chr(0xEF) . chr(0xBB) . chr(0xBF));
 
-                $emailSent = EmailVerification::sendFailEmail($userData['email'], $userData['name'], $failReasons, $attachmentPath);
-            }
-        } elseif ($newStatus === 'pass') {
-            // Get user email for sending pass notification
-            $userStmt = $pdo->prepare("SELECT u.email, u.name FROM mt5_details m JOIN waitlist_users u ON m.user_id = u.id WHERE m.id = ?");
-            $userStmt->execute([$mt5Id]);
-            $userData = $userStmt->fetch(PDO::FETCH_ASSOC);
+        // CSV headers
+        fputcsv($output, ['ID', 'User Name', 'User Email', 'MT5 Username', 'MT5 Password', 'Server', 'Instrument', 'Status', 'Submitted At']);
 
-            if ($userData) {
-                require_once '../email_verification.php';
-
-                // Handle pass certificate file upload
-                $attachmentPath = null;
-                if (isset($_FILES['passCertificateFile']) && $_FILES['passCertificateFile']['error'] === UPLOAD_ERR_OK) {
-                    $uploadDir = __DIR__ . '/testResults/';
-                    if (!is_dir($uploadDir)) {
-                        mkdir($uploadDir, 0755, true);
-                    }
-                    $fileName = uniqid() . '_pass_' . basename($_FILES['passCertificateFile']['name']);
-                    $filePath = $uploadDir . $fileName;
-                    if (move_uploaded_file($_FILES['passCertificateFile']['tmp_name'], $filePath)) {
-                        $attachmentPath = $filePath;
-                    }
-                }
-
-                $emailSent = EmailVerification::sendPassEmail($userData['email'], $userData['name'], $attachmentPath);
-            }
+        // Loop through MT5 details and write rows
+        foreach ($export_mt5_details as $detail) {
+            fputcsv($output, [
+                $detail['id'] ?? 'N/A',
+                $detail['name'] ?? 'N/A',
+                $detail['email'] ?? 'N/A',
+                $detail['username'] ?? 'N/A',
+                $detail['password'] ?? 'N/A',
+                $detail['server'] ?? 'N/A',
+                $detail['instrument'] ?? 'N/A',
+                $detail['status'] ?? 'pending',
+                !empty($detail['submitted_at'])
+                    ? date('d/m/Y H:i:s', strtotime($detail['submitted_at']))
+                    : 'N/A'
+            ]);
         }
 
-        echo json_encode([
-            'success' => true,
-            'message' => 'Status updated successfully',
-            'email_sent' => $emailSent
-        ]);
-    } else {
-        echo json_encode(['success' => false, 'message' => 'Failed to update status']);
+        fclose($output);
+        exit;
     }
-    exit;
-}
 
-// Handle add credit action
-if (isset($_POST['action']) && $_POST['action'] === 'add_credit') {
-    header('Content-Type: application/json');
+    // Get MT5 status counts
+    $mt5Stats = $pdo->query("
+        SELECT
+            SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) AS pending_count,
+            SUM(CASE WHEN status = 'running' THEN 1 ELSE 0 END) AS running_count,
+            SUM(CASE WHEN status = 'pass' THEN 1 ELSE 0 END) AS pass_count,
+            SUM(CASE WHEN status = 'fail' THEN 1 ELSE 0 END) AS fail_count,
+            COUNT(*) AS total_count
+        FROM mt5_details
+    ")->fetch(PDO::FETCH_ASSOC);
 
-    $userId = (int)$_POST['user_id'];
-
-    // Increment user_credit by 1
-    $stmt = $pdo->prepare("UPDATE waitlist_users SET user_credit = user_credit + 1, credit_updated_at = NOW() WHERE id = ?");
-    $success = $stmt->execute([$userId]);
-
-    if ($success) {
-        // Get new credit value
-        $stmt = $pdo->prepare("SELECT user_credit FROM waitlist_users WHERE id = ?");
-        $stmt->execute([$userId]);
-        $result = $stmt->fetch(PDO::FETCH_ASSOC);
-        echo json_encode(['success' => true, 'message' => 'Credit added successfully', 'new_credit' => $result['user_credit']]);
-    } else {
-        echo json_encode(['success' => false, 'message' => 'Failed to add credit']);
-    }
-    exit;
-}
-
-// Handle remove credit action
-if (isset($_POST['action']) && $_POST['action'] === 'remove_credit') {
-    header('Content-Type: application/json');
-
-    $userId = (int)$_POST['user_id'];
-
-    // Decrement user_credit by 1, but not below 0
-    $stmt = $pdo->prepare("UPDATE waitlist_users SET user_credit = GREATEST(0, user_credit - 1), credit_updated_at = NOW() WHERE id = ?");
-    $success = $stmt->execute([$userId]);
-
-    if ($success) {
-        // Get new credit value
-        $stmt = $pdo->prepare("SELECT user_credit FROM waitlist_users WHERE id = ?");
-        $stmt->execute([$userId]);
-        $result = $stmt->fetch(PDO::FETCH_ASSOC);
-        echo json_encode(['success' => true, 'message' => 'Credit removed successfully', 'new_credit' => $result['user_credit']]);
-    } else {
-        echo json_encode(['success' => false, 'message' => 'Failed to remove credit']);
-    }
-    exit;
-}
-
-// ----------------------
-// CSV EXPORT
-// ----------------------
-if (isset($_GET['export']) && $_GET['export'] === 'csv') {
-    // Prepare query to fetch all MT5 details
-    $export_query = "
+    // Get MT5 details with user info
+    $query = "
         SELECT
             m.*,
             u.name,
@@ -181,75 +249,13 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
         JOIN waitlist_users u ON m.user_id = u.id
         ORDER BY m.submitted_at DESC
     ";
-    $export_stmt = $pdo->prepare($export_query);
-    $export_stmt->execute();
-    $export_mt5_details = $export_stmt->fetchAll(PDO::FETCH_ASSOC);
-
-    // Set CSV headers
-    header('Content-Type: text/csv; charset=utf-8');
-    header('Content-Disposition: attachment; filename=mt5_details_' . date('Y-m-d_H-i-s') . '.csv');
-    header('Pragma: no-cache');
-    header('Expires: 0');
-
-    // Open output stream
-    $output = fopen('php://output', 'w');
-
-    // Add UTF-8 BOM for Excel compatibility
-    fprintf($output, chr(0xEF) . chr(0xBB) . chr(0xBF));
-
-    // CSV headers
-    fputcsv($output, ['ID', 'User Name', 'User Email', 'MT5 Username', 'MT5 Password', 'Server', 'Instrument', 'Status', 'Submitted At']);
-
-    // Loop through MT5 details and write rows
-    foreach ($export_mt5_details as $detail) {
-        fputcsv($output, [
-            $detail['id'] ?? 'N/A',
-            $detail['name'] ?? 'N/A',
-            $detail['email'] ?? 'N/A',
-            $detail['username'] ?? 'N/A',
-            $detail['password'] ?? 'N/A',
-            $detail['server'] ?? 'N/A',
-            $detail['instrument'] ?? 'N/A',
-            $detail['status'] ?? 'pending',
-            !empty($detail['submitted_at'])
-                ? date('d/m/Y H:i:s', strtotime($detail['submitted_at']))
-                : 'N/A'
-        ]);
-    }
-
-    fclose($output);
-    exit;
-}
-
-// Get MT5 status counts
-$mt5Stats = $pdo->query("
-    SELECT
-        SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) AS pending_count,
-        SUM(CASE WHEN status = 'running' THEN 1 ELSE 0 END) AS running_count,
-        SUM(CASE WHEN status = 'pass' THEN 1 ELSE 0 END) AS pass_count,
-        SUM(CASE WHEN status = 'fail' THEN 1 ELSE 0 END) AS fail_count,
-        COUNT(*) AS total_count
-    FROM mt5_details
-")->fetch(PDO::FETCH_ASSOC);
-
-// Get MT5 details with user info
-$query = "
-    SELECT
-        m.*,
-        u.name,
-        u.email,
-        u.user_credit
-    FROM mt5_details m
-    JOIN waitlist_users u ON m.user_id = u.id
-    ORDER BY m.submitted_at DESC
-";
-$stmt = $pdo->prepare($query);
-$stmt->execute();
-$mt5_details = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $stmt = $pdo->prepare($query);
+    $stmt->execute();
+    $mt5_details = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
 <?php
-ob_start();
+    ob_start();
 ?>
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
     <h1 class="h2">MT5 Details Summary</h1>
@@ -503,8 +509,17 @@ ob_start();
                 <form id="passCertificateForm">
                     <div class="mb-3">
                         <label class="form-label">Please upload Passing Certificate:</label>
-                        <input type="file" class="form-control" id="passCertificateFile" name="passCertificateFile" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.csv,.xls,.xlsx" required>
+                        <div class="input-group mb-2">
+                            <input type="file" class="form-control" id="passCertificateFile" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.csv,.xls,.xlsx">
+                            <button class="btn btn-outline-primary" type="button" id="addFileBtn">Add File</button>
+                        </div>
                         <small class="form-text text-muted">Max file size: 5MB. Accepted formats: PDF, DOC, DOCX, JPG, PNG, CSV, XLS, XLSX</small>
+                    </div>
+                    <div id="selectedFilesContainer" class="mb-3" style="display: none;">
+                        <label class="form-label">Selected Files:</label>
+                        <div id="selectedFilesList" class="border rounded p-2" style="min-height: 60px;">
+                            <!-- Selected files will be displayed here -->
+                        </div>
                     </div>
                 </form>
             </div>
@@ -517,134 +532,267 @@ ob_start();
 </div>
 
 <?php
-$content = ob_get_clean();
-include 'layout/app.php';
+    $content = ob_get_clean();
+    include 'layout/app.php';
 ?>
 
 <style>
-/* DataTables Custom Styling */
-.dataTables_wrapper .dataTables_length select {
-    min-width: 80px;
-    display: inline-block;
-    margin: 0 10px;
-}
+    /* DataTables Custom Styling */
+    .dataTables_wrapper .dataTables_length select {
+        min-width: 80px;
+        display: inline-block;
+        margin: 0 10px;
+    }
 
-.dataTables_wrapper .dataTables_filter input {
-    margin-left: 10px;
-    min-width: 250px;
-}
+    .dataTables_wrapper .dataTables_filter input {
+        margin-left: 10px;
+        min-width: 250px;
+    }
 
-.dataTables_wrapper .dataTables_info {
-    padding-top: 1rem;
-}
+    .dataTables_wrapper .dataTables_info {
+        padding-top: 1rem;
+    }
 
-.dataTables_wrapper .dataTables_paginate {
-    padding-top: 0.75rem;
-}
+    .dataTables_wrapper .dataTables_paginate {
+        padding-top: 0.75rem;
+    }
 
-.dataTables_wrapper .dataTables_paginate .paginate_button {
-    padding: 0.375rem 0.75rem;
-    margin: 0 2px;
-    border: 1px solid #dee2e6;
-    border-radius: 4px;
-    background-color: #fff;
-}
+    .dataTables_wrapper .dataTables_paginate .paginate_button {
+        padding: 0.375rem 0.75rem;
+        margin: 0 2px;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        background-color: #fff;
+    }
 
-.dataTables_wrapper .dataTables_paginate .paginate_button:hover {
-    background-color: #e9ecef;
-    border-color: #dee2e6;
-}
+    .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+        background-color: #e9ecef;
+        border-color: #dee2e6;
+    }
 
-.dataTables_wrapper .dataTables_paginate .paginate_button.current {
-    background-color: #0d6efd;
-    border-color: #0d6efd;
-    color: #fff !important;
-}
+    .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+        color: #fff !important;
+    }
 </style>
 
 <script>
-$(document).ready(function() {
-    var table = $('#mt5Table').DataTable({
-        dom: '<"row mb-3"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>' +
-             '<"row"<"col-sm-12"tr>>' +
-             '<"row mt-3"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>',
-        language: {
-            search: "_INPUT_",
-            searchPlaceholder: "Search MT5 details...",
-            lengthMenu: "_MENU_ entries per page",
-            info: "Showing _START_ to _END_ of _TOTAL_ entries",
-            infoEmpty: "No entries found",
-            infoFiltered: "(filtered from _MAX_ total entries)"
-        },
-        pageLength: 10,
-        lengthMenu: [[5, 10, 25, 50, -1], [5, 10, 25, 50, "All"]],
-        ordering: true,
-        order: [],
-        responsive: true,
-        columnDefs: [
-            {
-                targets: [9], // Actions column
-                orderable: false
+    $(document).ready(function() {
+        var table = $('#mt5Table').DataTable({
+            dom: '<"row mb-3"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>' +
+                '<"row"<"col-sm-12"tr>>' +
+                '<"row mt-3"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>',
+            language: {
+                search: "_INPUT_",
+                searchPlaceholder: "Search MT5 details...",
+                lengthMenu: "_MENU_ entries per page",
+                info: "Showing _START_ to _END_ of _TOTAL_ entries",
+                infoEmpty: "No entries found",
+                infoFiltered: "(filtered from _MAX_ total entries)"
+            },
+            pageLength: 10,
+            lengthMenu: [[5, 10, 25, 50, -1], [5, 10, 25, 50, "All"]],
+            ordering: true,
+            order: [],
+            responsive: true,
+            columnDefs: [
+                {
+                    targets: [9], // Actions column
+                    orderable: false
+                }
+            ],
+            initComplete: function () {
+                $('.dataTables_length select').addClass('form-select form-select-sm');
+                $('.dataTables_filter input').addClass('form-control form-control-sm');
             }
-        ],
-        initComplete: function () {
-            $('.dataTables_length select').addClass('form-select form-select-sm');
-            $('.dataTables_filter input').addClass('form-control form-control-sm');
-        }
+        });
     });
-});
 
-// Update status function
-function updateStatus(mt5Id, newStatus, userName, userEmail = null) {
-    if (newStatus === 'fail') {
-        // Show fail reason modal
-        $('#failReasonModalLabel').text('Select Fail Reasons for ' + userName);
-        $('#failReasonModal').modal('show');
-        // Clear previous selections
-        $('.fail-reason').prop('checked', false);
-        // Store current data
-        window.currentMt5Id = mt5Id;
-        window.currentUserName = userName;
-        return;
-    }
-
-    if (newStatus === 'pass') {
-        // Show pass certificate modal
-        $('#passCertificateModalLabel').text('Upload Passing Certificate for ' + userName);
-        $('#passCertificateModal').modal('show');
-        // Clear file input
-        $('#passCertificateFile').val('');
-        // Store current data
-        window.currentMt5Id = mt5Id;
-        window.currentUserName = userName;
-        return;
-    }
-
-    const statusMap = {
-        pass: { text: 'Pass', color: '#28a745' },
-        fail: { text: 'Fail', color: '#dc3545' },
-        running: { text: 'Running', color: '#0d6efd' },
-        under_review: { text: 'Under Review', color: '#fd7e14' },
-        pending: { text: 'Pending', color: '#ffc107' }
-    };
-
-    const { text: statusText, color: confirmColor } = statusMap[newStatus] || statusMap.pending;
-
-    Swal.fire({
-        title: `Mark as ${statusText}`,
-        text: `Are you sure you want to mark "${userName}" as ${statusText.toLowerCase()}?`,
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonColor: confirmColor,
-        cancelButtonColor: '#6c757d',
-        confirmButtonText: `Yes, mark as ${statusText.toLowerCase()}`,
-        cancelButtonText: 'Cancel',
-        customClass: {
-            confirmButton: 'btn btn-primary',
-            cancelButton: 'btn btn-secondary'
+    // Update status function
+    function updateStatus(mt5Id, newStatus, userName, userEmail = null) {
+        if (newStatus === 'fail') {
+            // Show fail reason modal
+            $('#failReasonModalLabel').text('Select Fail Reasons for ' + userName);
+            $('#failReasonModal').modal('show');
+            // Clear previous selections
+            $('.fail-reason').prop('checked', false);
+            // Store current data
+            window.currentMt5Id = mt5Id;
+            window.currentUserName = userName;
+            return;
         }
-    }).then((result) => {
-        if (result.isConfirmed) {
+
+        if (newStatus === 'pass') {
+            // Show pass certificate modal
+            $('#passCertificateModalLabel').text('Upload Passing Certificate for ' + userName);
+            $('#passCertificateModal').modal('show');
+            // Clear file input and selected files
+            $('#passCertificateFile').val('');
+            // Store current data
+            window.currentMt5Id = mt5Id;
+            window.currentUserName = userName;
+            return;
+        }
+
+        const statusMap = {
+            pass: { text: 'Pass', color: '#28a745' },
+            fail: { text: 'Fail', color: '#dc3545' },
+            running: { text: 'Running', color: '#0d6efd' },
+            under_review: { text: 'Under Review', color: '#fd7e14' },
+            pending: { text: 'Pending', color: '#ffc107' }
+        };
+
+        const { text: statusText, color: confirmColor } = statusMap[newStatus] || statusMap.pending;
+
+        Swal.fire({
+            title: `Mark as ${statusText}`,
+            text: `Are you sure you want to mark "${userName}" as ${statusText.toLowerCase()}?`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: confirmColor,
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: `Yes, mark as ${statusText.toLowerCase()}`,
+            cancelButtonText: 'Cancel',
+            customClass: {
+                confirmButton: 'btn btn-primary',
+                cancelButton: 'btn btn-secondary'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Show loading
+                Swal.fire({
+                    title: 'Updating...',
+                    text: 'Please wait while we update the status',
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
+                // Send AJAX request
+                $.ajax({
+                    url: 'mt5_details.php',
+                    type: 'POST',
+                    data: {
+                        action: 'update_status',
+                        mt5_id: mt5Id,
+                        status: newStatus
+                    },
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.success) {
+                            // Update the status badge in the same row
+                            // Find the row containing this dropdown
+                            const dropdownButton = document.querySelector(`#dropdownMenuButton${mt5Id}`);
+                            const row = dropdownButton.closest('tr');
+                            const statusCell = row.querySelector('td:nth-child(8) .badge'); // Status is 8th column
+
+                            // Update badge class and text
+                            let badgeClass = 'bg-warning';
+                            let badgeText = 'Pending';
+                            if (newStatus === 'pass') {
+                                badgeClass = 'bg-success';
+                                badgeText = 'Pass';
+                            } else if (newStatus === 'fail') {
+                                badgeClass = 'bg-danger';
+                                badgeText = 'Fail';
+                            } else if (newStatus === 'running') {
+                                badgeClass = 'bg-primary';
+                                badgeText = 'Running';
+                            } else if (newStatus === 'under_review') {
+                                badgeClass = 'bg-info';
+                                badgeText = 'Under Review';
+                            }
+
+                            statusCell.className = 'badge ' + badgeClass;
+                            statusCell.textContent = badgeText;
+
+                            // If status is running, update credit display to 0
+                            if (newStatus === 'running') {
+                                const creditCell = row.querySelector('td:nth-child(4) span');
+                                if (creditCell) {
+                                    creditCell.textContent = '0';
+                                }
+                            }
+
+                            // Check if email was sent (for running, fail, or pass status)
+                            if (newStatus === 'running' || newStatus === 'fail' || newStatus === 'pass') {
+                                if (response.email_sent) {
+                                    Swal.fire({
+                                        title: 'Success!',
+                                        text: 'Status updated and email sent successfully.',
+                                        icon: 'success',
+                                        timer: 2000,
+                                        showConfirmButton: false
+                                    });
+                                } else {
+                                    Swal.fire({
+                                        title: 'Status Updated',
+                                        text: 'Status updated but email sending failed.',
+                                        icon: 'warning',
+                                        confirmButtonText: 'OK'
+                                    });
+                                }
+                            } else {
+                                if (response.email_sent) {
+                                    Swal.fire({
+                                        title: 'Success!',
+                                        text: 'Status updated and email sent successfully.',
+                                        icon: 'success',
+                                        timer: 2000,
+                                        showConfirmButton: false
+                                    });
+                                } else {
+                                    Swal.fire({
+                                        title: 'Status Updated',
+                                        text: 'Status updated but email sending failed.',
+                                        icon: 'warning',
+                                        confirmButtonText: 'OK'
+                                    });
+                                }
+                            }
+                        } else {
+                            Swal.fire({
+                                title: 'Error!',
+                                text: response.message || 'Failed to update status.',
+                                icon: 'error',
+                                confirmButtonText: 'OK'
+                            });
+                        }
+                    },
+                    error: function() {
+                        Swal.fire({
+                            title: 'Error!',
+                            text: 'An error occurred while updating the status.',
+                            icon: 'error',
+                            confirmButtonText: 'OK'
+                        });
+                    }
+                });
+            }
+        });
+    }
+
+    // Handle fail reason submission
+    $(document).ready(function() {
+        $('#submitFail').on('click', function() {
+            const checkedReasons = [];
+            $('.fail-reason:checked').each(function() {
+                checkedReasons.push($(this).val());
+            });
+            if (checkedReasons.length === 0) {
+                Swal.fire({
+                    title: 'No reasons selected',
+                    text: 'Please select at least one fail reason.',
+                    icon: 'warning',
+                    confirmButtonText: 'OK'
+                });
+                return;
+            }
+            // Hide modal
+            $('#failReasonModal').modal('hide');
             // Show loading
             Swal.fire({
                 title: 'Updating...',
@@ -656,87 +804,57 @@ function updateStatus(mt5Id, newStatus, userName, userEmail = null) {
                 }
             });
 
-            // Send AJAX request
+            // Prepare FormData for file upload
+            const formData = new FormData();
+            formData.append('action', 'update_status');
+            formData.append('mt5_id', window.currentMt5Id);
+            formData.append('status', 'fail');
+            checkedReasons.forEach(reason => {
+                formData.append('fail_reasons[]', reason);
+            });
+
+            // Add file if selected
+            const fileInput = document.getElementById('failFile');
+            if (fileInput.files.length > 0) {
+                formData.append('failFile', fileInput.files[0]);
+            }
+
+            // Send AJAX request with FormData
             $.ajax({
                 url: 'mt5_details.php',
                 type: 'POST',
-                data: {
-                    action: 'update_status',
-                    mt5_id: mt5Id,
-                    status: newStatus
-                },
+                data: formData,
+                processData: false,
+                contentType: false,
                 dataType: 'json',
                 success: function(response) {
                     if (response.success) {
                         // Update the status badge in the same row
-                        // Find the row containing this dropdown
-                        const dropdownButton = document.querySelector(`#dropdownMenuButton${mt5Id}`);
+                        const dropdownButton = document.querySelector(`#dropdownMenuButton${window.currentMt5Id}`);
                         const row = dropdownButton.closest('tr');
                         const statusCell = row.querySelector('td:nth-child(8) .badge'); // Status is 8th column
+                        statusCell.className = 'badge bg-danger';
+                        statusCell.textContent = 'Fail';
 
-                        // Update badge class and text
-                        let badgeClass = 'bg-warning';
-                        let badgeText = 'Pending';
-                        if (newStatus === 'pass') {
-                            badgeClass = 'bg-success';
-                            badgeText = 'Pass';
-                        } else if (newStatus === 'fail') {
-                            badgeClass = 'bg-danger';
-                            badgeText = 'Fail';
-                        } else if (newStatus === 'running') {
-                            badgeClass = 'bg-primary';
-                            badgeText = 'Running';
-                        } else if (newStatus === 'under_review') {
-                            badgeClass = 'bg-info';
-                            badgeText = 'Under Review';
-                        }
+                        // Clear file input
+                        $('#failFile').val('');
 
-                        statusCell.className = 'badge ' + badgeClass;
-                        statusCell.textContent = badgeText;
-
-                        // If status is running, update credit display to 0
-                        if (newStatus === 'running') {
-                            const creditCell = row.querySelector('td:nth-child(4) span');
-                            if (creditCell) {
-                                creditCell.textContent = '0';
-                            }
-                        }
-
-                        // Check if email was sent (for running, fail, or pass status)
-                        if (newStatus === 'running' || newStatus === 'fail' || newStatus === 'pass') {
-                            if (response.email_sent) {
-                                Swal.fire({
-                                    title: 'Success!',
-                                    text: 'Status updated and email sent successfully.',
-                                    icon: 'success',
-                                    timer: 2000,
-                                    showConfirmButton: false
-                                });
-                            } else {
-                                Swal.fire({
-                                    title: 'Status Updated',
-                                    text: 'Status updated but email sending failed.',
-                                    icon: 'warning',
-                                    confirmButtonText: 'OK'
-                                });
-                            }
+                        // Check if email was sent
+                        if (response.email_sent) {
+                            Swal.fire({
+                                title: 'Success!',
+                                text: 'Status updated and email sent successfully.',
+                                icon: 'success',
+                                timer: 2000,
+                                showConfirmButton: false
+                            });
                         } else {
-                            if (response.email_sent) {
-                                Swal.fire({
-                                    title: 'Success!',
-                                    text: 'Status updated and email sent successfully.',
-                                    icon: 'success',
-                                    timer: 2000,
-                                    showConfirmButton: false
-                                });
-                            } else {
-                                Swal.fire({
-                                    title: 'Status Updated',
-                                    text: 'Status updated but email sending failed.',
-                                    icon: 'warning',
-                                    confirmButtonText: 'OK'
-                                });
-                            }
+                            Swal.fire({
+                                title: 'Status Updated',
+                                text: 'Status updated but email sending failed.',
+                                icon: 'warning',
+                                confirmButtonText: 'OK'
+                            });
                         }
                     } else {
                         Swal.fire({
@@ -756,244 +874,158 @@ function updateStatus(mt5Id, newStatus, userName, userEmail = null) {
                     });
                 }
             });
-        }
+        });
     });
-}
 
-// Handle fail reason submission
-$(document).ready(function() {
-    $('#submitFail').on('click', function() {
-        const checkedReasons = [];
-        $('.fail-reason:checked').each(function() {
-            checkedReasons.push($(this).val());
-        });
-        if (checkedReasons.length === 0) {
-            Swal.fire({
-                title: 'No reasons selected',
-                text: 'Please select at least one fail reason.',
-                icon: 'warning',
-                confirmButtonText: 'OK'
-            });
-            return;
-        }
-        // Hide modal
-        $('#failReasonModal').modal('hide');
-        // Show loading
-        Swal.fire({
-            title: 'Updating...',
-            text: 'Please wait while we update the status',
-            allowOutsideClick: false,
-            allowEscapeKey: false,
-            didOpen: () => {
-                Swal.showLoading();
-            }
-        });
+    // Handle pass certificate submission
+    $(document).ready(function() {
+        let selectedFiles = [];
 
-        // Prepare FormData for file upload
-        const formData = new FormData();
-        formData.append('action', 'update_status');
-        formData.append('mt5_id', window.currentMt5Id);
-        formData.append('status', 'fail');
-        checkedReasons.forEach(reason => {
-            formData.append('fail_reasons[]', reason);
-        });
-
-        // Add file if selected
-        const fileInput = document.getElementById('failFile');
-        if (fileInput.files.length > 0) {
-            formData.append('failFile', fileInput.files[0]);
-        }
-
-        // Send AJAX request with FormData
-        $.ajax({
-            url: 'mt5_details.php',
-            type: 'POST',
-            data: formData,
-            processData: false,
-            contentType: false,
-            dataType: 'json',
-            success: function(response) {
-                if (response.success) {
-                    // Update the status badge in the same row
-                    const dropdownButton = document.querySelector(`#dropdownMenuButton${window.currentMt5Id}`);
-                    const row = dropdownButton.closest('tr');
-                    const statusCell = row.querySelector('td:nth-child(8) .badge'); // Status is 8th column
-                    statusCell.className = 'badge bg-danger';
-                    statusCell.textContent = 'Fail';
-
-                    // Clear file input
-                    $('#failFile').val('');
-
-                    // Check if email was sent
-                    if (response.email_sent) {
-                        Swal.fire({
-                            title: 'Success!',
-                            text: 'Status updated and email sent successfully.',
-                            icon: 'success',
-                            timer: 2000,
-                            showConfirmButton: false
-                        });
-                    } else {
-                        Swal.fire({
-                            title: 'Status Updated',
-                            text: 'Status updated but email sending failed.',
-                            icon: 'warning',
-                            confirmButtonText: 'OK'
-                        });
-                    }
-                } else {
-                    Swal.fire({
-                        title: 'Error!',
-                        text: response.message || 'Failed to update status.',
-                        icon: 'error',
-                        confirmButtonText: 'OK'
-                    });
-                }
-            },
-            error: function() {
+        // Handle add file button
+        $('#addFileBtn').on('click', function() {
+            const fileInput = document.getElementById('passCertificateFile');
+            if (fileInput.files.length === 0) {
                 Swal.fire({
-                    title: 'Error!',
-                    text: 'An error occurred while updating the status.',
-                    icon: 'error',
+                    title: 'No file selected',
+                    text: 'Please select a file first.',
+                    icon: 'warning',
                     confirmButtonText: 'OK'
                 });
+                return;
             }
-        });
-    });
-});
 
-// Handle pass certificate submission
-$(document).ready(function() {
-    $('#submitPass').on('click', function() {
-        const fileInput = document.getElementById('passCertificateFile');
-        if (fileInput.files.length === 0) {
-            Swal.fire({
-                title: 'No file selected',
-                text: 'Please select a passing certificate file.',
-                icon: 'warning',
-                confirmButtonText: 'OK'
-            });
-            return;
-        }
-        // Hide modal
-        $('#passCertificateModal').modal('hide');
-        // Show loading
-        Swal.fire({
-            title: 'Updating...',
-            text: 'Please wait while we update the status',
-            allowOutsideClick: false,
-            allowEscapeKey: false,
-            didOpen: () => {
-                Swal.showLoading();
-            }
-        });
+            const file = fileInput.files[0];
 
-        // Prepare FormData for file upload
-        const formData = new FormData();
-        formData.append('action', 'update_status');
-        formData.append('mt5_id', window.currentMt5Id);
-        formData.append('status', 'pass');
-        formData.append('passCertificateFile', fileInput.files[0]);
-
-        // Send AJAX request with FormData
-        $.ajax({
-            url: 'mt5_details.php',
-            type: 'POST',
-            data: formData,
-            processData: false,
-            contentType: false,
-            dataType: 'json',
-            success: function(response) {
-                if (response.success) {
-                    // Update the status badge in the same row
-                    const dropdownButton = document.querySelector(`#dropdownMenuButton${window.currentMt5Id}`);
-                    const row = dropdownButton.closest('tr');
-                    const statusCell = row.querySelector('td:nth-child(8) .badge'); // Status is 8th column
-                    statusCell.className = 'badge bg-success';
-                    statusCell.textContent = 'Pass';
-
-                    // Clear file input
-                    $('#passCertificateFile').val('');
-
-                    // Check if email was sent
-                    if (response.email_sent) {
-                        Swal.fire({
-                            title: 'Success!',
-                            text: 'Status updated and email sent successfully.',
-                            icon: 'success',
-                            timer: 2000,
-                            showConfirmButton: false
-                        });
-                    } else {
-                        Swal.fire({
-                            title: 'Status Updated',
-                            text: 'Status updated but email sending failed.',
-                            icon: 'warning',
-                            confirmButtonText: 'OK'
-                        });
-                    }
-                } else {
-                    Swal.fire({
-                        title: 'Error!',
-                        text: response.message || 'Failed to update status.',
-                        icon: 'error',
-                        confirmButtonText: 'OK'
-                    });
-                }
-            },
-            error: function() {
+            // Check if file already exists
+            const fileExists = selectedFiles.some(f => f.name === file.name && f.size === file.size);
+            if (fileExists) {
                 Swal.fire({
-                    title: 'Error!',
-                    text: 'An error occurred while updating the status.',
-                    icon: 'error',
+                    title: 'File already added',
+                    text: 'This file has already been added.',
+                    icon: 'warning',
                     confirmButtonText: 'OK'
                 });
+                return;
             }
-        });
-    });
-});
 
-// Add credit function
-function addCredit(userId, userName) {
-    Swal.fire({
-        title: 'Add Credit',
-        text: `Add 1 credit to "${userName}"?`,
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonColor: '#28a745',
-        cancelButtonColor: '#6c757d',
-        confirmButtonText: 'Yes, add credit!',
-        cancelButtonText: 'Cancel',
-        customClass: {
-            confirmButton: 'btn btn-success',
-            cancelButton: 'btn btn-secondary'
+            // Add file to selected files
+            selectedFiles.push(file);
+
+            // Clear input
+            fileInput.value = '';
+
+            // Update display
+            updateSelectedFilesDisplay();
+        });
+
+        // Function to update selected files display
+        function updateSelectedFilesDisplay() {
+            const container = document.getElementById('selectedFilesContainer');
+            const list = document.getElementById('selectedFilesList');
+
+            if (selectedFiles.length > 0) {
+                container.style.display = 'block';
+                list.innerHTML = '';
+
+                selectedFiles.forEach((file, index) => {
+                    const fileItem = document.createElement('div');
+                    fileItem.className = 'd-flex justify-content-between align-items-center mb-2 p-2 bg-light rounded';
+                    fileItem.innerHTML = `
+                        <span class="me-2">
+                            <i class="fas fa-file me-2"></i>${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)
+                        </span>
+                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeFile(${index})">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    `;
+                    list.appendChild(fileItem);
+                });
+            } else {
+                container.style.display = 'none';
+            }
         }
-    }).then((result) => {
-        if (result.isConfirmed) {
-            // Send AJAX request to add credit
+
+        // Function to remove file (will be available globally)
+        window.removeFile = function(index) {
+            selectedFiles.splice(index, 1);
+            updateSelectedFilesDisplay();
+        };
+
+        $('#submitPass').on('click', function() {
+            if (selectedFiles.length === 0) {
+                Swal.fire({
+                    title: 'No files selected',
+                    text: 'Please add at least one passing certificate file.',
+                    icon: 'warning',
+                    confirmButtonText: 'OK'
+                });
+                return;
+            }
+            // Hide modal
+            $('#passCertificateModal').modal('hide');
+            // Show loading
+            Swal.fire({
+                title: 'Updating...',
+                text: 'Please wait while we update the status',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            // Prepare FormData for file upload
+            const formData = new FormData();
+            formData.append('action', 'update_status');
+            formData.append('mt5_id', window.currentMt5Id);
+            formData.append('status', 'pass');
+            selectedFiles.forEach(file => {
+                formData.append('passCertificateFile[]', file);
+            });
+
+            // Send AJAX request with FormData
             $.ajax({
                 url: 'mt5_details.php',
                 type: 'POST',
-                data: {
-                    action: 'add_credit',
-                    user_id: userId
-                },
+                data: formData,
+                processData: false,
+                contentType: false,
                 dataType: 'json',
                 success: function(response) {
                     if (response.success) {
-                        // Update the credit display
-                        $('#credit-' + userId).text(response.new_credit);
-                        Swal.fire({
-                            title: 'Success!',
-                            text: 'Credit added successfully.',
-                            icon: 'success',
-                            timer: 1500,
-                            showConfirmButton: false
-                        });
+                        // Update the status badge in the same row
+                        const dropdownButton = document.querySelector(`#dropdownMenuButton${window.currentMt5Id}`);
+                        const row = dropdownButton.closest('tr');
+                        const statusCell = row.querySelector('td:nth-child(8) .badge'); // Status is 8th column
+                        statusCell.className = 'badge bg-success';
+                        statusCell.textContent = 'Pass';
+
+                        // Clear selected files
+                        selectedFiles = [];
+                        updateSelectedFilesDisplay();
+                        $('#passCertificateFile').val('');
+
+                        // Check if email was sent
+                        if (response.email_sent) {
+                            Swal.fire({
+                                title: 'Success!',
+                                text: 'Status updated and email sent successfully.',
+                                icon: 'success',
+                                timer: 2000,
+                                showConfirmButton: false
+                            });
+                        } else {
+                            Swal.fire({
+                                title: 'Status Updated',
+                                text: 'Status updated but email sending failed.',
+                                icon: 'warning',
+                                confirmButtonText: 'OK'
+                            });
+                        }
                     } else {
                         Swal.fire({
                             title: 'Error!',
-                            text: response.message || 'Failed to add credit.',
+                            text: response.message || 'Failed to update status.',
                             icon: 'error',
                             confirmButtonText: 'OK'
                         });
@@ -1002,72 +1034,143 @@ function addCredit(userId, userName) {
                 error: function() {
                     Swal.fire({
                         title: 'Error!',
-                        text: 'An error occurred while adding credit.',
+                        text: 'An error occurred while updating the status.',
                         icon: 'error',
                         confirmButtonText: 'OK'
                     });
                 }
             });
-        }
-    });
-}
+        });
 
-// Remove credit function
-function removeCredit(userId, userName) {
-    Swal.fire({
-        title: 'Remove Credit',
-        text: `Remove 1 credit from "${userName}"?`,
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonColor: '#dc3545',
-        cancelButtonColor: '#6c757d',
-        confirmButtonText: 'Yes, remove credit!',
-        cancelButtonText: 'Cancel',
-        customClass: {
-            confirmButton: 'btn btn-danger',
-            cancelButton: 'btn btn-secondary'
-        }
-    }).then((result) => {
-        if (result.isConfirmed) {
-            // Send AJAX request to remove credit
-            $.ajax({
-                url: 'mt5_details.php',
-                type: 'POST',
-                data: {
-                    action: 'remove_credit',
-                    user_id: userId
-                },
-                dataType: 'json',
-                success: function(response) {
-                    if (response.success) {
-                        // Update the credit display
-                        $('#credit-' + userId).text(response.new_credit);
-                        Swal.fire({
-                            title: 'Success!',
-                            text: 'Credit removed successfully.',
-                            icon: 'success',
-                            timer: 1500,
-                            showConfirmButton: false
-                        });
-                    } else {
+        // Clear files when modal is shown or closed
+        $('#passCertificateModal').on('show.bs.modal', function() {
+            selectedFiles = [];
+            updateSelectedFilesDisplay();
+            $('#passCertificateFile').val('');
+        });
+
+        $('#passCertificateModal').on('hidden.bs.modal', function() {
+            selectedFiles = [];
+            updateSelectedFilesDisplay();
+            $('#passCertificateFile').val('');
+        });
+    });
+
+    // Add credit function
+    function addCredit(userId, userName) {
+        Swal.fire({
+            title: 'Add Credit',
+            text: `Add 1 credit to "${userName}"?`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#28a745',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Yes, add credit!',
+            cancelButtonText: 'Cancel',
+            customClass: {
+                confirmButton: 'btn btn-success',
+                cancelButton: 'btn btn-secondary'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Send AJAX request to add credit
+                $.ajax({
+                    url: 'mt5_details.php',
+                    type: 'POST',
+                    data: {
+                        action: 'add_credit',
+                        user_id: userId
+                    },
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.success) {
+                            // Update the credit display
+                            $('#credit-' + userId).text(response.new_credit);
+                            Swal.fire({
+                                title: 'Success!',
+                                text: 'Credit added successfully.',
+                                icon: 'success',
+                                timer: 1500,
+                                showConfirmButton: false
+                            });
+                        } else {
+                            Swal.fire({
+                                title: 'Error!',
+                                text: response.message || 'Failed to add credit.',
+                                icon: 'error',
+                                confirmButtonText: 'OK'
+                            });
+                        }
+                    },
+                    error: function() {
                         Swal.fire({
                             title: 'Error!',
-                            text: response.message || 'Failed to remove credit.',
+                            text: 'An error occurred while adding credit.',
                             icon: 'error',
                             confirmButtonText: 'OK'
                         });
                     }
-                },
-                error: function() {
-                    Swal.fire({
-                        title: 'Error!',
-                        text: 'An error occurred while removing credit.',
-                        icon: 'error',
-                        confirmButtonText: 'OK'
-                    });
-                }
-            });
-        }
-    });
-}
+                });
+            }
+        });
+    }
+
+    // Remove credit function
+    function removeCredit(userId, userName) {
+        Swal.fire({
+            title: 'Remove Credit',
+            text: `Remove 1 credit from "${userName}"?`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#dc3545',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Yes, remove credit!',
+            cancelButtonText: 'Cancel',
+            customClass: {
+                confirmButton: 'btn btn-danger',
+                cancelButton: 'btn btn-secondary'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Send AJAX request to remove credit
+                $.ajax({
+                    url: 'mt5_details.php',
+                    type: 'POST',
+                    data: {
+                        action: 'remove_credit',
+                        user_id: userId
+                    },
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.success) {
+                            // Update the credit display
+                            $('#credit-' + userId).text(response.new_credit);
+                            Swal.fire({
+                                title: 'Success!',
+                                text: 'Credit removed successfully.',
+                                icon: 'success',
+                                timer: 1500,
+                                showConfirmButton: false
+                            });
+                        } else {
+                            Swal.fire({
+                                title: 'Error!',
+                                text: response.message || 'Failed to remove credit.',
+                                icon: 'error',
+                                confirmButtonText: 'OK'
+                            });
+                        }
+                    },
+                    error: function() {
+                        Swal.fire({
+                            title: 'Error!',
+                            text: 'An error occurred while removing credit.',
+                            icon: 'error',
+                            confirmButtonText: 'OK'
+                        });
+                    }
+                });
+            }
+        });
+    }
 </script>
