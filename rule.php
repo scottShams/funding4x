@@ -1,3 +1,14 @@
+<?php
+    // rule.php
+    $identifier = strtolower($_GET['REF'] ?? '');
+    $map = [
+        'broker1' => 'choose-broker.php',
+        'broker2' => 'choose-broker-second.php',
+    ];
+    $redirectLink = $map[$identifier] ?? '#';
+
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -338,7 +349,7 @@ We have clear transparent and easy to follow rules to help you be profitable and
             <!-- CTA -->
             <div class="mt-12 text-center">
                 <p class="text-xl font-semibold text-primary-purple mb-4">You must AGREE to all the Rules to Continue..</p>
-                <a href="choose-broker.php" class="bg-trophy-gold text-header-dark font-bold py-3 px-8 rounded-full text-lg shadow-lg hover:bg-cta-hover transition">
+                <a href="<?php echo $redirectLink; ?>" class="bg-trophy-gold text-header-dark font-bold py-3 px-8 rounded-full text-lg shadow-lg hover:bg-cta-hover transition">
                     Yes I Agree to all the Rules
                 </a>
             </div>

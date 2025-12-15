@@ -1495,7 +1495,7 @@ if ($user) {
             { id: 2, name: "2. Refer 5 Forex Traders (optional)", isCompleted: <?php echo ($user && $verifiedReferrals >= 5) ? 'true' : 'false'; ?> },
             { id: 3, name: "3. Complete the Knowledge Check", redirectTo: "knowledge-test.php", isCompleted: <?php echo ($user && !empty($user['knowledge_test_result'])) ? 'true' : 'false'; ?> },
             { id: 4, name: "4. Pass the Trading Test 1", redirectTo: "rule.php?REF=broker1", isCompleted: false },
-            { id: 5, name: "5. Pass the Trading Test 2", redirectTo: "choose-broker-second.php", isCompleted: false },
+            { id: 5, name: "5. Pass the Trading Test 2", redirectTo: "rule.php?REF=broker2", isCompleted: false },
             { id: 6, name: "6. Get your $5000 Funded Account", isCompleted: false }
         ];
 
