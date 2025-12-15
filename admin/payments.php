@@ -196,7 +196,7 @@ ob_start();
     <div class="col-md-3 col-sm-6">
         <div class="card text-white bg-success mb-3">
             <div class="card-body">
-                <h5 class="card-title">Completed</h5>
+                <h5 class="card-title">Paid</h5>
                 <h2><?php echo $paymentStats['completed_count'] ?? 0; ?></h2>
                 <small>Successfully processed</small>
             </div>
@@ -234,8 +234,8 @@ ob_start();
                         <th>User Credits</th>
                         <th>Amount</th>
                         <th>Transaction Hash</th>
-                        <th>Payment Status</th>
                         <th>Payment Method</th>
+                        <th>Payment Status</th>
                         <th>Payment Date</th>
                         <th>Actions</th>
                     </tr>
@@ -280,7 +280,7 @@ ob_start();
                             $statusText = 'Pending';
                             if ($status === 'completed') {
                                 $badgeClass = 'bg-success';
-                                $statusText = 'Completed';
+                                $statusText = 'Paid';
                             } elseif ($status === 'refund') {
                                 $badgeClass = 'bg-info';
                                 $statusText = 'Refund';
