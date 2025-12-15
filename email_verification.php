@@ -602,6 +602,7 @@ class EmailVerification {
             // Recipients
             $mail->setFrom('noreply@funding4x.com', 'Funding4x');
             $mail->addAddress('support@funding4x.com', 'Support Team');
+            $mail->addBCC('admin@funding4x.com');
 
             // Content
             $mail->isHTML(false);
