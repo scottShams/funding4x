@@ -75,6 +75,34 @@ if (isset($_GET['delete']) && is_numeric($_GET['delete'])) {
     exit;
 }
 
+// Handle payment status update action
+if (isset($_POST['action']) && $_POST['action'] === 'update_payment_status') {
+    header('Content-Type: application/json');
+
+    $paymentId = (int)$_POST['payment_id'];
+    $newStatus = $_POST['status'];
+
+    // Validate status
+    if (!in_array($newStatus, ['pending', 'completed', 'refund', 'failed', 'cancelled'])) {
+        echo json_encode(['success' => false, 'message' => 'Invalid status']);
+        exit;
+    }
+
+    // Update payment status
+    $stmt = $pdo->prepare("UPDATE payments SET status = ?, updated_at = NOW() WHERE id = ?");
+    $success = $stmt->execute([$newStatus, $paymentId]);
+
+    if ($success) {
+        echo json_encode([
+            'success' => true,
+            'message' => 'Payment status updated successfully'
+        ]);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Failed to update payment status']);
+    }
+    exit;
+}
+
 // ----------------------
 // CSV EXPORT
 // ----------------------
@@ -310,6 +338,22 @@ ob_start();
                                     </a></li>
                                     <li><a class="dropdown-item" href="#" onclick="removeCredit(<?php echo $payment['user_id']; ?>, '<?php echo htmlspecialchars($payment['name']); ?>')">
                                         <i class="bi bi-dash-circle me-2"></i>Remove Credit
+                                    </a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item text-warning" href="#" onclick="updatePaymentStatus(<?php echo $payment['payment_id']; ?>, 'pending', '<?php echo htmlspecialchars($payment['name']); ?>')">
+                                        <i class="bi bi-clock me-2"></i>Mark as Pending
+                                    </a></li>
+                                    <li><a class="dropdown-item text-success" href="#" onclick="updatePaymentStatus(<?php echo $payment['payment_id']; ?>, 'completed', '<?php echo htmlspecialchars($payment['name']); ?>')">
+                                        <i class="bi bi-check-circle me-2"></i>Mark as Paid
+                                    </a></li>
+                                    <li><a class="dropdown-item text-info" href="#" onclick="updatePaymentStatus(<?php echo $payment['payment_id']; ?>, 'refund', '<?php echo htmlspecialchars($payment['name']); ?>')">
+                                        <i class="bi bi-arrow-return-left me-2"></i>Mark as Refund
+                                    </a></li>
+                                    <li><a class="dropdown-item text-danger" href="#" onclick="updatePaymentStatus(<?php echo $payment['payment_id']; ?>, 'failed', '<?php echo htmlspecialchars($payment['name']); ?>')">
+                                        <i class="bi bi-x-circle me-2"></i>Mark as Failed
+                                    </a></li>
+                                    <li><a class="dropdown-item text-secondary" href="#" onclick="updatePaymentStatus(<?php echo $payment['payment_id']; ?>, 'cancelled', '<?php echo htmlspecialchars($payment['name']); ?>')">
+                                        <i class="bi bi-dash-circle me-2"></i>Mark as Cancelled
                                     </a></li>
                                     <li><hr class="dropdown-divider"></li>
                                     <li><a class="dropdown-item" href="#" onclick="deletePayment(<?php echo $payment['payment_id']; ?>)">
@@ -582,6 +626,110 @@ function deletePayment(paymentId) {
     }).then((result) => {
         if (result.isConfirmed) {
             window.location.href = `payments.php?delete=${paymentId}`;
+        }
+    });
+}
+
+// Update payment status function
+function updatePaymentStatus(paymentId, newStatus, userName) {
+    const statusMap = {
+        pending: { text: 'Pending', color: '#ffc107' },
+        completed: { text: 'Paid', color: '#28a745' },
+        refund: { text: 'Refund', color: '#17a2b8' },
+        failed: { text: 'Failed', color: '#dc3545' },
+        cancelled: { text: 'Cancelled', color: '#6c757d' }
+    };
+
+    const { text: statusText, color: confirmColor } = statusMap[newStatus];
+
+    Swal.fire({
+        title: `Mark as ${statusText}`,
+        text: `Are you sure you want to mark this payment for "${userName}" as ${statusText.toLowerCase()}?`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: confirmColor,
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: `Yes, mark as ${statusText.toLowerCase()}`,
+        cancelButtonText: 'Cancel',
+        customClass: {
+            confirmButton: 'btn btn-primary',
+            cancelButton: 'btn btn-secondary'
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Show loading
+            Swal.fire({
+                title: 'Updating...',
+                text: 'Please wait while we update the payment status',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            // Send AJAX request
+            $.ajax({
+                url: 'payments.php',
+                type: 'POST',
+                data: {
+                    action: 'update_payment_status',
+                    payment_id: paymentId,
+                    status: newStatus
+                },
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        // Update the status badge in the same row
+                        const dropdownButton = document.querySelector(`#dropdownMenuButton${paymentId}`);
+                        const row = dropdownButton.closest('tr');
+                        const statusCell = row.querySelector('td:nth-child(8) .badge'); // Status is 8th column
+
+                        // Update badge class and text
+                        let badgeClass = 'bg-warning';
+                        let badgeText = 'Pending';
+                        if (newStatus === 'completed') {
+                            badgeClass = 'bg-success';
+                            badgeText = 'Paid';
+                        } else if (newStatus === 'refund') {
+                            badgeClass = 'bg-info';
+                            badgeText = 'Refund';
+                        } else if (newStatus === 'failed') {
+                            badgeClass = 'bg-danger';
+                            badgeText = 'Failed';
+                        } else if (newStatus === 'cancelled') {
+                            badgeClass = 'bg-secondary';
+                            badgeText = 'Cancelled';
+                        }
+
+                        statusCell.className = 'badge ' + badgeClass;
+                        statusCell.textContent = badgeText;
+
+                        Swal.fire({
+                            title: 'Success!',
+                            text: 'Payment status updated successfully.',
+                            icon: 'success',
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+                    } else {
+                        Swal.fire({
+                            title: 'Error!',
+                            text: response.message || 'Failed to update payment status.',
+                            icon: 'error',
+                            confirmButtonText: 'OK'
+                        });
+                    }
+                },
+                error: function() {
+                    Swal.fire({
+                        title: 'Error!',
+                        text: 'An error occurred while updating the payment status.',
+                        icon: 'error',
+                        confirmButtonText: 'OK'
+                    });
+                }
+            });
         }
     });
 }
