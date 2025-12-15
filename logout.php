@@ -12,6 +12,6 @@ foreach ($_COOKIE as $name => $value) {
 }
 
 // Redirect to home page
-header("Location: home.php");
+header("Location: index.php");
 exit;
 ?>
