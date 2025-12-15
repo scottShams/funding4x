@@ -1663,13 +1663,13 @@ if ($user) {
             {
                 id: 4,
                 name: `4. Pass the Trading Test 1 <?php echo $badgeHtml; ?>`,
-                redirectTo: "rule.php",
+                redirectTo: "rule.php?REF=broker1",
                 isCompleted: <?php echo ($user && !empty($mt5_details['status'])) ? 'true' : 'false'; ?>
             },
             { 
                 id: 5, 
                 name: `5. Pass the Trading Test 2 <?php echo $badgeHtml2; ?>`, 
-                redirectTo: "choose-broker-second.php", 
+                redirectTo: "rule.php?REF=broker2", 
                 isCompleted: <?php echo ($user && !empty($mt5_details_second['status'])) ? 'true' : 'false'; ?> 
             },
             { id: 6, name: "6. Get your $5000 Funded Account", isCompleted: false }
