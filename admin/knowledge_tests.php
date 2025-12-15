@@ -319,6 +319,16 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
     exit;
 }
 
+    // Get knowledge test approval status counts
+    $knowledgeTestStats = $pdo->query("
+        SELECT
+            SUM(CASE WHEN approval_status = 'pending' THEN 1 ELSE 0 END) AS pending_count,
+            SUM(CASE WHEN approval_status = 'approved' THEN 1 ELSE 0 END) AS approved_count,
+            SUM(CASE WHEN approval_status = 'declined' THEN 1 ELSE 0 END) AS declined_count,
+            COUNT(*) AS total_count
+        FROM knowledge_test_approvals
+    ")->fetch(PDO::FETCH_ASSOC);
+
 // Get all users who have completed knowledge test
 $query = "
     SELECT
@@ -391,6 +401,37 @@ ob_start();
             <a href="?export=csv" class="btn btn-sm btn-success">
                 <i class="fas fa-download"></i> Export to CSV
             </a>
+        </div>
+    </div>
+</div>
+
+<!-- Knowledge Test Status Cards -->
+<div class="row mb-4">
+    <div class="col-md-4 col-sm-6">
+        <div class="card text-white bg-warning mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Pending</h5>
+                <h2><?php echo $knowledgeTestStats['pending_count'] ?? 0; ?></h2>
+                <small>Waiting for approval</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 col-sm-6">
+        <div class="card text-white bg-success mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Approved</h5>
+                <h2><?php echo $knowledgeTestStats['approved_count'] ?? 0; ?></h2>
+                <small>Successfully approved</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 col-sm-6">
+        <div class="card text-white bg-danger mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Declined</h5>
+                <h2><?php echo $knowledgeTestStats['declined_count'] ?? 0; ?></h2>
+                <small>Did not meet requirements</small>
+            </div>
         </div>
     </div>
 </div>

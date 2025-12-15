@@ -4,16 +4,6 @@
     // Load environment variables
     require_once __DIR__ . '/env_loader.php';
 
-    if (isset($_GET['ref'])) {
-        $ref = $_GET['ref'];
-
-        // Save to session
-        $_SESSION['referral_code'] = $ref;
-
-        // Save to cookie for 30 days
-        setcookie("referral_code", $ref, time() + (30 * 24 * 60 * 60), "/");
-    }
-
     // Get reCAPTCHA site key from environment
     $recaptchaSiteKey = EnvLoader::get('RECAPTCHA_SITE_KEY', 'your_recaptcha_site_key_here');
 
@@ -102,6 +92,45 @@
             background-color: rgba(17, 24, 39, 0.95);
             backdrop-filter: blur(5px);
         }
+		
+		/* Styles for the new circular stat visual */
+        .stat-circle {
+            /* Defines the size and shape */
+            width: 100%; /* Full width on smallest screens */
+            max-width: 250px; /* Max size for the circle */
+            aspect-ratio: 1 / 1; /* Ensures it's a perfect circle */
+            margin: 0 auto; /* Center the circle */
+            
+            /* Visual effects & 3D readiness */
+            transition: all 0.4s ease-in-out;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transform-style: preserve-3d; /* Enable 3D transforms on child elements */
+            
+            /* Apply continuous subtle pulsing animation */
+            animation: pulse-ring 3s infinite ease-in-out;
+        }
+
+        /* Hover effect for a more pronounced 3D lift */
+        .stat-circle:hover {
+            transform: scale(1.05) rotateX(5deg) translateY(-5px);
+            box-shadow: 0 15px 30px rgba(79, 0, 157, 0.3);
+        }
+
+        /* Keyframe animation for subtle pulsing */
+        @keyframes pulse-ring {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            }
+            50% {
+                transform: scale(1.01);
+                box-shadow: 0 4px 20px rgba(79, 0, 157, 0.15);
+            }
+            100% {
+                transform: scale(1);
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            }
+        }
     </style>
 </head>
 
@@ -117,24 +146,40 @@
             
             <!-- Headline: Energetic & FOMO -->
             <h2 class="text-4xl sm:text-6xl font-extrabold tracking-tighter text-gray-900 leading-tight mb-4">
-                <span class="block text-success-green">STOP WAITING. START TRADING.</span>
-                Get <span class="text-primary-indigo">$5,000 Funded</span> & Keep 50% of the Profit!
+                <span class="block text-success-green">ARE YOU A FOREX TRADER? JOIN US.</span>
+                <br />
+                Get <span class="text-primary-indigo">$5,000 Funded Account</span> & Keep 50% of the Profit!
             </h2>
             <p class="mt-4 text-xl text-gray-600 max-w-3xl mx-auto">
-                Prove your skills through our transparent 3-stage evaluation and unlock serious capital. No tricks, just limits designed for success.
+                We need skilled Forex Traders to Trade $5000 accounts for us. We have a total of $200,000 to give to begin with.
             </p>
 
             <!-- KEY HIGHLIGHTS SECTION (New - Above the Fold) -->
             <div class="mt-8 max-w-4xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-6">
+                <!-- Highlight 2: Profit Split -->
+                <div class="p-4 bg-white rounded-xl shadow-lg border-b-4 border-primary-indigo text-center">
+                    <span class="text-3xl font-extrabold text-primary-indigo block mb-1">Trade our $5,000 Account</span>
+                    <p class="text-sm font-medium text-gray-600">Our Money, Your Trade</p>
+                </div>
+                <!-- Highlight 1: Free Retry -->
+                <div class="p-4 bg-white rounded-xl shadow-lg border-b-4 border-success-green text-center">
+                    <span class="text-3xl font-extrabold text-success-green block mb-1">Prove Your Trading Skill</span>
+                    <p class="text-sm font-medium text-gray-600">Pass the Phase 1 & 2 Trading Test to show your Trading skills. </p>
+                </div>
+                <!-- Highlight 2: Profit Split -->
+                <div class="p-4 bg-white rounded-xl shadow-lg border-b-4 border-primary-indigo text-center">
+                    <span class="text-3xl font-extrabold text-primary-indigo block mb-1">50% Profit Share</span>
+                    <p class="text-sm font-medium text-gray-600">Keep half of all the Profits from day one.</p>
+                </div>
                 <!-- Highlight 1: Free Retry -->
                 <div class="p-4 bg-white rounded-xl shadow-lg border-b-4 border-success-green text-center">
                     <span class="text-3xl font-extrabold text-success-green block mb-1">FREE RETRY!</span>
                     <p class="text-sm font-medium text-gray-600">Fail Phase 1? Try again instantly, no extra cost.</p>
                 </div>
-                <!-- Highlight 2: Profit Split -->
-                <div class="p-4 bg-white rounded-xl shadow-lg border-b-4 border-primary-indigo text-center">
-                    <span class="text-3xl font-extrabold text-primary-indigo block mb-1">50% Profit Share</span>
-                    <p class="text-sm font-medium text-gray-600">Keep half of all your gains from day one.</p>
+                <!-- Highlight 3: No Time Limit -->
+                <div class="p-4 bg-white rounded-xl shadow-lg border-b-4 border-fomo-red text-center">
+                    <span class="text-3xl font-extrabold text-fomo-red block mb-1">No Consistency Rule</span>
+                    <p class="text-sm font-medium text-gray-600">No secret rules, and tricks to make you fail</p>
                 </div>
                 <!-- Highlight 3: No Time Limit -->
                 <div class="p-4 bg-white rounded-xl shadow-lg border-b-4 border-fomo-red text-center">
@@ -147,10 +192,10 @@
             <!-- FOMO Counter, Countdown, & Progress Bar -->
             <div class="mt-10 p-6 bg-white border-2 border-fomo-red rounded-xl shadow-2xl max-w-lg mx-auto fomo-glow">
                 <p class="text-2xl font-bold text-fomo-red uppercase tracking-widest animate-pulse">
-                    <span id="fomo-count">380</span> / 400 SPOTS TAKEN!
+                    <span id="fomo-count">380</span> out of 400 FREE Account GIVEN!
                 </p>
                 <p class="text-sm text-gray-500 mt-1 mb-3 font-semibold">
-                    <span class="text-lg font-extrabold text-success-green">FREE ACCESS ENDING IN:</span>
+                    <span class="text-lg font-extrabold text-success-green">FREE Account Give Away ENDING IN:</span>
                 </p>
 
                 <!-- Countdown Timer Display -->
@@ -183,16 +228,88 @@
             </div>
 
             <!-- Primary CTA -->
-            <div id="cta" class="mt-12">
+            <!--<div id="cta" class="mt-12">
                 <button onclick="window.location.href='pricing.php'"
                         class="px-12 py-4 text-2xl font-bold text-white bg-fomo-red rounded-xl shadow-lg hover:bg-red-600 transition duration-300 transform hover:scale-105 active:scale-95 uppercase tracking-wider border-b-4 border-red-700">
                     Start My Challenge Now!
+                </button>-->
+                
+                <br /><br />
+                <button onclick="window.location.href='pricing.php'"
+                        class="px-12 py-4 text-2xl font-bold text-white bg-success-green rounded-xl shadow-lg hover:bg-emerald-600 transition duration-300 transform hover:scale-105 active:scale-95 uppercase tracking-wider border-b-4 border-emerald-700">
+                    Get My Trading Challenge Now
                 </button>
+                
                 <!--<p class="mt-3 text-sm text-gray-500 font-medium">100% Free for the next <span class="text-fomo-red">620 traders!</span></p>-->
             </div>
         </div>
     </section>
 
+<!-- Key Statistics Section (Updated to Circular Visuals) -->
+    <section id="stats" class="py-16 sm:py-20 bg-gray-50 border-t border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h3 class="text-3xl font-bold text-center text-header-dark mb-12">Our Community in Numbers</h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-8">
+                
+                <!-- Stat Card 1: Total Verified Traders (Gold Ring) -->
+                <div class="text-center">
+                    <div class="stat-circle p-4 bg-white rounded-full flex items-center justify-center 
+                                border-4 border-trophy-gold hover:border-8 hover:bg-gray-100">
+                        <div class="text-center">
+                            <div class="text-5xl font-extrabold text-trophy-gold" id="stat-verified-traders">
+                                17632
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-xl font-semibold text-gray-700 mt-6">
+                        Total Verified Users
+                    </p>
+                    <p class="text-sm text-gray-500 mt-1">
+                        (Active or Phase 1 or 2)
+                    </p>
+                </div>
+
+                <!-- Stat Card 2: Total Free Accounts (Purple Ring) -->
+                <div class="text-center">
+                    <div class="stat-circle p-4 bg-white rounded-full flex items-center justify-center 
+                                border-4 border-primary-purple hover:border-8 hover:bg-gray-100">
+                        <div class="text-center">
+                            <div class="text-5xl font-extrabold text-primary-purple" id="stat-free-accounts">
+                                1,288
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-xl font-semibold text-gray-700 mt-6">
+                        Total Free Accounts
+                    </p>
+                    <p class="text-sm text-gray-500 mt-1">
+                        (Free Give Away)
+                    </p>
+                </div>
+
+                <!-- Stat Card 3: Total Phase 1 Passes (Green Ring) -->
+                <div class="text-center">
+                    <div class="stat-circle p-4 bg-white rounded-full flex items-center justify-center 
+                                border-4 border-success-green hover:border-8 hover:bg-gray-100">
+                        <div class="text-center">
+                            <div class="text-5xl font-extrabold text-success-green" id="stat-phase-1-passes">
+                                2916
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-xl font-semibold text-gray-700 mt-6">
+                        Total Phase 1 Traders
+                    </p>
+                    <p class="text-sm text-gray-500 mt-1">
+                        (Qualified for Phase 2)
+                    </p>
+                </div>
+            </div>
+            
+        </div>
+    </section>
+    
     <!-- Video & Transparency Section -->
     <section class="py-16 sm:py-24 bg-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid md:grid-cols-2 gap-12 items-center">
@@ -383,7 +500,7 @@
                     Don't Miss Out on FREE ACCESS!
                 </h3>
                 <p class="text-xl text-gray-600 mb-8">
-                    The next <span class="text-fomo-red font-extrabold"><?php echo 200 - (int)$current_users; ?> traders</span> get to prove their skills completely FREE. Secure your place before the counter hits 400!
+                    Only <span class="text-fomo-red font-extrabold"><?php echo 400 - (int)$current_users; ?> FREE Accounts</span> remaining. Secure your place before the counter hits 400!
                 </p>
                 <button onclick="window.location.href='pricing.php'"
                         class="px-12 py-4 text-2xl font-bold text-white bg-success-green rounded-xl shadow-lg hover:bg-emerald-600 transition duration-300 transform hover:scale-105 active:scale-95 uppercase tracking-wider border-b-4 border-emerald-700">
@@ -467,5 +584,40 @@
             countdownInterval = setInterval(updateCountdown, 1000);
         });
     </script>
+    
+    <!-- JavaScript to simulate dynamic loading (optional) -->
+    <script>
+        // Simple client-side function to animate numbers on load
+        function animateValue(id, start, end, duration) {
+            if (start === end) return;
+            const range = end - start;
+            let current = start;
+            const increment = end > start ? 1 : -1;
+            // Calculate step time to ensure smooth animation
+            const stepTime = Math.max(1, Math.abs(Math.floor(duration / range))); 
+            const obj = document.getElementById(id);
+
+            const timer = setInterval(() => {
+                current += increment;
+                // Ensure we don't overshoot
+                if (increment > 0 ? current > end : current < end) {
+                    current = end;
+                }
+                obj.textContent = current.toLocaleString(); // Use toLocaleString for commas
+                if (current === end) {
+                    clearInterval(timer);
+                }
+            }, stepTime);
+        }
+
+        // Run the animations on page load
+        window.addEventListener('load', () => {
+            // Mock data values
+            animateValue("stat-verified-traders", 0, 4582, 2000);
+            animateValue("stat-free-accounts", 0, 18901, 2500);
+            animateValue("stat-phase-1-passes", 0, 7105, 2200);
+        });
+    </script>
+    
 </body>
 </html>

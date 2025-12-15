@@ -192,7 +192,7 @@ $recaptchaSiteKey = EnvLoader::get('RECAPTCHA_SITE_KEY', 'your_recaptcha_site_ke
                         Log In to Your Account
                     </a>
                     <!-- SIGNUP BUTTON -->
-                    <a href="pricing.php"
+                    <a href="signup.php"
                        class="w-full block bg-primary-accent hover:bg-yellow-600 text-gray-900 font-bold py-4 px-6 rounded-lg text-xl md:text-2xl uppercase tracking-wider shadow-2xl shadow-primary-accent/50 transition duration-300 ease-in-out transform hover:scale-105 active:scale-95 text-center">
                         Sign Up
                     </a>
@@ -216,10 +216,10 @@ $recaptchaSiteKey = EnvLoader::get('RECAPTCHA_SITE_KEY', 'your_recaptcha_site_ke
             // const targetDate = new Date().getTime() + twentyDays;
              
             // FIXED start date for global countdown (set once)
-            const startDate = new Date('2025-12-11T00:00:00').getTime();
+            const startDate = new Date('2025-11-27T00:00:00').getTime();
 
             // Add 20 days to it (constant for everyone)
-            const targetDate = startDate + (21 * 24 * 60 * 60 * 1000);
+            const targetDate = startDate + (12 * 24 * 60 * 60 * 1000);
 
             // Get DOM elements
             const $days = document.getElementById('days');

@@ -196,7 +196,7 @@ if ($user) {
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Fnding4x User Dashboard – Get Funded Account for Free</title>
+    <title>Funding4x User Dashboard – Get Funded Account for Free</title>
     <meta name="description" content="Access your Funding4x account dashboard. Track your trial, evaluations, and funded trading progress.">
     <meta name="keywords" content="Funding4x dashboard, funded account dashboard, trading progress, prop firm account">
 
@@ -462,7 +462,7 @@ if ($user) {
                 <div class="flex items-center space-x-3">
                     <img src="assets/logo.png" class="h-10 w-10 rounded-lg" alt="Logo">
                     <h1 class="text-xl font-extrabold tracking-tight text-trophy-gold">
-                        REFERRAL DASHBOARD
+                        MY DASHBOARD
                     </h1>
                 </div>
 
@@ -542,8 +542,22 @@ if ($user) {
     <section id="dashboard" class="py-16 sm:py-24 bg-primary-purple text-white">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <span class="text-trophy-gold text-sm font-semibold uppercase tracking-widest block mb-4">
-                 <?php echo htmlspecialchars($user['name']); ?>, Welcome to Funded4x!
+                 <?php echo htmlspecialchars($user['name']); ?>, Welcome to Funding4x!
             </span>
+            
+            <span class="text-trophy-gold text-sm font-semibold uppercase tracking-widest block mb-4">The Ultimate Partner Program</span>
+            <h2 class="text-4xl sm:text-6xl font-extrabold tracking-tighter leading-tight mb-4">
+                5 Referrals = <span class="text-trophy-gold">$5,000</span> Funded Account
+            </h2>
+            
+            <p class="mt-4 text-xl text-gray-200">
+            <strong>(After Passing Trading Tests)</strong>
+            <br /><br />
+                Invite other Forex Traders to join as your Referral by Sharing your Referral Link with them.
+               
+                
+            </p>
+            <br />
             <!-- Telegram Button -->
             <div class="flex justify-center mt-6">
                 <a href="https://t.me/funding4x" target="_blank" rel="noopener noreferrer"
@@ -560,19 +574,7 @@ if ($user) {
             <script src="https://apis.google.com/js/platform.js"></script>
 
             <div class="g-ytsubscribe" data-channelid="UCkosETo_p1wOaAx2g2B0jLA" data-layout="full" data-count="hidden"></div>
-            <br /><br />
-            <span class="text-trophy-gold text-sm font-semibold uppercase tracking-widest block mb-4">The Ultimate Partner Program</span>
-            <h2 class="text-4xl sm:text-6xl font-extrabold tracking-tighter leading-tight mb-4">
-                5 Referrals = <span class="text-trophy-gold">$5,000</span> Funded Account
-            </h2>
-            
-            <p class="mt-4 text-xl text-gray-200">
-            <strong>(After Passing Trading Tests)</strong>
-            <br /><br />
-                Invite other Forex Traders to join as your Referral by Sharing your Referral Link with them.
-               
-                
-            </p>
+          
         </div>
     </section>
     
@@ -637,8 +639,19 @@ if ($user) {
                             <p class="font-bold text-lg mb-1">Buy Now - 38% Off</p>
                             <p class="text-sm"><del>Normally $<?php echo $checkoutPrice; ?></del>, now only $36 for First Comers</p>
                         </button>
+                        
+                        <br /><br />
+                            <p class="text-sm">We take Crypto Currency Payment</p>
+                        
+                        <div style="display: flex; justify-content: center; width:25%;"><img src="assets/pay-with-crypto.png" alt="pay for prop challenge with cryptocurrency" ></div>
+            
                     </div>
+                    
+                    
                 </div>
+                
+                
+            
             </div>
 
             <!-- Referral Link Content - col-8 on medium+ screens, full width on mobile -->
@@ -1481,7 +1494,7 @@ if ($user) {
             { id: 1, name: "1. Verify your Email Address", isCompleted: <?php echo ($user && $user['email_verified'] == 1) ? 'true' : 'false'; ?> },
             { id: 2, name: "2. Refer 5 Forex Traders (optional)", isCompleted: <?php echo ($user && $verifiedReferrals >= 5) ? 'true' : 'false'; ?> },
             { id: 3, name: "3. Complete the Knowledge Check", redirectTo: "knowledge-test.php", isCompleted: <?php echo ($user && !empty($user['knowledge_test_result'])) ? 'true' : 'false'; ?> },
-            { id: 4, name: "4. Pass the Trading Test 1", redirectTo: "rule.php", isCompleted: false },
+            { id: 4, name: "4. Pass the Trading Test 1", redirectTo: "rule.php?REF=broker1", isCompleted: false },
             { id: 5, name: "5. Pass the Trading Test 2", redirectTo: "choose-broker-second.php", isCompleted: false },
             { id: 6, name: "6. Get your $5000 Funded Account", isCompleted: false }
         ];
