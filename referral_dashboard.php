@@ -94,6 +94,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['lookup_email'])) {
     }
 }
 
+function sendTemplateEmail($templateId, $user)
+{
+    // Fetch template
+    global $pdo;
+
+    $templateStmt = $pdo->prepare("
+        SELECT name, subject, body 
+        FROM email_templates 
+        WHERE id = ?
+    ");
+    $templateStmt->execute([$templateId]);
+    $template = $templateStmt->fetch(PDO::FETCH_ASSOC);
+
+    // Send email if template found
+    if ($template) {
+        require_once __DIR__ . "/email_verification.php";
+
+        EmailVerification::sendCustomEmail(
+            $user['email'],
+            $user['name'],
+            $template['subject'],
+            $template['body']
+        );
+    }
+}
 
 // Get current user data from session
 $userId = $_SESSION['user_id'];
@@ -120,33 +145,133 @@ if ($user) {
 
 if ($user) {
 
-    $mt_stmt = $pdo->prepare("select * from mt5_details where user_id = ?");
+    // Load mt5_details
+    $mt_stmt = $pdo->prepare("SELECT * FROM mt5_details WHERE user_id = ?");
     $mt_stmt->execute([$user['id']]);
     $mt5_details = $mt_stmt->fetch(PDO::FETCH_ASSOC);
 
-    // Get list of referrals (users who were referred by this user) with email verification status
+    // Load mt5_details_second
+    $mt_stmt_second = $pdo->prepare("SELECT * FROM mt5_details_second WHERE user_id = ?");
+    $mt_stmt_second->execute([$user['id']]);
+    $mt5_details_second = $mt_stmt_second->fetch(PDO::FETCH_ASSOC);
+
+    // Fetch direct referrals
     $stmt = $pdo->prepare("
-        SELECT name, country, user_ip, status, quiz_result, user_credit, knowledge_test_result, created_at, email_verified
+        SELECT id, name, country, user_ip, status, quiz_result, user_credit, knowledge_test_result, created_at, email_verified
         FROM waitlist_users 
         WHERE parent_user_id = ? 
         ORDER BY created_at DESC
     ");
     $stmt->execute([$user['id']]);
     $referrals = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    
-    // Calculate verified vs pending referrals
+
+    // First level counts
     $totalReferrals = count($referrals);
     $verifiedReferrals = 0;
     $pendingReferrals = 0;
-    
+
+    $congratulationsAwarded = false;
+    // Array of verified referral IDs (your 5 verified users)
+    $verifiedReferralIDs = [];
+
     foreach ($referrals as $referral) {
-        if ($referral['email_verified'] == 1 && $referral['quiz_result'] != null && $referral['user_ip'] !== $user['user_ip']) {
+        if ($referral['email_verified'] == 1 &&
+            $referral['quiz_result'] != null &&
+            $referral['user_ip'] !== $user['user_ip']
+        ) {
             $verifiedReferrals++;
+            $verifiedReferralIDs[] = [
+                'id' => $referral['id'],
+                'user_ip' => $referral['user_ip']
+            ];
         } else {
             $pendingReferrals++;
         }
     }
+
+    // ONLY EXECUTE LOGIC FIRST TIME
+    if ($user['user_credit'] <= 0){
+
+        $secondLevelVerifiedCount = 0;
+        $hasAnySecondLevelChild = false;
+
+        if (!$mt5_details && $verifiedReferrals >= 5) {
+
+            $verifiedCheckStmt = $pdo->prepare("
+                SELECT
+                    email_verified,
+                    quiz_result,
+                    user_ip,
+                    parent_user_id
+                FROM waitlist_users
+                WHERE parent_user_id = ?
+            ");
+
+            foreach ($verifiedReferralIDs as $verifiedUser) {
+                $verifiedCheckStmt->execute([$verifiedUser['id']]);
+                $childRefs = $verifiedCheckStmt->fetchAll(PDO::FETCH_ASSOC);
+
+                // Track ANY second-level children
+                if (!empty($childRefs)) {
+                    $hasAnySecondLevelChild = true;
+                }
+
+                foreach ($childRefs as $child) {
+                    if (
+                        $child['email_verified'] == 1 &&
+                        $child['quiz_result'] != null &&
+                        $verifiedUser['user_ip'] !== $child['user_ip']
+                    ) {
+                        $secondLevelVerifiedCount++;
+                    }
+                }
+            }
+
+            if($secondLevelVerifiedCount == 0) {
+                $hasAnySecondLevelChild = true;
+            }
+        }
+
+        // APPROVE — only first time
+        if ($secondLevelVerifiedCount >= 1) {
+
+            $pdo->prepare("UPDATE waitlist_users SET user_credit = 1 WHERE id = ?")
+                ->execute([$user['id']]);
+
+            // APPROVE knowledge test
+            $pdo->prepare("
+                INSERT INTO knowledge_test_approvals (user_id, approval_status, approved_at)
+                VALUES (?, 'approved', NOW())
+                ON DUPLICATE KEY UPDATE approval_status = 'approved', approved_at = NOW(), declined_reason = NULL
+            ")->execute([$user['id']]);
+
+            sendTemplateEmail(2, $user);
+            $congratulationsAwarded = true;
+        }
+
+        // DECLINE — only first time
+        else if ($user['user_credit'] == 0 && $verifiedReferrals >= 5 && $hasAnySecondLevelChild) {
+
+            $pdo->prepare("UPDATE waitlist_users SET user_credit = -1 WHERE id = ?")
+                ->execute([$user['id']]);
+
+            $pdo->prepare("
+                INSERT INTO knowledge_test_approvals (user_id, approval_status, declined_reason)
+                VALUES (?, 'declined', 'User has no second-level referrals')
+                ON DUPLICATE KEY UPDATE approval_status = 'declined', declined_reason = 'User has no second-level referrals', approved_at = NULL
+            ")->execute([$user['id']]);
+
+            sendTemplateEmail(24, $user);
+
+            $congratulationsAwarded = false;
+        } else {
+            // Do nothing, wait for more referrals
+            $congratulationsAwarded = false;
+        }
+    }
+
 }
+
 
 // Generate referral link
 if ($user) {
@@ -179,7 +304,7 @@ if ($user) {
     $progressPercentage = min(($credits / $goalCredits) * 100, 100);
 
     // Dynamic pricing for checkout
-    $checkoutPrice = 59;
+    $checkoutPrice = 36;
 
     $_SESSION['checkout_price'] = $checkoutPrice;
 }
@@ -196,7 +321,7 @@ if ($user) {
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Funding4x User Dashboard – Get Funded Account for Free</title>
+    <title>Fnding4x User Dashboard – Get Funded Account for Free</title>
     <meta name="description" content="Access your Funding4x account dashboard. Track your trial, evaluations, and funded trading progress.">
     <meta name="keywords" content="Funding4x dashboard, funded account dashboard, trading progress, prop firm account">
 
@@ -462,7 +587,7 @@ if ($user) {
                 <div class="flex items-center space-x-3">
                     <img src="assets/logo.png" class="h-10 w-10 rounded-lg" alt="Logo">
                     <h1 class="text-xl font-extrabold tracking-tight text-trophy-gold">
-                        MY DASHBOARD
+                        REFERRAL DASHBOARD
                     </h1>
                 </div>
 
@@ -542,22 +667,8 @@ if ($user) {
     <section id="dashboard" class="py-16 sm:py-24 bg-primary-purple text-white">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <span class="text-trophy-gold text-sm font-semibold uppercase tracking-widest block mb-4">
-                 <?php echo htmlspecialchars($user['name']); ?>, Welcome to Funding4x!
+                 <?php echo htmlspecialchars($user['name']); ?>, Welcome to Funded4x!
             </span>
-            
-            <span class="text-trophy-gold text-sm font-semibold uppercase tracking-widest block mb-4">The Ultimate Partner Program</span>
-            <h2 class="text-4xl sm:text-6xl font-extrabold tracking-tighter leading-tight mb-4">
-                5 Referrals = <span class="text-trophy-gold">$5,000</span> Funded Account
-            </h2>
-            
-            <p class="mt-4 text-xl text-gray-200">
-            <strong>(After Passing Trading Tests)</strong>
-            <br /><br />
-                Invite other Forex Traders to join as your Referral by Sharing your Referral Link with them.
-               
-                
-            </p>
-            <br />
             <!-- Telegram Button -->
             <div class="flex justify-center mt-6">
                 <a href="https://t.me/funding4x" target="_blank" rel="noopener noreferrer"
@@ -574,7 +685,19 @@ if ($user) {
             <script src="https://apis.google.com/js/platform.js"></script>
 
             <div class="g-ytsubscribe" data-channelid="UCkosETo_p1wOaAx2g2B0jLA" data-layout="full" data-count="hidden"></div>
-          
+            <br /><br />
+            <span class="text-trophy-gold text-sm font-semibold uppercase tracking-widest block mb-4">The Ultimate Partner Program</span>
+            <h2 class="text-4xl sm:text-6xl font-extrabold tracking-tighter leading-tight mb-4">
+                5 Referrals = <span class="text-trophy-gold">$5,000</span> Funded Account
+            </h2>
+            
+            <p class="mt-4 text-xl text-gray-200">
+            <strong>(After Passing Trading Tests)</strong>
+            <br /><br />
+                Invite other Forex Traders to join as your Referral by Sharing your Referral Link with them.
+               
+                
+            </p>
         </div>
     </section>
     
@@ -637,21 +760,10 @@ if ($user) {
                         
                         <button onclick="window.location.href='checkout.php'" class="bg-trophy-gold p-4 rounded-xl shadow-lg border-b-4 border-yellow-700 cursor-pointer">
                             <p class="font-bold text-lg mb-1">Buy Now - 38% Off</p>
-                            <p class="text-sm"><del>Normally $<?php echo $checkoutPrice; ?></del>, now only $36 for First Comers</p>
+                            <p class="text-sm"><del>Normally $59</del>, now only $<?php echo $checkoutPrice; ?> for First Comers</p>
                         </button>
-                        
-                        <br /><br />
-                            <p class="text-sm">We take Crypto Currency Payment</p>
-                        
-                        <div style="display: flex; justify-content: center; width:25%;"><img src="assets/pay-with-crypto.png" alt="pay for prop challenge with cryptocurrency" ></div>
-            
                     </div>
-                    
-                    
                 </div>
-                
-                
-            
             </div>
 
             <!-- Referral Link Content - col-8 on medium+ screens, full width on mobile -->
@@ -750,7 +862,7 @@ if ($user) {
                                     </div>
                                 </div>
                                 <p class="text-sm text-gray-600 mt-3 text-center">
-                                    <?php if ($credits >= $goalCredits): ?>
+                                    <?php if ($congratulationsAwarded || $user['user_credit'] > 0): ?>
                                         <div class="bg-white p-8 rounded-2xl shadow-2xl border-2 border-primary-purple h-fit lg:sticky lg:top-24">
                                             <h2 class="text-2xl font-bold text-primary-purple mb-2">Congratulations! 1 Free Trading Test Unlocked<del class="text-red-600"> (no need to pay $59)</del></h2>
                                             <p class="text-sm text-gray-600 mb-6">
@@ -1484,18 +1596,82 @@ if ($user) {
 
     </script>
     <script>
+
+        
         const USER_EMAIL_VERIFIED = <?php echo ($user && $user['email_verified'] == 1) ? 'true' : 'false'; ?>;
         const USER_QUIZ_COMPLETED = <?php echo ($user && !empty($user['quiz_result'])) ? 'true' : 'false'; ?>;
         const USER_KNOWLEDGE_TEST_COMPLETED = <?php echo ($user && !empty($user['knowledge_test_result'])) ? 'true' : 'false'; ?>;
         const USERCREDIT = <?php echo ($user && !empty($user['user_credit'])) ? 'true' : 'false'; ?>;
         const USER_MT5_DETAILS_STATUS = <?php echo ($mt5_details && isset($mt5_details['status'])) ? '"' . $mt5_details['status'] . '"' : 'null'; ?>;
         
+        <?php
+            $testStatus = $mt5_details['status'] ?? null;
+
+            $badgeHtml = '';
+
+            if ($testStatus) {
+                $color = match ($testStatus) {
+                    'pass'         => '#28a745',
+                    'fail'         => '#dc3545',
+                    'running'      => '#0d6efd',
+                    'under_review' => '#6f42c1',
+                    default        => '#ffc107', // pending
+                };
+
+                $label = strtoupper(str_replace('_', ' ', $testStatus));
+
+                $badgeHtml = "<span style='
+                    background: {$color};
+                    color: white;
+                    padding: 3px 8px;
+                    font-size: 12px;
+                    border-radius: 5px;
+                    margin-left: 10px;
+                '>{$label}</span>";
+            }
+        
+            $testStatus2 = $mt5_details_second['status'] ?? null;
+
+            $badgeHtml2 = '';
+
+            if ($testStatus2) {
+                $color2 = match ($testStatus2) {
+                    'pass'         => '#28a745',
+                    'fail'         => '#dc3545',
+                    'running'      => '#0d6efd',
+                    'under_review' => '#6f42c1',
+                    default        => '#ffc107', // pending
+                };
+
+                $label2 = strtoupper(str_replace('_', ' ', $testStatus2));
+
+                $badgeHtml2 = "<span style='
+                    background: {$color2};
+                    color: white;
+                    padding: 3px 8px;
+                    font-size: 12px;
+                    border-radius: 5px;
+                    margin-left: 10px;
+                '>{$label2}</span>";
+            }
+        ?>
+
         const topics = [
             { id: 1, name: "1. Verify your Email Address", isCompleted: <?php echo ($user && $user['email_verified'] == 1) ? 'true' : 'false'; ?> },
             { id: 2, name: "2. Refer 5 Forex Traders (optional)", isCompleted: <?php echo ($user && $verifiedReferrals >= 5) ? 'true' : 'false'; ?> },
             { id: 3, name: "3. Complete the Knowledge Check", redirectTo: "knowledge-test.php", isCompleted: <?php echo ($user && !empty($user['knowledge_test_result'])) ? 'true' : 'false'; ?> },
-            { id: 4, name: "4. Pass the Trading Test 1", redirectTo: "rule.php?REF=broker1", isCompleted: false },
-            { id: 5, name: "5. Pass the Trading Test 2", redirectTo: "rule.php?REF=broker2", isCompleted: false },
+            {
+                id: 4,
+                name: `4. Pass the Trading Test 1 <?php echo $badgeHtml; ?>`,
+                redirectTo: "rule.php",
+                isCompleted: <?php echo ($user && !empty($mt5_details['status'])) ? 'true' : 'false'; ?>
+            },
+            { 
+                id: 5, 
+                name: `5. Pass the Trading Test 2 <?php echo $badgeHtml2; ?>`, 
+                redirectTo: "choose-broker-second.php", 
+                isCompleted: <?php echo ($user && !empty($mt5_details_second['status'])) ? 'true' : 'false'; ?> 
+            },
             { id: 6, name: "6. Get your $5000 Funded Account", isCompleted: false }
         ];
 
