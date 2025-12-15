@@ -3,11 +3,29 @@
     // Include database connection
     require_once 'database.php';
 
+    // Check if update is allowed via REF=mt5s parameter
+    $allowUpdate = isset($_GET['REF']) && $_GET['REF'] === 'mt5s';
+    
+    
     // Get database connection
     $pdo = getPDO();
     $email = $_SESSION['user_email'];
     $userId = $_SESSION['user_id'];
     if(empty($email) && empty($userId)){
+        // If user arrived with a GET (e.g. ?REF=...) store the full request URI
+        // so we can redirect them back here after login. Keep it for 1 hour.
+        if (!empty($_SERVER['REQUEST_URI'])) {
+            // Only set cookie if there's a query string (to preserve REF or other params)
+            $requestUri = $_SERVER['REQUEST_URI'];
+            if (strpos($requestUri, '?') !== false) {
+                setcookie('intended_url', $requestUri, time() + 3600, '/');
+            } else {
+                // Also set cookie if REF param exists explicitly in $_GET even without full query
+                if (!empty($_GET['REF'])) {
+                    setcookie('intended_url', $requestUri, time() + 3600, '/');
+                }
+            }
+        }
         ?>
         <!DOCTYPE html>
         <html lang="en">
@@ -66,9 +84,6 @@
     $stmt->execute([$user['id']]);
     $mt5Details = $stmt->fetch(PDO::FETCH_ASSOC);
     $hasMT5Details = $mt5Details ? true : false;
-
-    // Check if update is allowed via REF=mt5s parameter
-    $allowUpdate = isset($_GET['REF']) && $_GET['REF'] === 'mt5s';
     $isUpdateMode = $allowUpdate && $hasMT5Details;
 ?>
 

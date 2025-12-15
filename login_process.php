@@ -63,6 +63,18 @@ try {
         $redirect = isset($_COOKIE['checkout_price']) ? 'checkout.php' : 'referral_dashboard.php';
     }
 
+    // If an intended URL was stored (e.g., user arrived at a page with REF and was sent to login),
+    // prefer redirecting back there. Only accept relative paths beginning with '/'.
+    if (!empty($_COOKIE['intended_url'])) {
+        $intended = $_COOKIE['intended_url'];
+        if (is_string($intended) && strpos($intended, '/') === 0 && strpos($intended, "\n") === false && strpos($intended, "\r") === false) {
+            $redirect = $intended;
+            // Clear the cookie after use
+            setcookie('intended_url', '', time() - 3600, '/');
+            unset($_COOKIE['intended_url']);
+        }
+    }
+
     echo json_encode([
         'status' => 'success',
         'message' => 'Login successful!',
