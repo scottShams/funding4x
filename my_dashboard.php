@@ -94,6 +94,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['lookup_email'])) {
     }
 }
 
+function sendTemplateEmail($templateId, $user)
+{
+    // Fetch template
+    global $pdo;
+
+    $templateStmt = $pdo->prepare("
+        SELECT name, subject, body 
+        FROM email_templates 
+        WHERE id = ?
+    ");
+    $templateStmt->execute([$templateId]);
+    $template = $templateStmt->fetch(PDO::FETCH_ASSOC);
+
+    // Send email if template found
+    if ($template) {
+        require_once __DIR__ . "/email_verification.php";
+
+        EmailVerification::sendCustomEmail(
+            $user['email'],
+            $user['name'],
+            $template['subject'],
+            $template['body']
+        );
+    }
+}
 
 // Get current user data from session
 $userId = $_SESSION['user_id'];
@@ -120,33 +145,133 @@ if ($user) {
 
 if ($user) {
 
-    $mt_stmt = $pdo->prepare("select * from mt5_details where user_id = ?");
+    // Load mt5_details
+    $mt_stmt = $pdo->prepare("SELECT * FROM mt5_details WHERE user_id = ?");
     $mt_stmt->execute([$user['id']]);
     $mt5_details = $mt_stmt->fetch(PDO::FETCH_ASSOC);
 
-    // Get list of referrals (users who were referred by this user) with email verification status
+    // Load mt5_details_second
+    $mt_stmt_second = $pdo->prepare("SELECT * FROM mt5_details_second WHERE user_id = ?");
+    $mt_stmt_second->execute([$user['id']]);
+    $mt5_details_second = $mt_stmt_second->fetch(PDO::FETCH_ASSOC);
+
+    // Fetch direct referrals
     $stmt = $pdo->prepare("
-        SELECT name, country, user_ip, status, quiz_result, user_credit, knowledge_test_result, created_at, email_verified
+        SELECT id, name, country, user_ip, status, quiz_result, user_credit, knowledge_test_result, created_at, email_verified
         FROM waitlist_users 
         WHERE parent_user_id = ? 
         ORDER BY created_at DESC
     ");
     $stmt->execute([$user['id']]);
     $referrals = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    
-    // Calculate verified vs pending referrals
+
+    // First level counts
     $totalReferrals = count($referrals);
     $verifiedReferrals = 0;
     $pendingReferrals = 0;
-    
+
+    $congratulationsAwarded = false;
+    // Array of verified referral IDs (your 5 verified users)
+    $verifiedReferralIDs = [];
+
     foreach ($referrals as $referral) {
-        if ($referral['email_verified'] == 1 && $referral['quiz_result'] != null && $referral['user_ip'] !== $user['user_ip']) {
+        if ($referral['email_verified'] == 1 &&
+            $referral['quiz_result'] != null &&
+            $referral['user_ip'] !== $user['user_ip']
+        ) {
             $verifiedReferrals++;
+            $verifiedReferralIDs[] = [
+                'id' => $referral['id'],
+                'user_ip' => $referral['user_ip']
+            ];
         } else {
             $pendingReferrals++;
         }
     }
+
+    // ONLY EXECUTE LOGIC FIRST TIME
+    if ($user['user_credit'] <= 0 && $user['manual_credit_update'] == false) {
+
+        $secondLevelVerifiedCount = 0;
+        $hasAnySecondLevelChild = false;
+
+        if (!$mt5_details && $verifiedReferrals >= 5) {
+
+            $verifiedCheckStmt = $pdo->prepare("
+                SELECT
+                    email_verified,
+                    quiz_result,
+                    user_ip,
+                    parent_user_id
+                FROM waitlist_users
+                WHERE parent_user_id = ?
+            ");
+
+            foreach ($verifiedReferralIDs as $verifiedUser) {
+                $verifiedCheckStmt->execute([$verifiedUser['id']]);
+                $childRefs = $verifiedCheckStmt->fetchAll(PDO::FETCH_ASSOC);
+
+                // Track ANY second-level children
+                if (!empty($childRefs)) {
+                    $hasAnySecondLevelChild = true;
+                }
+
+                foreach ($childRefs as $child) {
+                    if (
+                        $child['email_verified'] == 1 &&
+                        $child['quiz_result'] != null &&
+                        $verifiedUser['user_ip'] !== $child['user_ip']
+                    ) {
+                        $secondLevelVerifiedCount++;
+                    }
+                }
+            }
+
+            if($secondLevelVerifiedCount == 0) {
+                $hasAnySecondLevelChild = true;
+            }
+        }
+
+        // APPROVE — only first time
+        if ($secondLevelVerifiedCount >= 1) {
+
+            $pdo->prepare("UPDATE waitlist_users SET user_credit = 1 WHERE id = ?")
+                ->execute([$user['id']]);
+
+            // APPROVE knowledge test
+            $pdo->prepare("
+                INSERT INTO knowledge_test_approvals (user_id, approval_status, approved_at)
+                VALUES (?, 'approved', NOW())
+                ON DUPLICATE KEY UPDATE approval_status = 'approved', approved_at = NOW(), declined_reason = NULL
+            ")->execute([$user['id']]);
+
+            sendTemplateEmail(2, $user);
+            $congratulationsAwarded = true;
+        }
+
+        // DECLINE — only first time
+        else if ($user['user_credit'] == 0 && $verifiedReferrals >= 5 && $hasAnySecondLevelChild) {
+
+            $pdo->prepare("UPDATE waitlist_users SET user_credit = -1 WHERE id = ?")
+                ->execute([$user['id']]);
+
+            $pdo->prepare("
+                INSERT INTO knowledge_test_approvals (user_id, approval_status, declined_reason)
+                VALUES (?, 'declined', 'User has no second-level referrals')
+                ON DUPLICATE KEY UPDATE approval_status = 'declined', declined_reason = 'User has no second-level referrals', approved_at = NULL
+            ")->execute([$user['id']]);
+
+            sendTemplateEmail(24, $user);
+
+            $congratulationsAwarded = false;
+        } else {
+            // Do nothing, wait for more referrals
+            $congratulationsAwarded = false;
+        }
+    }
+
 }
+
 
 // Generate referral link
 if ($user) {
@@ -179,7 +304,7 @@ if ($user) {
     $progressPercentage = min(($credits / $goalCredits) * 100, 100);
 
     // Dynamic pricing for checkout
-    $checkoutPrice = 59;
+    $checkoutPrice = 36;
 
     $_SESSION['checkout_price'] = $checkoutPrice;
 }
@@ -196,7 +321,7 @@ if ($user) {
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Funding4x User Dashboard – Get Funded Account for Free</title>
+    <title>Fnding4x User Dashboard – Get Funded Account for Free</title>
     <meta name="description" content="Access your Funding4x account dashboard. Track your trial, evaluations, and funded trading progress.">
     <meta name="keywords" content="Funding4x dashboard, funded account dashboard, trading progress, prop firm account">
 
@@ -414,7 +539,39 @@ if ($user) {
     <?php endif; ?>
 
 
-   
+    <!-- Knowledge Quiz Modal (Green) -->
+    <?php if ($user && empty($user['quiz_result']) && !$showEmailModal && !$showPasswordModal && !$showPasswordSetupModal): ?>
+    <div id="quiz-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4" style="display: none;">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full border-t-4 border-green-500 relative">
+            <!-- Close Button -->
+            <button onclick="closeQuizModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition duration-200">
+                <i class="fas fa-times text-2xl"></i>
+            </button>
+            
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-graduation-cap text-3xl text-green-600"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-green-600 mb-4">Knowledge Quiz</h2>
+                <p class="text-gray-700 text-lg leading-relaxed">
+                    <strong><?php echo htmlspecialchars($user['name']); ?></strong>, We want to make sure you are a Real Forex Trader. You <span class="text-red-600 font-bold">NEED</span> to do a quick Knowledge Quiz. It will only take 2 minutes.
+                </p>
+            </div>
+            
+            <div class="flex justify-center">
+                <a href="quiz.php" 
+                   class="bg-green-500 hover:bg-green-600 text-white font-bold py-4 px-8 rounded-lg transition duration-300 shadow-lg text-lg flex items-center space-x-2">
+                    <i class="fas fa-play-circle"></i>
+                    <span>Go to Quiz</span>
+                </a>
+            </div>
+            
+            <p class="text-xs text-gray-500 mt-6 text-center">
+                This helps us verify you're a genuine forex trader
+            </p>
+        </div>
+    </div>
+    <?php endif; ?>
 
     <!-- Main Dashboard Content (only show if user is authenticated) -->
     <?php if ($user): ?>
@@ -430,7 +587,7 @@ if ($user) {
                 <div class="flex items-center space-x-3">
                     <img src="assets/logo.png" class="h-10 w-10 rounded-lg" alt="Logo">
                     <h1 class="text-xl font-extrabold tracking-tight text-trophy-gold">
-                        MY DASHBOARD
+                        REFERRAL DASHBOARD
                     </h1>
                 </div>
 
@@ -458,7 +615,7 @@ if ($user) {
                 <!-- DESKTOP MENU -->
                 <ul class="hidden md:flex justify-center space-x-10 py-3">
                     <li>
-                        <a href="my_dashboard.php" 
+                        <a href="referral_dashboard.php" 
                         class="text-sm hover:text-trophy-gold transition font-medium">
                         Dashboard
                         </a>
@@ -482,7 +639,7 @@ if ($user) {
                     class="md:hidden hidden flex-col py-3 space-y-2 bg-gradient-to-br from-primary-purple via-purple-900 to-header-dark border-t border-white/10 rounded-b-xl">
                     
                     <li>
-                        <a href="my_dashboard.php" 
+                        <a href="referral_dashboard.php" 
                         class="block py-2 px-4 hover:bg-white/10 rounded-lg">
                         Dashboard
                         </a>
@@ -510,12 +667,8 @@ if ($user) {
     <section id="dashboard" class="py-16 sm:py-24 bg-primary-purple text-white">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <span class="text-trophy-gold text-sm font-semibold uppercase tracking-widest block mb-4">
-                 <?php echo htmlspecialchars($user['name']); ?>, Welcome to Funding4x!
+                 <?php echo htmlspecialchars($user['name']); ?>, Welcome to Funded4x!
             </span>
-            <h2 class="text-4xl sm:text-6xl font-extrabold tracking-tighter leading-tight mb-4">
-                MY DASHBOARD
-            </h2>
-            
             <!-- Telegram Button -->
             <div class="flex justify-center mt-6">
                 <a href="https://t.me/funding4x" target="_blank" rel="noopener noreferrer"
@@ -532,8 +685,20 @@ if ($user) {
             <script src="https://apis.google.com/js/platform.js"></script>
 
             <div class="g-ytsubscribe" data-channelid="UCkosETo_p1wOaAx2g2B0jLA" data-layout="full" data-count="hidden"></div>
+            <br /><br />
+            <span class="text-trophy-gold text-sm font-semibold uppercase tracking-widest block mb-4">The Ultimate Partner Program</span>
+            <h2 class="text-4xl sm:text-6xl font-extrabold tracking-tighter leading-tight mb-4">
+                5 Referrals = <span class="text-trophy-gold">$5,000</span> Funded Account
+            </h2>
             
-            </div>
+            <p class="mt-4 text-xl text-gray-200">
+            <strong>(After Passing Trading Tests)</strong>
+            <br /><br />
+                Invite other Forex Traders to join as your Referral by Sharing your Referral Link with them.
+               
+                
+            </p>
+        </div>
     </section>
     
     <br />
@@ -595,20 +760,10 @@ if ($user) {
                         
                         <button onclick="window.location.href='checkout.php'" class="bg-trophy-gold p-4 rounded-xl shadow-lg border-b-4 border-yellow-700 cursor-pointer">
                             <p class="font-bold text-lg mb-1">Buy Now - 38% Off</p>
-                            <p class="text-sm"><del>Normally $<?php echo $checkoutPrice; ?></del>, now only $36 for First Comers</p>
+                            <p class="text-sm"><del>Normally $59</del>, now only $<?php echo $checkoutPrice; ?> for First Comers</p>
                         </button>
-                        
-                        <br /><br />
-                         <p class="text-sm">We take Crypto Currency Payment</p>
-                        <div style=" width:25%; display: flex; justify-content: center; alignment-adjust:central; text-align:center;"><img src="assets/pay-with-crypto.png" alt="pay for prop challenge with cryptocurrency" ></div>
                     </div>
-                    
-                    
                 </div>
-                
-                
-            
-            
             </div>
 
             <!-- Referral Link Content - col-8 on medium+ screens, full width on mobile -->
@@ -619,10 +774,12 @@ if ($user) {
                         <!-- Referral Link and Credit Tracker Box -->
                         <div id="referrals" class="bg-white p-8 sm:p-12 rounded-2xl shadow-xl border-t-4 border-trophy-gold mb-8">
                             <!-- Referral Link -->
-                            <h3 class="text-2xl font-bold text-primary-purple mb-2">Earn $2 for Every Forex Trader you Invite</h3>
+                            <h3 class="text-2xl font-bold text-primary-purple mb-2">Your Unique Referral Link</h3>
                             <p class="text-gray-600 text-sm mb-2">
                             
-                                Share the Opportunity with other Forex Traders who would love to get a $5,000 Funded Acccount. and <strong>everytime someone will Start Trading Test 1 </strong>- we will give you $2. 
+                                Refer 5 other Forex Traders and get FREE ENTRY to The Trader Programme 
+                                (<del class="text-red-600">normally $59</del>),
+                                FREE with 5 real Referrals
                             </p>
                             <div class="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3 mb-8">
                                 <input type="text" id="referral-link" value="<?php echo htmlspecialchars($referralLink); ?>" readonly 
@@ -704,7 +861,32 @@ if ($user) {
                                         </span>
                                     </div>
                                 </div>
-                               
+                                <p class="text-sm text-gray-600 mt-3 text-center">
+                                    <?php if ($congratulationsAwarded || $user['user_credit'] > 0): ?>
+                                        <div class="bg-white p-8 rounded-2xl shadow-2xl border-2 border-primary-purple h-fit lg:sticky lg:top-24">
+                                            <h2 class="text-2xl font-bold text-primary-purple mb-2">Congratulations! 1 Free Trading Test Unlocked<del class="text-red-600"> (no need to pay $59)</del></h2>
+                                            <p class="text-sm text-gray-600 mb-6">
+                                                You've earned a Free Trading Test for the $5,000 Funded Account!
+                                            
+                                            <br /><br />
+                                        Thank for referring other Forex Traders. To stay up to date with the Next Steps, go ahead and join the telegram group where we will give live updates.
+                                            
+                                            <br /><br />                    
+                                            <strong>You can also keep inviting more people to get more Credits.
+                                            More credits = More free Trading Tests for you.</strong>
+                                            <br />                    
+                                            Thank you for being patient with us.</p>
+                        
+                                            <!-- Success/Error Message Box -->
+                                            <div id="message-box" class="mt-4 p-4 rounded-lg text-sm text-center hidden font-medium"></div>
+                        
+                                        </div>
+                                        
+                                        
+                                    <?php else: ?>
+                                        You are <strong><?php echo ($goalCredits - $credits); ?></strong> successful referral(s) away from the $5,000 Funded Account Phase 1!
+                                    <?php endif; ?>
+                                </p>
                             </div>
 
                             <!-- Pie Chart Section -->
@@ -878,7 +1060,7 @@ if ($user) {
                             <?php endif; ?>
 
                             <p class="mt-6 text-sm text-gray-600 italic border-t pt-4">
-                                <strong>Status Definition:</strong> Each successful referral who registers using your link and verifies their email and STARTS the Trading Test 1, will earn you **1 Credit**. Every credit will be exchanged for $2.
+                                <strong>Status Definition:</strong> Each successful referral who registers using your link and verifies their email earns you **1 Credit**. Once you reach 5 credits, you'll get a FREE Entry to the Test for a $5,000 Funded Account!
                             </p>
                         </div>
                     </div>
@@ -893,7 +1075,7 @@ if ($user) {
     <section class="py-16 sm:py-24 bg-bg-light">
         <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
             <h2 class="text-4xl font-extrabold text-center text-gray-900 mb-12">
-                It's Simple: Earn by Sharing
+                It's Simple: Get Funded by Sharing
             </h2>
             <div class="grid md:grid-cols-3 gap-8 text-center">
                 <!-- Step 1 -->
@@ -910,7 +1092,7 @@ if ($user) {
                     <div class="text-4xl font-extrabold text-trophy-gold mb-3">2</div>
                     <h3 class="text-xl font-bold text-gray-800 mb-3">They Join & Verify</h3>
                     <p class="text-gray-600">
-                        When a new trader registers and verifies their email and Starts Trading Test 1, using your link, you instantly earn **1 Credit**.
+                        When a new trader registers and verifies their email using your link, you instantly earn **1 Credit**.
                     </p>
                 </div>
 
@@ -919,18 +1101,78 @@ if ($user) {
                     <div class="text-4xl font-extrabold text-fomo-red mb-3">3</div>
                     <h3 class="text-xl font-bold text-gray-800 mb-3">Claim Your Prize!</h3>
                     <p class="text-gray-600">
-                        Reach **5 Credits** and we'll give your Payout of $10 ($2 x 5 referral)!
+                        Reach **5 Credits** and we'll give you a FREE Entry for the Test for a $5,000 Funded Account, No Test Fees needed!
                     </p>
                 </div>
             </div>
             
-           
+            <div class="text-center mt-12">
+                <a href="#rules" class="text-primary-purple font-semibold hover:text-trophy-gold transition">View detailed referral terms and conditions →</a>
+            </div>
         </div>
     </section>
 
     <!-- FAQ / Rules -->
     <section id="rules" class="py-16 bg-primary-purple text-white">
-    
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="text-4xl font-extrabold text-center text-white mb-10">
+                Referral FAQs
+            </h2>
+            <div class="space-y-6">
+                <!-- FAQ Item 1 -->
+                <div class="bg-header-dark p-6 rounded-xl shadow-lg">
+                    <h4 class="text-xl font-bold text-trophy-gold mb-2">What qualifies as a successful referral?</h4>
+                    <p class="text-gray-300">
+                        A successful referral is a user who clicks your unique link, completes registration, and verifies their email address. <strong>Only verified referrals earn you credits.</strong>
+                    </p>
+                </div>
+                <!-- FAQ Item 2 -->
+                <div class="bg-header-dark p-6 rounded-xl shadow-lg">
+                    <h4 class="text-xl font-bold text-trophy-gold mb-2">Do my credits expire?</h4>
+                    <p class="text-gray-300">
+                        No, your earned credits are yours to keep. You can earn as many Credits as you want by Referring as many people as you like. Credits are only awarded for verified referrals.
+                    </p>
+                </div>
+                <!-- FAQ Item 3 -->
+                <div class="bg-header-dark p-6 rounded-xl shadow-lg">
+                    <h4 class="text-xl font-bold text-trophy-gold mb-2">What happens to pending referrals?</h4>
+                    <p class="text-gray-300">
+                        Pending referrals haven't verified their email yet. They can still verify later and will then count towards your credits. We track both completed and pending referrals for your transparency.
+                    </p>
+                </div>
+                <!-- FAQ Item 4 -->
+                <div class="bg-header-dark p-6 rounded-xl shadow-lg">
+                    <h4 class="text-xl font-bold text-trophy-gold mb-2">If I have 10 referral credits, will I have 2 trials accounts at once?</h4>
+                    <p class="text-gray-300">
+                                        
+                    With 10 verified referrals you get 2 tests for Free. Normally that would cost $118, which you don’t need to pay.<br />
+
+                    You will get ONE account first, which you must use for your Trading Test. <br />
+                    If you fail the test you can use your credits to do it again for Free. <br />
+                    
+                    If you Pass, in that case you can use the credits for a New Second Account.<br />
+                    
+                    We won’t be giving multiple accounts unless they are Passed accounts, because we need to ensure it is always capable traders that are getting the Account, afterall we don’t want to lose our Real Money.
+                    
+                    </p>
+                </div>
+                
+                <!-- FAQ Item 5 -->
+                <div class="bg-header-dark p-6 rounded-xl shadow-lg">
+                    <h4 class="text-xl font-bold text-trophy-gold mb-2">Is there any Benefit to Accumulate More than 5 Referral Credits?</h4>
+                    <p class="text-gray-300">
+                                        
+                    Yes there is actually... you will get more chances to Pass the Trading Test... for FREE.<br />
+                    if you have 5/5 referrals means you can get 1 Free Entry for the Trading Test (no need $59 payment)<br />
+                    if you have 10/5 means you get 2 Free Entries for the Trading Test so you saved ($118)... and so on....<br />
+                    You can have unlimited Free Entry for Trading Tests.<br />
+                    
+                    So you can collect as many credits as you like by doing referrals of real people who are also forex traders, to give you more chances for passing the trading test. 
+                    </p>
+                </div>
+                
+            </div>
+        </div>
     </section>
 
     <!-- Footer -->
@@ -1354,18 +1596,83 @@ if ($user) {
 
     </script>
     <script>
+
+        
         const USER_EMAIL_VERIFIED = <?php echo ($user && $user['email_verified'] == 1) ? 'true' : 'false'; ?>;
         const USER_QUIZ_COMPLETED = <?php echo ($user && !empty($user['quiz_result'])) ? 'true' : 'false'; ?>;
         const USER_KNOWLEDGE_TEST_COMPLETED = <?php echo ($user && !empty($user['knowledge_test_result'])) ? 'true' : 'false'; ?>;
         const USERCREDIT = <?php echo ($user && !empty($user['user_credit'])) ? 'true' : 'false'; ?>;
         const USER_MT5_DETAILS_STATUS = <?php echo ($mt5_details && isset($mt5_details['status'])) ? '"' . $mt5_details['status'] . '"' : 'null'; ?>;
         
+        <?php
+            $testStatus = $mt5_details['status'] ?? null;
+
+            $badgeHtml = '';
+
+            if ($testStatus) {
+                $color = match ($testStatus) {
+                    'pass'         => '#28a745',
+                    'fail'         => '#dc3545',
+                    'running'      => '#0d6efd',
+                    'under_review' => '#6f42c1',
+                    default        => '#ffc107', // pending
+                };
+
+                $label = strtoupper(str_replace('_', ' ', $testStatus));
+
+                $badgeHtml = "<span style='
+                    background: {$color};
+                    color: white;
+                    padding: 3px 8px;
+                    font-size: 12px;
+                    border-radius: 5px;
+                    margin-left: 10px;
+                '>{$label}</span>";
+            }
+        
+            $testStatus2 = $mt5_details_second['status'] ?? null;
+
+            $badgeHtml2 = '';
+
+            if ($testStatus2) {
+                $color2 = match ($testStatus2) {
+                    'pass'         => '#28a745',
+                    'fail'         => '#dc3545',
+                    'running'      => '#0d6efd',
+                    'under_review' => '#6f42c1',
+                    default        => '#ffc107', // pending
+                };
+
+                $label2 = strtoupper(str_replace('_', ' ', $testStatus2));
+
+                $badgeHtml2 = "<span style='
+                    background: {$color2};
+                    color: white;
+                    padding: 3px 8px;
+                    font-size: 12px;
+                    border-radius: 5px;
+                    margin-left: 10px;
+                '>{$label2}</span>";
+            }
+        ?>
+
         const topics = [
             { id: 1, name: "1. Verify your Email Address", isCompleted: <?php echo ($user && $user['email_verified'] == 1) ? 'true' : 'false'; ?> },
+            { id: 2, name: "2. Refer 5 Forex Traders (optional)", isCompleted: <?php echo ($user && $verifiedReferrals >= 5) ? 'true' : 'false'; ?> },
             { id: 3, name: "3. Complete the Knowledge Check", redirectTo: "knowledge-test.php", isCompleted: <?php echo ($user && !empty($user['knowledge_test_result'])) ? 'true' : 'false'; ?> },
-            { id: 4, name: "3. Pass the Trading Test 1", redirectTo: "rule.php?REF=broker1", isCompleted: false },
-            { id: 5, name: "4. Pass the Trading Test 2", redirectTo: "rule.php?REF=broker2", isCompleted: false },
-            { id: 6, name: "5. Get your $5000 Funded Account", isCompleted: false }
+            {
+                id: 4,
+                name: `4. Pass the Trading Test 1 <?php echo $badgeHtml; ?>`,
+                redirectTo: "rule.php?REF=broker1",
+                isCompleted: <?php echo ($user && !empty($mt5_details['status'])) ? 'true' : 'false'; ?>
+            },
+            { 
+                id: 5, 
+                name: `5. Pass the Trading Test 2 <?php echo $badgeHtml2; ?>`, 
+                redirectTo: "rule.php?REF=broker2", 
+                isCompleted: <?php echo ($user && !empty($mt5_details_second['status'])) ? 'true' : 'false'; ?> 
+            },
+            { id: 6, name: "6. Get your $5000 Funded Account", isCompleted: false }
         ];
 
         const checklistContainer = document.getElementById('topic-checklist');
@@ -1433,7 +1740,7 @@ if ($user) {
                 if(!USER_KNOWLEDGE_TEST_COMPLETED || !USERCREDIT){
                     showDynamicModal(
                         "Not Ready Yet",
-                        "It seems you don't have any Credit Yet. Please click the Buy button to purchase a Trading Test. Thank You. <br /><br /> If you have already paid for a Trading Test please Chat on Website Help to resolve this. <br /><br />",
+                        "We will Review your account and update it SOON. Please check regularly daily. Thank You. <br /><br /> Make sure you have completed the Knowledge Check AND that you have Test Credit. <br /><br /><strong>To get Trading Test Credit</strong> you must have 5 completed Referral or you can <strong>Buy a Trading Test</strong>",
                         "red-600"
                     );
                     return;
@@ -1458,8 +1765,8 @@ if ($user) {
 
             // Other IDs (Disabled)
             showDynamicModal(
-                "To Get Funded",
-                "You must Pass the Trading Test 2 to Unlock this. Thank You.",
+                "Upcoming...",
+                "This feature is not ready yet. We will inform you in the Telegram group when it's ready.",
                 "primary-purple"
             );
         }
