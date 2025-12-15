@@ -1,61 +1,52 @@
+-- ============================
+-- Table: waitlist_users
+-- ============================
+
 CREATE TABLE waitlist_users (
     id INT AUTO_INCREMENT PRIMARY KEY,
+
+    -- Basic user info
     name VARCHAR(100) NOT NULL,
     email VARCHAR(150) NOT NULL UNIQUE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    country VARCHAR(100) DEFAULT NULL,
+    password VARCHAR(255) DEFAULT NULL,
+
+    -- Meta
+    user_ip VARCHAR(50) DEFAULT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    -- Referral system
+    referral_code VARCHAR(20) UNIQUE DEFAULT NULL,
+    parent_user_id INT DEFAULT NULL,
+    credits INT DEFAULT 0,
+
+    -- Email verification
+    email_verified TINYINT(1) DEFAULT 0,
+    verification_token VARCHAR(255) DEFAULT NULL,
+    verification_token_expires TIMESTAMP NULL,
+    referral_dashboard_mail_sent TINYINT(1) DEFAULT 0,
+
+    -- User status
+    status ENUM('active', 'inactive') DEFAULT 'active',
+
+    -- Test & quiz data
+    quiz_result JSON DEFAULT NULL,
+    knowledge_test_result JSON DEFAULT NULL,
+
+    -- Credit system
+    user_credit INT DEFAULT 0,
+    manual_credit_update TINYINT(1) DEFAULT 0,
+    credit_updated_at TIMESTAMP NULL,
+
+    -- Payment flags
+    paid_user TINYINT(1) DEFAULT 0,
+    discount_taken TINYINT(1) DEFAULT 0
 );
 
-ALTER TABLE waitlist_users
-ADD COLUMN country VARCHAR(100) NULL DEFAULT NULL
-AFTER email;
-ALTER TABLE waitlist_users ADD COLUMN password VARCHAR(255) NULL AFTER country;
+-- ============================
+-- Indexes
+-- ============================
 
-ALTER TABLE waitlist_users 
-ADD COLUMN user_ip VARCHAR(50) NULL AFTER password;
-
--- Add referral system columns
-ALTER TABLE waitlist_users
-ADD COLUMN referral_code VARCHAR(20) UNIQUE AFTER user_ip;
-ALTER TABLE waitlist_users
-ADD COLUMN parent_user_id INT NULL AFTER referral_code;
-ALTER TABLE waitlist_users
-ADD COLUMN credits INT DEFAULT 0 AFTER parent_user_id;
-
--- Create index for performance
 CREATE INDEX idx_referral_code ON waitlist_users(referral_code);
 CREATE INDEX idx_parent_user ON waitlist_users(parent_user_id);
-
--- Add email verification columns
-ALTER TABLE waitlist_users
-ADD COLUMN email_verified TINYINT(1) DEFAULT 0 AFTER credits;
-ALTER TABLE waitlist_users
-ADD COLUMN verification_token VARCHAR(255) NULL AFTER email_verified;
-ALTER TABLE waitlist_users
-ADD COLUMN verification_token_expires TIMESTAMP NULL AFTER verification_token;
-
 CREATE INDEX idx_verification_token ON waitlist_users(verification_token);
-
-ALTER TABLE waitlist_users 
-ADD COLUMN referral_dashboard_mail_sent TINYINT(1) DEFAULT 0 AFTER verification_token_expires;
-
-ALTER TABLE waitlist_users
-ADD COLUMN status ENUM('active', 'inactive') DEFAULT 'active'
-AFTER referral_dashboard_mail_sent;
-
-ALTER TABLE waitlist_users
-ADD COLUMN quiz_result JSON NULL AFTER status;
-
-ALTER TABLE waitlist_users
-ADD COLUMN knowledge_test_result JSON NULL AFTER quiz_result;
-
-ALTER TABLE waitlist_users
-ADD COLUMN user_credit INT DEFAULT 0 AFTER knowledge_test_result;
-
-ALTER TABLE waitlist_users
-ADD COLUMN credit_updated_at TIMESTAMP NULL AFTER user_credit;
-
-ALTER TABLE waitlist_users
-ADD COLUMN paid_user TINYINT(1) DEFAULT 0 AFTER credit_updated_at;
-
-ALTER TABLE waitlist_users
-ADD COLUMN discount_taken TINYINT(1) DEFAULT 0 AFTER paid_user;
