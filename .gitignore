@@ -39,3 +39,4 @@ temp/
 # System folders for uploads (prevent accidental push)
 uploads/
 backups/
+admin/testResults/

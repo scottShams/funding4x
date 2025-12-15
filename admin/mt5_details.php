@@ -483,7 +483,7 @@
                         </div>
                     </div>
                     <div class="mb-3">
-                        <label for="failFile" class="form-label">Attach a file (optional - PDF, DOC, DOCX, JPG, PNG, CSV, XLS, XLSX):</label>
+                        <label for="failFile" class="form-label">Attach a file (required - PDF, DOC, DOCX, JPG, PNG, CSV, XLS, XLSX):</label>
                         <input type="file" class="form-control" id="failFile" name="failFile" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.csv,.xls,.xlsx">
                         <small class="form-text text-muted">Max file size: 5MB</small>
                     </div>
@@ -782,6 +782,20 @@
             $('.fail-reason:checked').each(function() {
                 checkedReasons.push($(this).val());
             });
+            // Add file if selected
+            const fileInput = document.getElementById('failFile');
+            
+            // File is required
+            if (fileInput.files.length === 0) {
+                Swal.fire({
+                    title: 'No file selected',
+                    text: 'Please upload a file before marking the user as Fail.',
+                    icon: 'warning',
+                    confirmButtonText: 'OK'
+                });
+                return;
+            }
+
             if (checkedReasons.length === 0) {
                 Swal.fire({
                     title: 'No reasons selected',
@@ -813,8 +827,6 @@
                 formData.append('fail_reasons[]', reason);
             });
 
-            // Add file if selected
-            const fileInput = document.getElementById('failFile');
             if (fileInput.files.length > 0) {
                 formData.append('failFile', fileInput.files[0]);
             }
