@@ -29,8 +29,8 @@
             $userStmt->execute([$mt5Id]);
             $userData = $userStmt->fetch(PDO::FETCH_ASSOC);
             if ($userData) {
-                // Reset user_credit to 0
-                $creditStmt = $pdo->prepare("UPDATE waitlist_users SET user_credit = 0, credit_updated_at = NOW() WHERE id = ?");
+                // Reset user_credit to 0 and mark as manual update
+                $creditStmt = $pdo->prepare("UPDATE waitlist_users SET user_credit = 0, manual_credit_update = 1, credit_updated_at = NOW() WHERE id = ?");
                 $creditStmt->execute([$userData['user_id']]);
             }
         }
@@ -134,8 +134,8 @@
 
         $userId = (int)$_POST['user_id'];
 
-        // Increment user_credit by 1
-        $stmt = $pdo->prepare("UPDATE waitlist_users SET user_credit = user_credit + 1, credit_updated_at = NOW() WHERE id = ?");
+        // Increment user_credit by 1 and mark as manual update
+        $stmt = $pdo->prepare("UPDATE waitlist_users SET user_credit = user_credit + 1, manual_credit_update = 1, credit_updated_at = NOW() WHERE id = ?");
         $success = $stmt->execute([$userId]);
 
         if ($success) {
@@ -156,8 +156,8 @@
 
         $userId = (int)$_POST['user_id'];
 
-        // Decrement user_credit by 1, but not below 0
-        $stmt = $pdo->prepare("UPDATE waitlist_users SET user_credit = GREATEST(0, user_credit - 1), credit_updated_at = NOW() WHERE id = ?");
+        // Decrement user_credit by 1, but not below 0 and mark as manual update
+        $stmt = $pdo->prepare("UPDATE waitlist_users SET user_credit = GREATEST(0, user_credit - 1), manual_credit_update = 1, credit_updated_at = NOW() WHERE id = ?");
         $success = $stmt->execute([$userId]);
 
         if ($success) {
