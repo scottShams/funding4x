@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS payments (
     payment_method ENUM('crypto', 'credit_card') NOT NULL,
     amount DECIMAL(10,2) NOT NULL,
     currency VARCHAR(10) DEFAULT 'USD',
-    status ENUM('pending', 'completed', 'failed', 'cancelled') DEFAULT 'pending',
+    status ENUM('pending', 'completed', 'refund', 'failed', 'cancelled') DEFAULT 'pending',
 
     -- Crypto payment fields
     crypto_type VARCHAR(20), -- e.g., 'USDC', 'BTC', 'ETH'

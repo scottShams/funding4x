@@ -6,6 +6,18 @@ require_once '../database.php';
 // Get database connection
 $pdo = getPDO();
 
+// Get payment status counts
+$paymentStats = $pdo->query("
+    SELECT
+        SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) AS pending_count,
+        SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) AS completed_count,
+        SUM(CASE WHEN status = 'refund' THEN 1 ELSE 0 END) AS refund_count,
+        SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) AS failed_count,
+        SUM(CASE WHEN status = 'cancelled' THEN 1 ELSE 0 END) AS cancelled_count,
+        COUNT(*) AS total_count
+    FROM payments
+")->fetch(PDO::FETCH_ASSOC);
+
 // Handle add credit action
 if (isset($_POST['action']) && $_POST['action'] === 'add_credit') {
     header('Content-Type: application/json');
@@ -148,7 +160,6 @@ $query = "
         wu.user_credit
     FROM payments p
     LEFT JOIN waitlist_users wu ON p.user_id = wu.id
-    WHERE p.status = 'completed'
     ORDER BY p.created_at DESC
 ";
 
@@ -171,6 +182,46 @@ ob_start();
     </div>
 </div>
 
+<!-- Payment Status Cards -->
+<div class="row mb-4">
+    <div class="col-md-3 col-sm-6">
+        <div class="card text-white bg-warning mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Pending</h5>
+                <h2><?php echo $paymentStats['pending_count'] ?? 0; ?></h2>
+                <small>Waiting for processing</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="card text-white bg-success mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Completed</h5>
+                <h2><?php echo $paymentStats['completed_count'] ?? 0; ?></h2>
+                <small>Successfully processed</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="card text-white bg-info mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Refund</h5>
+                <h2><?php echo $paymentStats['refund_count'] ?? 0; ?></h2>
+                <small>Refunded to user</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="card text-white bg-danger mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Failed</h5>
+                <h2><?php echo $paymentStats['failed_count'] ?? 0; ?></h2>
+                <small>Payment failed</small>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="card">
     <div class="card-body">
         <div class="table-responsive">
@@ -183,6 +234,7 @@ ob_start();
                         <th>User Credits</th>
                         <th>Amount</th>
                         <th>Transaction Hash</th>
+                        <th>Payment Status</th>
                         <th>Payment Method</th>
                         <th>Payment Date</th>
                         <th>Actions</th>
@@ -219,6 +271,27 @@ ob_start();
                             } else {
                                 echo '<span class="badge bg-secondary">' . htmlspecialchars($payment['payment_method']) . '</span>';
                             }
+                            ?>
+                        </td>
+                        <td>
+                            <?php
+                            $status = $payment['status'];
+                            $badgeClass = 'bg-warning';
+                            $statusText = 'Pending';
+                            if ($status === 'completed') {
+                                $badgeClass = 'bg-success';
+                                $statusText = 'Completed';
+                            } elseif ($status === 'refund') {
+                                $badgeClass = 'bg-info';
+                                $statusText = 'Refund';
+                            } elseif ($status === 'failed') {
+                                $badgeClass = 'bg-danger';
+                                $statusText = 'Failed';
+                            } elseif ($status === 'cancelled') {
+                                $badgeClass = 'bg-secondary';
+                                $statusText = 'Cancelled';
+                            }
+                            echo "<span class='badge $badgeClass'>$statusText</span>";
                             ?>
                         </td>
                         <td><?php echo date('M d, Y H:i', strtotime($payment['payment_date'])); ?></td>
