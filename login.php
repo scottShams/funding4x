@@ -3,6 +3,11 @@
 
     // Check if user is already logged in
     if (isset($_SESSION['user_id']) || isset($_SESSION['user_email'])) {
+        // If user has an active checkout price, send them to checkout instead
+        if (isset($_COOKIE['checkout_price'])) {
+            header('Location: checkout.php');
+            exit;
+        }
         header('Location: referral_dashboard.php');
         exit;
     }
@@ -10,6 +15,18 @@
     // Set paid user cookie if coming from pricing page
     if (isset($_GET['paid']) && $_GET['paid'] == '1') {
         setcookie('paid_user', '1', time() + (1 * 24 * 60 * 60), '/'); // 1 days
+    }
+
+    // If price is provided in the URL (pricing CTA), set checkout_price cookie (sanitized)
+    if (isset($_GET['price'])) {
+        $priceRaw = $_GET['price'];
+        // Allow only numbers and dot, cast to float
+        $price = floatval(preg_replace('/[^0-9\.]/', '', $priceRaw));
+        if ($price > 0) {
+            setcookie('checkout_price', $price, time() + (24 * 60 * 60), '/'); // 1 day
+            // also restore into session for immediate usage
+            $_SESSION['checkout_price'] = $price;
+        }
     }
 
     // Load environment variables
@@ -132,7 +149,7 @@
                 </form>
 
                 <p class="text-center text-sm text-gray-500 mt-6">
-                    Don't have an account? <a href="signup.php" class="text-primary-purple hover:text-secondary-purple underline">Sign up here</a>
+                    Don't have an account? <a href="signup.php<?php echo isset($_GET['price']) ? '?price=' . urlencode($_GET['price']) : ''; ?>" class="text-primary-purple hover:text-secondary-purple underline">Sign up here</a>
                 </p>
 
                 <p class="text-center text-sm text-gray-500 mt-2">

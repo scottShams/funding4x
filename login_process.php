@@ -60,12 +60,17 @@ try {
     if (isset($user['paid_user']) && (int)$user['paid_user'] === 1) {
         $redirect = 'my_dashboard.php';
     } else {
-        $redirect = isset($_COOKIE['checkout_price']) ? 'checkout.php' : 'referral_dashboard.php';
+        // If there's an active checkout price, force checkout redirect to prioritize purchase flow
+        if (isset($_COOKIE['checkout_price'])) {
+            $redirect = 'checkout.php';
+        } else {
+            $redirect = 'referral_dashboard.php';
+        }
     }
 
     // If an intended URL was stored (e.g., user arrived at a page with REF and was sent to login),
-    // prefer redirecting back there. Only accept relative paths beginning with '/'.
-    if (!empty($_COOKIE['intended_url'])) {
+    // prefer redirecting back there only when the checkout flow is NOT active.
+    if (empty($_COOKIE['checkout_price']) && !empty($_COOKIE['intended_url'])) {
         $intended = $_COOKIE['intended_url'];
         if (is_string($intended) && strpos($intended, '/') === 0 && strpos($intended, "\n") === false && strpos($intended, "\r") === false) {
             $redirect = $intended;

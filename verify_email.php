@@ -24,15 +24,18 @@ if (empty($token)) {
         if ($user === false) {
             $error = "Invalid or expired verification token. Please request a new verification email.";
         } elseif ($user['email_verified']) {
-            // Already verified - redirect to dashboard
-            $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http';
-            $host = $_SERVER['HTTP_HOST'];
-            
+            // Already verified - redirect to dashboard or checkout if came from pricing
             // Get user's referral code
             $stmt = $pdo->prepare("SELECT referral_code FROM waitlist_users WHERE id = ?");
             $stmt->execute([$user['id']]);
             $userData = $stmt->fetch();
             
+            // If checkout cookie exists (user came from pricing CTA), send them to checkout
+            if (isset($_COOKIE['checkout_price'])) {
+                header('Location: checkout.php');
+                exit;
+            }
+
             if ($userData) {
                 header("Location: referral_dashboard.php?user=" . urlencode($userData['referral_code']));
                 exit;
@@ -50,6 +53,12 @@ if (empty($token)) {
             $stmt->execute([$user['id']]);
             $userData = $stmt->fetch();
             $referralCode = $userData['referral_code'] ?? '';
+
+            // If checkout cookie exists (user came from pricing CTA), redirect them to checkout
+            if (isset($_COOKIE['checkout_price'])) {
+                header('Location: checkout.php');
+                exit;
+            }
         }
         
     } catch (Exception $e) {
@@ -136,10 +145,10 @@ if (empty($token)) {
             window.location.href = 'referral_dashboard.php?user=<?php echo urlencode($referralCode); ?>';
         });
         
-        // Auto-redirect after 5 seconds
+        // Auto-redirect after 2 seconds
         setTimeout(function() {
             window.location.href = 'referral_dashboard.php?user=<?php echo urlencode($referralCode); ?>';
-        }, 10000);
+        }, 2000);
     </script>
 
 <?php else: ?>

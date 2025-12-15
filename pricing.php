@@ -230,9 +230,30 @@
                     </ul>
 
                     <!-- CTA Button -->
-                    <a href="login.php?paid=1" class="w-full py-3 bg-primary-purple text-card-white font-extrabold text-lg rounded-lg shadow-lg hover:bg-secondary-purple transition duration-300 text-center block">
+                    <?php $discounted_price = 36.58; ?>
+                    <a id="pricing-paid-cta" href="login.php?paid=1&price=<?php echo urlencode($discounted_price); ?>" class="w-full py-3 bg-primary-purple text-card-white font-extrabold text-lg rounded-lg shadow-lg hover:bg-secondary-purple transition duration-300 text-center block">
                         Get My Account Now 
                     </a>
+
+                    <script>
+                        // Ensure we set the checkout cookie when the user clicks the paid CTA.
+                        (function(){
+                            const btn = document.getElementById('pricing-paid-cta');
+                            if (!btn) return;
+                            btn.addEventListener('click', function () {
+                                try {
+                                    const price = '<?php echo $discounted_price; ?>';
+                                    const expires = new Date(Date.now() + (24 * 60 * 60 * 1000)); // 1 day
+                                    document.cookie = `checkout_price=${price}; path=/; expires=${expires.toUTCString()}`;
+                                    // Also set a short-lived flag to indicate this came from pricing CTA
+                                    const flagExpires = new Date(Date.now() + (60 * 60 * 1000)); // 1 hour
+                                    document.cookie = `checkout_from_pricing=1; path=/; expires=${flagExpires.toUTCString()}`;
+                                } catch (e) {
+                                    // fail silently – server will also set cookie from URL param
+                                }
+                            });
+                        })();
+                    </script>
 
                 </div>
 

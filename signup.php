@@ -15,6 +15,16 @@
 
     // Get referral code from session or cookie
     $referralCode = $_SESSION['referral_code'] ?? $_COOKIE['referral_code'] ?? '';
+
+    // If price is provided in the URL (coming from pricing CTA), set checkout_price cookie (sanitized)
+    if (isset($_GET['price'])) {
+        $priceRaw = $_GET['price'];
+        $price = floatval(preg_replace('/[^0-9\.]/', '', $priceRaw));
+        if ($price > 0) {
+            setcookie('checkout_price', $price, time() + (24 * 60 * 60), '/'); // 1 day
+            $_SESSION['checkout_price'] = $price;
+        }
+    }
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -153,7 +163,7 @@
                 </form>
 
                 <p class="text-center text-sm text-gray-500 mt-6">
-                    Already have an account? <a href="login.php" class="text-primary-purple hover:text-secondary-purple underline">Log in here</a>
+                    Already have an account? <a href="login.php<?php echo isset($_GET['price']) ? '?price=' . urlencode($_GET['price']) : ''; ?>" class="text-primary-purple hover:text-secondary-purple underline">Log in here</a>
                 </p>
 
             </div>
