@@ -190,7 +190,7 @@ if ($user) {
     }
 
     // ONLY EXECUTE LOGIC FIRST TIME
-    if ($user['user_credit'] <= 0){
+    if ($user['user_credit'] <= 0 && $user['manual_credit_update'] == false) {
 
         $secondLevelVerifiedCount = 0;
         $hasAnySecondLevelChild = false;
