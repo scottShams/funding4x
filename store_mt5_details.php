@@ -53,7 +53,7 @@ try {
     $isUpdate = false;
     if ($existing) {
         // Update existing MT5 details
-        $stmt = $pdo->prepare("UPDATE mt5_details SET username = ?, password = ?, server = ?, instrument = ? WHERE user_id = ?");
+        $stmt = $pdo->prepare("UPDATE mt5_details SET username = ?, password = ?, server = ?, instrument = ?, status = 'updated' WHERE user_id = ?");
         $stmt->execute([$mt5Details['username'], $mt5Details['password'], $mt5Details['server'], $mt5Details['instrument'], $userId]);
         $isUpdate = true;
     } else {
@@ -63,9 +63,9 @@ try {
     }
 
     // Send email to support if it was an update
-    if ($isUpdate) {
-        EmailVerification::sendMT5UpdateEmail($mt5Details['username']);
-    }
+    // if ($isUpdate) {
+    //     EmailVerification::sendMT5UpdateEmail($mt5Details['username']);
+    // }
 
     echo json_encode([
         'success' => true,
