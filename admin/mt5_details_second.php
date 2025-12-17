@@ -231,41 +231,27 @@ if (isset($_POST['action']) && $_POST['action'] === 'make_payment') {
     $amount = (float)$_POST['amount'];
     $paymentDate = $_POST['payment_date'];
     $transactionHash = $_POST['transaction_hash'];
-    $cryptoType = $_POST['crypto_type'];
-    $cryptoNetwork = $_POST['crypto_network'];
-    $walletAddress = $_POST['wallet_address'] ?? '';
+    $description = $_POST['description'] ?? '';
 
     // Validate required fields
-    if (empty($amount) || empty($paymentDate) || empty($transactionHash) || empty($cryptoType) || empty($cryptoNetwork)) {
-        echo json_encode(['success' => false, 'message' => 'All fields are required']);
-        exit;
-    }
-
-    // Validate crypto types and networks
-    $validCryptoTypes = ['USDC', 'USDT', 'BTC', 'ETH'];
-    $validCryptoNetworks = ['Tron', 'Arbitrum', 'Ethereum', 'Bitcoin'];
-
-    if (!in_array($cryptoType, $validCryptoTypes) || !in_array($cryptoNetwork, $validCryptoNetworks)) {
-        echo json_encode(['success' => false, 'message' => 'Invalid crypto type or network']);
+    if (empty($amount) || empty($paymentDate) || empty($transactionHash)) {
+        echo json_encode(['success' => false, 'message' => 'Amount, payment date, and transaction hash are required']);
         exit;
     }
 
     try {
         // Insert payment record
         $stmt = $pdo->prepare("INSERT INTO payments (
-            user_id, payment_method, amount, currency, status,
-            crypto_type, crypto_network, wallet_address, transaction_hash,
-            payment_source, created_by_admin_id, created_at
-        ) VALUES (?, 'crypto', ?, 'USD', 'completed', ?, ?, ?, ?, 'admin', ?, ?)");
+            user_id, payment_method, amount, currency, status, crypto_type, crypto_network,
+            transaction_hash, notes, payment_source, created_by_admin_id, created_at
+        ) VALUES (?, 'crypto', ?, 'USD', 'completed', 'USDC', 'Tron', ?, ?, 'admin', ?, ?)");
 
         $adminId = $_SESSION['admin_id'] ?? null;
         $success = $stmt->execute([
             $userId,
             $amount,
-            $cryptoType,
-            $cryptoNetwork,
-            $walletAddress,
             $transactionHash,
+            $description,
             $adminId,
             $paymentDate
         ]);
@@ -275,9 +261,8 @@ if (isset($_POST['action']) && $_POST['action'] === 'make_payment') {
             $adminId = $_SESSION['admin_id'] ?? null;
             recordAdminAction($pdo, $adminId, 'make_payment', $userId, [
                 'amount' => $amount,
-                'crypto_type' => $cryptoType,
-                'crypto_network' => $cryptoNetwork,
-                'transaction_hash' => $transactionHash
+                'transaction_hash' => $transactionHash,
+                'description' => $description
             ]);
 
             echo json_encode(['success' => true, 'message' => 'Payment recorded successfully']);
@@ -683,7 +668,7 @@ ob_start();
     </div>
 </div>
 
-<!-- Make Payment Modal -->
+// Make Payment Modal -->
 <div class="modal fade" id="makePaymentModal" tabindex="-1" aria-labelledby="makePaymentModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -709,36 +694,14 @@ ob_start();
                     </div>
                     
                     <div class="mb-3">
-                        <label for="cryptoType" class="form-label">Crypto Type *</label>
-                        <select class="form-select" id="cryptoType" required>
-                            <option value="">Select Crypto Type</option>
-                            <option value="USDC">USDC</option>
-                            <option value="USDT">USDT</option>
-                            <option value="BTC">Bitcoin (BTC)</option>
-                            <option value="ETH">Ethereum (ETH)</option>
-                        </select>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="cryptoNetwork" class="form-label">Crypto Network *</label>
-                        <select class="form-select" id="cryptoNetwork" required>
-                            <option value="">Select Network</option>
-                            <option value="Tron">Tron (TRC20)</option>
-                            <option value="Arbitrum">Arbitrum</option>
-                            <option value="Ethereum">Ethereum (ERC20)</option>
-                            <option value="Bitcoin">Bitcoin</option>
-                        </select>
-                    </div>
-                    
-                    <div class="mb-3">
                         <label for="transactionHash" class="form-label">Transaction Hash *</label>
                         <input type="text" class="form-control" id="transactionHash" placeholder="0xabc123..." required>
                     </div>
                     
                     <div class="mb-3">
-                        <label for="walletAddress" class="form-label">Wallet Address</label>
-                        <input type="text" class="form-control" id="walletAddress" placeholder="Optional">
-                        <small class="form-text text-muted">Leave blank if not applicable</small>
+                        <label for="paymentDescription" class="form-label">Description</label>
+                        <textarea class="form-control" id="paymentDescription" rows="3" placeholder="Optional description"></textarea>
+                        <small class="form-text text-muted">Optional notes about this payment</small>
                     </div>
                 </form>
             </div>
@@ -1390,10 +1353,8 @@ function makePayment(userId, userName) {
     
     // Clear other fields
     $('#paymentAmount').val('');
-    $('#cryptoType').val('');
-    $('#cryptoNetwork').val('');
     $('#transactionHash').val('');
-    $('#walletAddress').val('');
+    $('#paymentDescription').val('');
     
     $('#makePaymentModal').modal('show');
 }
@@ -1404,13 +1365,11 @@ $(document).ready(function() {
         const userId = $('#paymentUserId').val();
         const amount = $('#paymentAmount').val();
         const paymentDate = $('#paymentDate').val();
-        const cryptoType = $('#cryptoType').val();
-        const cryptoNetwork = $('#cryptoNetwork').val();
         const transactionHash = $('#transactionHash').val();
-        const walletAddress = $('#walletAddress').val();
+        const description = $('#paymentDescription').val();
         
         // Validate required fields
-        if (!amount || !paymentDate || !cryptoType || !cryptoNetwork || !transactionHash) {
+        if (!amount || !paymentDate || !transactionHash) {
             Swal.fire({
                 title: 'Validation Error',
                 text: 'Please fill in all required fields.',
@@ -1442,10 +1401,8 @@ $(document).ready(function() {
                 user_id: userId,
                 amount: amount,
                 payment_date: paymentDate,
-                crypto_type: cryptoType,
-                crypto_network: cryptoNetwork,
                 transaction_hash: transactionHash,
-                wallet_address: walletAddress
+                description: description
             },
             dataType: 'json',
             success: function(response) {
