@@ -200,6 +200,42 @@
         exit;
     }
 
+    // Handle test type update action
+    if (isset($_POST['action']) && $_POST['action'] === 'update_test_type') {
+        header('Content-Type: application/json');
+
+        $mt5Id = (int)$_POST['mt5_id'];
+        $newTestType = $_POST['test_type'];
+
+        // Validate test type
+        $validTestTypes = ['50:50 F4x', '20:80 F4x', '10:90 F4x', '80:20 F4x', '70:30 F4x', '60:40 F4x'];
+        if (!in_array($newTestType, $validTestTypes)) {
+            echo json_encode(['success' => false, 'message' => 'Invalid test type']);
+            exit;
+        }
+
+        // Get target user id for logging
+        $userIdStmt = $pdo->prepare("SELECT user_id FROM mt5_details WHERE id = ?");
+        $userIdStmt->execute([$mt5Id]);
+        $targetUserRow = $userIdStmt->fetch(PDO::FETCH_ASSOC);
+        $targetUserId = $targetUserRow['user_id'] ?? null;
+
+        // Update test type
+        $stmt = $pdo->prepare("UPDATE mt5_details SET test_type = ? WHERE id = ?");
+        $success = $stmt->execute([$newTestType, $mt5Id]);
+
+        if ($success) {
+            // Record audit
+            $adminId = $_SESSION['admin_id'] ?? null;
+            recordAdminAction($pdo, $adminId, 'update_test_type', $targetUserId, ['mt5_id' => $mt5Id, 'new_test_type' => $newTestType]);
+
+            echo json_encode(['success' => true, 'message' => 'Test type updated successfully']);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Failed to update test type']);
+        }
+        exit;
+    }
+
     // ----------------------
     // CSV EXPORT
     // ----------------------
@@ -349,6 +385,7 @@
                         <th>MT5 Username</th>
                         <th>MT5 Password</th>
                         <th>Server</th>
+                        <th>Test Type</th>
                         <th>Status</th>
                         <th>Submitted At</th>
                         <th>Actions</th>
@@ -366,6 +403,9 @@
                         <td><?php echo htmlspecialchars($detail['username']); ?></td>
                         <td><?php echo htmlspecialchars($detail['password']); ?></td>
                         <td><?php echo htmlspecialchars($detail['server']); ?></td>
+                        <td>
+                            <span class="badge bg-info" id="test-type-<?php echo $detail['id']; ?>"><?php echo htmlspecialchars($detail['test_type'] ?? '50:50 F4x'); ?></span>
+                        </td>
                         <td>
                             <?php
                             $status = $detail['status'] ?? 'pending';
@@ -403,6 +443,10 @@
                                     </a></li>
                                     <li><a class="dropdown-item" href="#" onclick="removeCredit(<?php echo $detail['user_id']; ?>, '<?php echo htmlspecialchars($detail['name']); ?>')">
                                         <i class="bi bi-dash-circle me-2"></i>Remove Credit
+                                    </a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="#" onclick="changeTestType(<?php echo $detail['id']; ?>, '<?php echo htmlspecialchars($detail['name']); ?>', '<?php echo htmlspecialchars($detail['test_type'] ?? '50:50 F4x'); ?>')">
+                                        <i class="bi bi-gear me-2"></i>Change Test Type
                                     </a></li>
                                     <li><hr class="dropdown-divider"></li>
                                     <li><a class="dropdown-item text-success" href="#" onclick="updateStatus(<?php echo $detail['id']; ?>, 'pass', '<?php echo htmlspecialchars($detail['name']); ?>')">
@@ -559,6 +603,37 @@
     </div>
 </div>
 
+<!-- Test Type Modal -->
+<div class="modal fade" id="testTypeModal" tabindex="-1" aria-labelledby="testTypeModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="testTypeModalLabel">Change Test Type</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="testTypeForm">
+                    <div class="mb-3">
+                        <label class="form-label">Select Test Type:</label>
+                        <select class="form-select" id="newTestType" required>
+                            <option value="50:50 F4x">50:50 F4x</option>
+                            <option value="20:80 F4x">20:80 F4x</option>
+                            <option value="10:90 F4x">10:90 F4x</option>
+                            <option value="80:20 F4x">80:20 F4x</option>
+                            <option value="70:30 F4x">70:30 F4x</option>
+                            <option value="60:40 F4x">60:40 F4x</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="submitTestType">Update Test Type</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <?php
     $content = ob_get_clean();
     include 'layout/app.php';
@@ -626,7 +701,7 @@
             responsive: true,
             columnDefs: [
                 {
-                    targets: [9], // Actions column
+                    targets: [10], // Actions column (now 10th due to Test Type column)
                     orderable: false
                 }
             ],
@@ -1213,4 +1288,79 @@
             }
         });
     }
+
+    // Change test type function
+    function changeTestType(mt5Id, userName, currentTestType) {
+        $('#testTypeModalLabel').text('Change Test Type for ' + userName);
+        $('#newTestType').val(currentTestType);
+        $('#testTypeModal').modal('show');
+        // Store current data
+        window.currentMt5Id = mt5Id;
+    }
+
+    // Handle test type submission
+    $(document).ready(function() {
+        $('#submitTestType').on('click', function() {
+            const newTestType = $('#newTestType').val();
+            
+            // Hide modal
+            $('#testTypeModal').modal('hide');
+            // Show loading
+            Swal.fire({
+                title: 'Updating...',
+                text: 'Please wait while we update the test type',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            // Send AJAX request
+            $.ajax({
+                url: 'mt5_details.php',
+                type: 'POST',
+                data: {
+                    action: 'update_test_type',
+                    mt5_id: window.currentMt5Id,
+                    test_type: newTestType
+                },
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        // Update the test type display in the same row
+                        const dropdownButton = document.querySelector(`#dropdownMenuButton${window.currentMt5Id}`);
+                        const row = dropdownButton.closest('tr');
+                        const testTypeCell = row.querySelector(`#test-type-${window.currentMt5Id}`);
+                        if (testTypeCell) {
+                            testTypeCell.textContent = newTestType;
+                        }
+
+                        Swal.fire({
+                            title: 'Success!',
+                            text: 'Test type updated successfully.',
+                            icon: 'success',
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+                    } else {
+                        Swal.fire({
+                            title: 'Error!',
+                            text: response.message || 'Failed to update test type.',
+                            icon: 'error',
+                            confirmButtonText: 'OK'
+                        });
+                    }
+                },
+                error: function() {
+                    Swal.fire({
+                        title: 'Error!',
+                        text: 'An error occurred while updating the test type.',
+                        icon: 'error',
+                        confirmButtonText: 'OK'
+                    });
+                }
+            });
+        });
+    });
 </script>

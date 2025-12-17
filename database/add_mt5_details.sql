@@ -20,6 +20,10 @@ CREATE TABLE mt5_details (
     fail_reason TEXT DEFAULT NULL,
     pass_reason TEXT DEFAULT NULL,
 
+    -- Test Type
+    test_type ENUM('50:50 F4x', '20:80 F4x', '10:90 F4x', '80:20 F4x', '70:30 F4x', '60:40 F4x')
+        DEFAULT '50:50 F4x',
+
     -- Timestamps
     submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     status_updated_at TIMESTAMP NULL,
