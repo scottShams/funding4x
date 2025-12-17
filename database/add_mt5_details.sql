@@ -15,7 +15,7 @@ CREATE TABLE mt5_details (
     instrument VARCHAR(255) DEFAULT NULL,
 
     -- Review & status
-    status ENUM('pending', 'under_review', 'pass', 'running', 'fail')
+    status ENUM('pending', 'under_review', 'pass', 'running', 'fail', 'updated')
         DEFAULT 'pending',
     fail_reason TEXT DEFAULT NULL,
     pass_reason TEXT DEFAULT NULL,
