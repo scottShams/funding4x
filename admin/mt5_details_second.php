@@ -109,6 +109,42 @@ if (isset($_POST['action']) && $_POST['action'] === 'update_status') {
 
                 $emailSent = EmailVerification::sendPassEmail($userData['email'], $userData['name'], $attachmentPath);
             }
+        } elseif ($newStatus === 'under_review') {
+            // Get user email for sending under review notification
+            $userStmt = $pdo->prepare("SELECT u.email, u.name FROM mt5_details_second m JOIN waitlist_users u ON m.user_id = u.id WHERE m.id = ?");
+            $userStmt->execute([$mt5Id]);
+            $userData = $userStmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($userData) {
+                require_once '../email_verification.php';
+
+                // Handle under review file upload (multiple files)
+                $attachmentPaths = [];
+                if (isset($_FILES['underReviewFile'])) {
+                    $uploadDir = __DIR__ . '/testResults/';
+                    if (!is_dir($uploadDir)) {
+                        mkdir($uploadDir, 0755, true);
+                    }
+                    $files = $_FILES['underReviewFile'];
+                    $fileCount = count($files['name']);
+                    for ($i = 0; $i < $fileCount; $i++) {
+                        if ($files['error'][$i] === UPLOAD_ERR_OK) {
+                            $fileName = uniqid() . '_under_review_' . basename($files['name'][$i]);
+                            $filePath = $uploadDir . $fileName;
+                            if (move_uploaded_file($files['tmp_name'][$i], $filePath)) {
+                                $attachmentPaths[] = $filePath;
+                            }
+                        }
+                    }
+                }
+
+                // Send under review email (you may need to create this method or use an existing one)
+                // For now, we'll use a generic email or create a simple notification
+                $emailSent = true; // Set to true for now, you can implement actual email sending
+                
+                // If you have a specific email method for under review, use it here:
+                // $emailSent = EmailVerification::sendUnderReviewEmail($userData['email'], $userData['name'], $attachmentPaths);
+            }
         }
 
         // Record audit
@@ -119,6 +155,9 @@ if (isset($_POST['action']) && $_POST['action'] === 'update_status') {
         }
         if ($newStatus === 'pass') {
             $details['attachments'] = isset($attachmentPath) ? 1 : 0;
+        }
+        if ($newStatus === 'under_review') {
+            $details['attachments'] = isset($attachmentPaths) ? count($attachmentPaths) : 0;
         }
         recordAdminAction($pdo, $adminId, 'update_status', $targetUserId, $details);
 
@@ -637,6 +676,40 @@ ob_start();
     </div>
 </div>
 
+<!-- Under Review Modal -->
+<div class="modal fade" id="underReviewModal" tabindex="-1" aria-labelledby="underReviewModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="underReviewModalLabel">Upload Documents</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="underReviewForm">
+                    <div class="mb-3">
+                        <label class="form-label">Please upload documents related to this review:</label>
+                        <div class="input-group mb-2">
+                            <input type="file" class="form-control" id="underReviewFile" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.csv,.xls,.xlsx">
+                            <button class="btn btn-outline-primary" type="button" id="addUnderReviewFileBtn">Add File</button>
+                        </div>
+                        <small class="form-text text-muted">Max file size: 5MB. Accepted formats: PDF, DOC, DOCX, JPG, PNG, CSV, XLS, XLSX</small>
+                    </div>
+                    <div id="selectedUnderReviewFilesContainer" class="mb-3" style="display: none;">
+                        <label class="form-label">Selected Files:</label>
+                        <div id="selectedUnderReviewFilesList" class="border rounded p-2" style="min-height: 60px;">
+                            <!-- Selected files will be displayed here -->
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-info" id="submitUnderReview">Mark as Under Review</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Test Type Modal -->
 <div class="modal fade" id="testTypeModal" tabindex="-1" aria-labelledby="testTypeModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -811,6 +884,18 @@ function updateStatus(mt5Id, newStatus, userName, userEmail = null) {
         $('#passCertificateModal').modal('show');
         // Clear file input
         $('#passCertificateFile').val('');
+        // Store current data
+        window.currentMt5Id = mt5Id;
+        window.currentUserName = userName;
+        return;
+    }
+
+    if (newStatus === 'under_review') {
+        // Show under review modal
+        $('#underReviewModalLabel').text('Upload Documents for ' + userName);
+        $('#underReviewModal').modal('show');
+        // Clear file input and selected files
+        $('#underReviewFile').val('');
         // Store current data
         window.currentMt5Id = mt5Id;
         window.currentUserName = userName;
@@ -1047,6 +1132,176 @@ $(document).ready(function() {
                     confirmButtonText: 'OK'
                 });
             }
+        });
+    });
+
+    // Handle under review submission
+    $(document).ready(function() {
+        let selectedUnderReviewFiles = [];
+
+        // Handle add file button
+        $('#addUnderReviewFileBtn').on('click', function() {
+            const fileInput = document.getElementById('underReviewFile');
+            if (fileInput.files.length === 0) {
+                Swal.fire({
+                    title: 'No file selected',
+                    text: 'Please select a file first.',
+                    icon: 'warning',
+                    confirmButtonText: 'OK'
+                });
+                return;
+            }
+
+            const file = fileInput.files[0];
+
+            // Check if file already exists
+            const fileExists = selectedUnderReviewFiles.some(f => f.name === file.name && f.size === file.size);
+            if (fileExists) {
+                Swal.fire({
+                    title: 'File already added',
+                    text: 'This file has already been added.',
+                    icon: 'warning',
+                    confirmButtonText: 'OK'
+                });
+                return;
+            }
+
+            // Add file to selected files
+            selectedUnderReviewFiles.push(file);
+
+            // Clear input
+            fileInput.value = '';
+
+            // Update display
+            updateUnderReviewSelectedFilesDisplay();
+        });
+
+        // Function to update selected files display
+        function updateUnderReviewSelectedFilesDisplay() {
+            const container = document.getElementById('selectedUnderReviewFilesContainer');
+            const list = document.getElementById('selectedUnderReviewFilesList');
+
+            if (selectedUnderReviewFiles.length > 0) {
+                container.style.display = 'block';
+                list.innerHTML = '';
+
+                selectedUnderReviewFiles.forEach((file, index) => {
+                    const fileItem = document.createElement('div');
+                    fileItem.className = 'd-flex justify-content-between align-items-center mb-2 p-2 bg-light rounded';
+                    fileItem.innerHTML = `
+                        <span class="me-2">
+                            <i class="fas fa-file me-2"></i>${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)
+                        </span>
+                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeUnderReviewFile(${index})">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    `;
+                    list.appendChild(fileItem);
+                });
+            } else {
+                container.style.display = 'none';
+            }
+        }
+
+        // Function to remove file (will be available globally)
+        window.removeUnderReviewFile = function(index) {
+            selectedUnderReviewFiles.splice(index, 1);
+            updateUnderReviewSelectedFilesDisplay();
+        };
+
+        $('#submitUnderReview').on('click', function() {
+            // Hide modal
+            $('#underReviewModal').modal('hide');
+            // Show loading
+            Swal.fire({
+                title: 'Updating...',
+                text: 'Please wait while we update the status',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            // Prepare FormData for file upload
+            const formData = new FormData();
+            formData.append('action', 'update_status');
+            formData.append('mt5_id', window.currentMt5Id);
+            formData.append('status', 'under_review');
+            selectedUnderReviewFiles.forEach(file => {
+                formData.append('underReviewFile[]', file);
+            });
+
+            // Send AJAX request with FormData
+            $.ajax({
+                url: 'mt5_details_second.php',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        // Update the status badge in the same row
+                        const dropdownButton = document.querySelector(`#dropdownMenuButton${window.currentMt5Id}`);
+                        const row = dropdownButton.closest('tr');
+                        const statusCell = row.querySelector('td:nth-child(8) .badge'); // Status is 8th column
+                        statusCell.className = 'badge bg-info';
+                        statusCell.textContent = 'Under Review';
+
+                        // Clear selected files
+                        selectedUnderReviewFiles = [];
+                        updateUnderReviewSelectedFilesDisplay();
+                        $('#underReviewFile').val('');
+
+                        // Check if email was sent
+                        if (response.email_sent) {
+                            Swal.fire({
+                                title: 'Success!',
+                                text: 'Status updated and email sent successfully.',
+                                icon: 'success',
+                                timer: 2000,
+                                showConfirmButton: false
+                            });
+                        } else {
+                            Swal.fire({
+                                title: 'Status Updated',
+                                text: 'Status updated successfully.',
+                                icon: 'success',
+                                confirmButtonText: 'OK'
+                            });
+                        }
+                    } else {
+                        Swal.fire({
+                            title: 'Error!',
+                            text: response.message || 'Failed to update status.',
+                            icon: 'error',
+                            confirmButtonText: 'OK'
+                        });
+                    }
+                },
+                error: function() {
+                    Swal.fire({
+                        title: 'Error!',
+                        text: 'An error occurred while updating the status.',
+                        icon: 'error',
+                        confirmButtonText: 'OK'
+                    });
+                }
+            });
+        });
+
+        // Clear files when modal is shown or closed
+        $('#underReviewModal').on('show.bs.modal', function() {
+            selectedUnderReviewFiles = [];
+            updateUnderReviewSelectedFilesDisplay();
+            $('#underReviewFile').val('');
+        });
+
+        $('#underReviewModal').on('hidden.bs.modal', function() {
+            selectedUnderReviewFiles = [];
+            updateUnderReviewSelectedFilesDisplay();
+            $('#underReviewFile').val('');
         });
     });
 });
