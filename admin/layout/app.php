@@ -226,16 +226,14 @@ $('#saveAsTemplate').change(function() {
 
 // Send email function
 function sendEmail(saveTemplate = true) {
-    console.log('sendEmail called with saveTemplate:', saveTemplate);
     
     const form = document.getElementById('emailForm');
     if (!form.checkValidity()) {
-        console.log('Form validation failed');
+        
         form.reportValidity();
         return;
     }
 
-    console.log('Form is valid, preparing to send...');
     
     const formData = new FormData(form);
     formData.append('action', 'send_email');
@@ -251,8 +249,6 @@ function sendEmail(saveTemplate = true) {
             Swal.showLoading();
         }
     });
-
-    console.log('Sending AJAX request to ajax/send_email.php');
     
     $.ajax({
         url: 'ajax/send_email.php',
@@ -262,7 +258,6 @@ function sendEmail(saveTemplate = true) {
         contentType: false,
         dataType: 'json',
         success: function(response) {
-            console.log('AJAX Success Response:', response);
             if (response.success) {
                 // Close modal
                 const modal = bootstrap.Modal.getInstance(document.getElementById('emailModal'));
