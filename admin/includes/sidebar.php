@@ -83,6 +83,13 @@
             }
             ?>
 
+            <li class="nav-item">
+                <a class="nav-link d-flex align-items-center <?php echo basename($_SERVER['PHP_SELF']) == 'admin_action_logs.php' ? 'active' : ''; ?>" href="admin_action_logs.php">
+                    <i class="bi bi-list-check me-2"></i>
+                    <span>Action Logs</span>
+                </a>
+            </li>
+
             <!-- Logout Link -->
             <li class="nav-item mt-4">
                 <a class="nav-link d-flex align-items-center text-danger" href="logout.php">

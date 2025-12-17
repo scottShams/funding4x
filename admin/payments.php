@@ -1,6 +1,7 @@
 <?php
 require_once 'functions/auth.php';
 checkAdminAuth();
+require_once 'functions/audit.php';
 require_once '../database.php';
 
 // Get database connection
@@ -33,6 +34,11 @@ if (isset($_POST['action']) && $_POST['action'] === 'add_credit') {
         $stmt = $pdo->prepare("SELECT user_credit FROM waitlist_users WHERE id = ?");
         $stmt->execute([$userId]);
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        // Record audit
+        $adminId = $_SESSION['admin_id'] ?? null;
+        recordAdminAction($pdo, $adminId, 'add_credit', $userId, ['new_credit' => $result['user_credit']]);
+
         echo json_encode(['success' => true, 'message' => 'Credit added successfully', 'new_credit' => $result['user_credit']]);
     } else {
         echo json_encode(['success' => false, 'message' => 'Failed to add credit']);
@@ -55,6 +61,11 @@ if (isset($_POST['action']) && $_POST['action'] === 'remove_credit') {
         $stmt = $pdo->prepare("SELECT user_credit FROM waitlist_users WHERE id = ?");
         $stmt->execute([$userId]);
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        // Record audit
+        $adminId = $_SESSION['admin_id'] ?? null;
+        recordAdminAction($pdo, $adminId, 'remove_credit', $userId, ['new_credit' => $result['user_credit']]);
+
         echo json_encode(['success' => true, 'message' => 'Credit removed successfully', 'new_credit' => $result['user_credit']]);
     } else {
         echo json_encode(['success' => false, 'message' => 'Failed to remove credit']);
@@ -88,11 +99,29 @@ if (isset($_POST['action']) && $_POST['action'] === 'update_payment_status') {
         exit;
     }
 
+    // Fetch payment to get target user
+    $pstmt = $pdo->prepare("SELECT user_id FROM payments WHERE id = ?");
+    $pstmt->execute([$paymentId]);
+    $payment = $pstmt->fetch(PDO::FETCH_ASSOC);
+    if (!$payment) {
+        echo json_encode(['success' => false, 'message' => 'Payment not found']);
+        exit;
+    }
+    $userId = $payment['user_id'] ?? null;
+
     // Update payment status
     $stmt = $pdo->prepare("UPDATE payments SET status = ?, updated_at = NOW() WHERE id = ?");
     $success = $stmt->execute([$newStatus, $paymentId]);
 
     if ($success) {
+        // Record audit indicating which admin changed which user's payment status
+        $adminId = $_SESSION['admin_id'] ?? null;
+        try {
+            recordAdminAction($pdo, $adminId, 'update_payment_status', $userId, ['payment_id' => $paymentId, 'new_status' => $newStatus]);
+        } catch (Exception $e) {
+            error_log('Failed to record payment status update action: ' . $e->getMessage());
+        }
+
         echo json_encode([
             'success' => true,
             'message' => 'Payment status updated successfully'

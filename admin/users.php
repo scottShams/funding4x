@@ -1,6 +1,7 @@
 <?php
 require_once 'functions/auth.php';
 checkAdminAuth();
+require_once 'functions/audit.php';
 require_once '../database.php';
 
 // Get database connection
@@ -34,6 +35,10 @@ if (isset($_POST['action']) && $_POST['action'] === 'update_status') {
     $success = $updateStmt->execute([$newStatus, $userId]);
     
     if ($success) {
+        // Record audit for status change
+        $adminId = $_SESSION['admin_id'] ?? null;
+        recordAdminAction($pdo, $adminId, 'update_user_status', $userId, ['new_status' => $newStatus]);
+
         echo json_encode(['success' => true, 'message' => 'Status updated successfully']);
     } else {
         echo json_encode(['success' => false, 'message' => 'Failed to update status']);
@@ -46,15 +51,23 @@ if (isset($_GET['delete']) && is_numeric($_GET['delete'])) {
     $userId = (int) $_GET['delete'];
     
     // Prevent deleting main admin
-    $stmt = $pdo->prepare("SELECT email FROM waitlist_users WHERE id = ?");
+    $stmt = $pdo->prepare("SELECT name, email FROM waitlist_users WHERE id = ?");
     $stmt->execute([$userId]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
-    
+
     if ($user && $user['email'] !== 'admin@gmail.com') {
+        // Record audit BEFORE deleting so FK reference is valid
+        $adminId = $_SESSION['admin_id'] ?? null;
+        try {
+            recordAdminAction($pdo, $adminId, 'delete_user', $userId, ['email' => $user['email'] ?? null, 'name' => $user['name'] ?? null]);
+        } catch (Exception $e) {
+            error_log('Failed to record admin delete action: ' . $e->getMessage());
+        }
+
         // Delete the user
         $deleteStmt = $pdo->prepare("DELETE FROM waitlist_users WHERE id = ?");
         $deleteStmt->execute([$userId]);
-        
+
         // Redirect back
         header('Location: users.php?deleted=1');
         exit;

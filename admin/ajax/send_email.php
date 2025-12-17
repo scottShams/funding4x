@@ -1,8 +1,7 @@
 <?php
 require_once '../functions/auth.php';
 checkAdminAuth();
-require_once '../../database.php';
-require_once '../../email_verification.php';
+require_once '../../database.php';require_once 'functions/audit.php';require_once '../../email_verification.php';
 require_once '../../env_loader.php';
 require_once '../../vendor/autoload.php';
 
@@ -59,6 +58,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         // Log the email sent
         $stmt = $pdo->prepare("INSERT INTO email_logs (user_id, subject, body, sent_at) VALUES (?, ?, ?, NOW())");
         $stmt->execute([$userId, $subject, $body]);
+
+        // Record admin action (send_email)
+        $adminId = $_SESSION['admin_id'] ?? null;
+        recordAdminAction($pdo, $adminId, 'send_email', $userId, ['subject' => $subject, 'saved_template' => $saveTemplate ? 1 : 0]);
 
         echo json_encode(['success' => true, 'message' => 'Email sent successfully and saved as template']);
     } else {

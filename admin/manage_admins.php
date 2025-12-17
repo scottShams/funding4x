@@ -3,6 +3,7 @@ require_once 'functions/auth.php';
 checkAdminAuth();
 checkSuperAdmin();
 
+require_once 'functions/audit.php';
 require_once '../database.php';
 
 $message = '';
@@ -39,6 +40,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     $stmt->execute([$name, $email, $password_hash]);
                     $message = 'Admin account created successfully!';
                     $success = true;
+
+                    // Record audit (create_admin)
+                    $createdId = $pdo->lastInsertId();
+                    $adminId = $_SESSION['admin_id'] ?? null;
+                    recordAdminAction($pdo, $adminId, 'create_admin', $createdId, ['email' => $email, 'name' => $name]);
                 }
             } catch (PDOException $e) {
                 $message = 'Database error occurred: ' . $e->getMessage();
@@ -64,6 +70,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     $stmt->execute([$admin_id]);
                     $message = 'Admin account deleted successfully!';
                     $success = true;
+
+                    // Record audit (delete_admin)
+                    $adminId = $_SESSION['admin_id'] ?? null;
+                    recordAdminAction($pdo, $adminId, 'delete_admin', $admin_id, null);
                 }
             } catch (PDOException $e) {
                 $message = 'Database error occurred: ' . $e->getMessage();

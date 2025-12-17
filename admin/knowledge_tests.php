@@ -1,6 +1,7 @@
 <?php
 require_once 'functions/auth.php';
 checkAdminAuth();
+require_once 'functions/audit.php';
 require_once '../database.php';
 
 // Get database connection
@@ -39,6 +40,11 @@ if (isset($_POST['action']) && $_POST['action'] === 'add_credit') {
         $stmt = $pdo->prepare("SELECT user_credit FROM waitlist_users WHERE id = ?");
         $stmt->execute([$userId]);
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        // Record audit
+        $adminId = $_SESSION['admin_id'] ?? null;
+        recordAdminAction($pdo, $adminId, 'add_credit', $userId, ['new_credit' => $result['user_credit']]);
+
         echo json_encode(['success' => true, 'message' => 'Credit added successfully', 'new_credit' => $result['user_credit']]);
     } else {
         echo json_encode(['success' => false, 'message' => 'Failed to add credit']);
@@ -61,6 +67,11 @@ if (isset($_POST['action']) && $_POST['action'] === 'remove_credit') {
         $stmt = $pdo->prepare("SELECT user_credit FROM waitlist_users WHERE id = ?");
         $stmt->execute([$userId]);
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        // Record audit
+        $adminId = $_SESSION['admin_id'] ?? null;
+        recordAdminAction($pdo, $adminId, 'remove_credit', $userId, ['new_credit' => $result['user_credit']]);
+
         echo json_encode(['success' => true, 'message' => 'Credit removed successfully', 'new_credit' => $result['user_credit']]);
     } else {
         echo json_encode(['success' => false, 'message' => 'Failed to remove credit']);
@@ -111,6 +122,10 @@ if (isset($_POST['action']) && $_POST['action'] === 'approve_test') {
         }
 
         if ($success) {
+            // Log approval action
+            $adminId = $adminId ?? $_SESSION['admin_id'] ?? null;
+            recordAdminAction($pdo, $adminId, 'approve_knowledge_test', $userId, null);
+
             echo json_encode(['success' => true, 'message' => 'Knowledge test approved successfully']);
         } else {
             echo json_encode(['success' => false, 'message' => 'Failed to approve knowledge test']);
@@ -164,6 +179,10 @@ if (isset($_POST['action']) && $_POST['action'] === 'decline_test') {
         }
 
         if ($success) {
+            // Log decline action
+            $adminId = $adminId ?? $_SESSION['admin_id'] ?? null;
+            recordAdminAction($pdo, $adminId, 'decline_knowledge_test', $userId, ['reason' => $declined_reason ?? null]);
+
             echo json_encode(['success' => true, 'message' => 'Knowledge test declined successfully']);
         } else {
             echo json_encode(['success' => false, 'message' => 'Failed to decline knowledge test']);

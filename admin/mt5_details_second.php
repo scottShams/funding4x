@@ -1,6 +1,7 @@
 <?php
 require_once 'functions/auth.php';
 checkAdminAuth();
+require_once 'functions/audit.php';
 require_once '../database.php';
 
 // Get database connection
@@ -21,6 +22,12 @@ if (isset($_POST['action']) && $_POST['action'] === 'update_status') {
 
     // Handle fail reasons
     $failReasons = isset($_POST['fail_reasons']) ? $_POST['fail_reasons'] : [];
+
+    // Get target user id for logging
+    $userIdStmt = $pdo->prepare("SELECT user_id FROM mt5_details_second WHERE id = ?");
+    $userIdStmt->execute([$mt5Id]);
+    $targetUserRow = $userIdStmt->fetch(PDO::FETCH_ASSOC);
+    $targetUserId = $targetUserRow['user_id'] ?? null;
 
     // Update status
     if ($newStatus === 'fail') {
@@ -104,6 +111,17 @@ if (isset($_POST['action']) && $_POST['action'] === 'update_status') {
             }
         }
 
+        // Record audit
+        $adminId = $_SESSION['admin_id'] ?? null;
+        $details = ['mt5_id' => $mt5Id, 'new_status' => $newStatus];
+        if ($newStatus === 'fail') {
+            $details['fail_reasons'] = $failReasons;
+        }
+        if ($newStatus === 'pass') {
+            $details['attachments'] = isset($attachmentPath) ? 1 : 0;
+        }
+        recordAdminAction($pdo, $adminId, 'update_status', $targetUserId, $details);
+
         echo json_encode([
             'success' => true,
             'message' => 'Status updated successfully',
@@ -130,6 +148,11 @@ if (isset($_POST['action']) && $_POST['action'] === 'add_credit') {
         $stmt = $pdo->prepare("SELECT user_credit FROM waitlist_users WHERE id = ?");
         $stmt->execute([$userId]);
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        // Record audit
+        $adminId = $_SESSION['admin_id'] ?? null;
+        recordAdminAction($pdo, $adminId, 'add_credit', $userId, ['new_credit' => $result['user_credit']]);
+
         echo json_encode(['success' => true, 'message' => 'Credit added successfully', 'new_credit' => $result['user_credit']]);
     } else {
         echo json_encode(['success' => false, 'message' => 'Failed to add credit']);
@@ -152,6 +175,11 @@ if (isset($_POST['action']) && $_POST['action'] === 'remove_credit') {
         $stmt = $pdo->prepare("SELECT user_credit FROM waitlist_users WHERE id = ?");
         $stmt->execute([$userId]);
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        // Record audit
+        $adminId = $_SESSION['admin_id'] ?? null;
+        recordAdminAction($pdo, $adminId, 'remove_credit', $userId, ['new_credit' => $result['user_credit']]);
+
         echo json_encode(['success' => true, 'message' => 'Credit removed successfully', 'new_credit' => $result['user_credit']]);
     } else {
         echo json_encode(['success' => false, 'message' => 'Failed to remove credit']);

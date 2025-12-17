@@ -1,6 +1,7 @@
 <?php
 require_once 'functions/auth.php';
 checkAdminAuth();
+require_once 'functions/audit.php';
 require_once '../database.php';
 
 // Get database connection
@@ -9,14 +10,30 @@ $pdo = getPDO();
 // Handle delete action
 if (isset($_GET['delete']) && is_numeric($_GET['delete'])) {
     $userId = (int) $_GET['delete'];
-    
-    // Delete the user
-    $deleteStmt = $pdo->prepare("DELETE FROM waitlist_users WHERE id = ?");
-    $deleteStmt->execute([$userId]);
 
-    // Redirect back to avoid resubmission
-    header('Location: index.php?deleted=1');
-    exit;
+    // Fetch user details first
+    $stmt = $pdo->prepare("SELECT name, email FROM waitlist_users WHERE id = ?");
+    $stmt->execute([$userId]);
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    // Prevent deleting main admin
+    if ($user && $user['email'] !== 'admin@gmail.com') {
+        // Record audit BEFORE deleting so FK reference is valid
+        $adminId = $_SESSION['admin_id'] ?? null;
+        try {
+            recordAdminAction($pdo, $adminId, 'delete_user', $userId, ['context' => 'admin_index', 'email' => $user['email'] ?? null, 'name' => $user['name'] ?? null]);
+        } catch (Exception $e) {
+            error_log('Failed to record admin delete action: ' . $e->getMessage());
+        }
+
+        // Delete the user
+        $deleteStmt = $pdo->prepare("DELETE FROM waitlist_users WHERE id = ?");
+        $deleteStmt->execute([$userId]);
+
+        // Redirect back to avoid resubmission
+        header('Location: index.php?deleted=1');
+        exit;
+    }
 }
 
 // Get all users with their referral counts
