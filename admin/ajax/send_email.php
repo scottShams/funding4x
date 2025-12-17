@@ -39,9 +39,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         exit;
     }
 
-    // Save template if requested (using template name if provided, otherwise use subject)
+    // Save template if requested (automatically use subject as template name)
     if ($saveTemplate) {
-        $templateName = !empty($templateName) ? $templateName : $subject;
+        $templateName = $subject; // Use subject as template name
         // Update if exists or insert new
         $stmt = $pdo->prepare("INSERT INTO email_templates (name, subject, body, created_at) VALUES (?, ?, ?, NOW())
                                ON DUPLICATE KEY UPDATE subject = VALUES(subject), body = VALUES(body), created_at = NOW()");
@@ -66,7 +66,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         $adminId = $_SESSION['admin_id'] ?? null;
         recordAdminAction($pdo, $adminId, 'send_email', $userId, ['subject' => $subject, 'saved_template' => $saveTemplate ? 1 : 0]);
 
-        echo json_encode(['success' => true, 'message' => 'Email sent successfully' . ($saveTemplate ? ' and saved as template' : '')]);
+        echo json_encode(['success' => true, 'message' => 'Email sent successfully' . ($saveTemplate ? ' and template saved automatically' : '')]);
     } else {
         echo json_encode(['success' => false, 'message' => 'Failed to send email']);
     }

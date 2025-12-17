@@ -52,18 +52,6 @@
                         <input type="file" class="form-control" id="emailAttachment" name="attachment" accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.gif">
                         <div class="form-text">Supported formats: PDF, DOC, DOCX, TXT, JPG, JPEG, PNG, GIF. Max size: 10MB</div>
                     </div>
-
-                    <div class="mb-3">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="saveAsTemplate" name="save_template">
-                            <label class="form-check-label" for="saveAsTemplate">
-                                Save as template for future use
-                            </label>
-                        </div>
-                        <div class="mt-2" id="templateNameDiv" style="display: none;">
-                            <input type="text" class="form-control" id="templateName" name="template_name" placeholder="Template name">
-                        </div>
-                    </div>
                 </form>
             </div>
             <div class="modal-footer">
@@ -205,27 +193,13 @@ function openEmailModal(userId, userName, userEmail) {
     $('#emailBody').val(`Hello ${userName},\n\n`);
     $('#emailTemplate').val('');
     $('#emailAttachment').val(''); // Clear file input
-    $('#saveAsTemplate').prop('checked', false);
-    $('#templateNameDiv').hide();
-    $('#templateName').val('');
 
     const modal = new bootstrap.Modal(document.getElementById('emailModal'));
     modal.show();
 }
 
-// Handle save as template checkbox
-$('#saveAsTemplate').change(function() {
-    if ($(this).is(':checked')) {
-        $('#templateNameDiv').show();
-        $('#templateName').attr('required', true);
-    } else {
-        $('#templateNameDiv').hide();
-        $('#templateName').removeAttr('required');
-    }
-});
-
-// Send email function
-function sendEmail(saveTemplate = true) {
+<!-- Send email function -->
+function sendEmail(saveTemplate = false) {
     
     const form = document.getElementById('emailForm');
     if (!form.checkValidity()) {
