@@ -79,6 +79,73 @@ if (isset($_POST['action']) && $_POST['action'] === 'remove_credit') {
     exit;
 }
 
+// Handle make payment action
+if (isset($_POST['action']) && $_POST['action'] === 'make_payment') {
+    header('Content-Type: application/json');
+
+    $userId = (int)$_POST['user_id'];
+    $amount = (float)$_POST['amount'];
+    $paymentDate = $_POST['payment_date'];
+    $transactionHash = $_POST['transaction_hash'];
+    $cryptoType = $_POST['crypto_type'];
+    $cryptoNetwork = $_POST['crypto_network'];
+    $walletAddress = $_POST['wallet_address'] ?? '';
+
+    // Validate required fields
+    if (empty($amount) || empty($paymentDate) || empty($transactionHash) || empty($cryptoType) || empty($cryptoNetwork)) {
+        echo json_encode(['success' => false, 'message' => 'All fields are required']);
+        exit;
+    }
+
+    // Validate crypto types and networks
+    $validCryptoTypes = ['USDC', 'USDT', 'BTC', 'ETH'];
+    $validCryptoNetworks = ['Tron', 'Arbitrum', 'Ethereum', 'Bitcoin'];
+
+    if (!in_array($cryptoType, $validCryptoTypes) || !in_array($cryptoNetwork, $validCryptoNetworks)) {
+        echo json_encode(['success' => false, 'message' => 'Invalid crypto type or network']);
+        exit;
+    }
+
+    try {
+        // Insert payment record
+        $stmt = $pdo->prepare("INSERT INTO payments (
+            user_id, payment_method, amount, currency, status,
+            crypto_type, crypto_network, wallet_address, transaction_hash,
+            payment_source, created_by_admin_id, created_at
+        ) VALUES (?, 'crypto', ?, 'USD', 'completed', ?, ?, ?, ?, 'admin', ?, ?)");
+
+        $adminId = $_SESSION['admin_id'] ?? null;
+        $success = $stmt->execute([
+            $userId,
+            $amount,
+            $cryptoType,
+            $cryptoNetwork,
+            $walletAddress,
+            $transactionHash,
+            $adminId,
+            $paymentDate
+        ]);
+
+        if ($success) {
+            // Record audit
+            $adminId = $_SESSION['admin_id'] ?? null;
+            recordAdminAction($pdo, $adminId, 'make_payment', $userId, [
+                'amount' => $amount,
+                'crypto_type' => $cryptoType,
+                'crypto_network' => $cryptoNetwork,
+                'transaction_hash' => $transactionHash
+            ]);
+
+            echo json_encode(['success' => true, 'message' => 'Payment recorded successfully']);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Failed to record payment']);
+        }
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'message' => 'Database error: ' . $e->getMessage()]);
+    }
+    exit;
+}
+
 // Handle approve knowledge test action
 if (isset($_POST['action']) && $_POST['action'] === 'approve_test') {
     header('Content-Type: application/json');
@@ -580,6 +647,10 @@ ob_start();
                                         <i class="bi bi-dash-circle me-2"></i>Remove Credit
                                     </a></li>
                                     <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="#" onclick="makePayment(<?php echo $user['id']; ?>, '<?php echo htmlspecialchars($user['name']); ?>')">
+                                        <i class="bi bi-credit-card me-2"></i>Make Payment
+                                    </a></li>
+                                    <li><hr class="dropdown-divider"></li>
                                     <li><a class="dropdown-item" href="?export=user_csv&user_id=<?php echo $user['id']; ?>">
                                         <i class="bi bi-file-earmark-spreadsheet me-2"></i>Download Test CSV
                                     </a></li>
@@ -598,6 +669,72 @@ ob_start();
     </div>
 </div>
 
+<!-- Make Payment Modal -->
+<div class="modal fade" id="makePaymentModal" tabindex="-1" aria-labelledby="makePaymentModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="makePaymentModalLabel">Make Payment</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="makePaymentForm">
+                    <div class="mb-3">
+                        <input type="hidden" class="form-control" id="paymentUserName" readonly>
+                        <input type="hidden" id="paymentUserId">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="paymentAmount" class="form-label">Amount (USD) *</label>
+                        <input type="number" class="form-control" id="paymentAmount" step="0.01" min="0" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="paymentDate" class="form-label">Payment Date *</label>
+                        <input type="datetime-local" class="form-control" id="paymentDate" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="cryptoType" class="form-label">Crypto Type *</label>
+                        <select class="form-select" id="cryptoType" required>
+                            <option value="">Select Crypto Type</option>
+                            <option value="USDC">USDC</option>
+                            <option value="USDT">USDT</option>
+                            <option value="BTC">Bitcoin (BTC)</option>
+                            <option value="ETH">Ethereum (ETH)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="cryptoNetwork" class="form-label">Crypto Network *</label>
+                        <select class="form-select" id="cryptoNetwork" required>
+                            <option value="">Select Network</option>
+                            <option value="Tron">Tron (TRC20)</option>
+                            <option value="Arbitrum">Arbitrum</option>
+                            <option value="Ethereum">Ethereum (ERC20)</option>
+                            <option value="Bitcoin">Bitcoin</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="transactionHash" class="form-label">Transaction Hash *</label>
+                        <input type="text" class="form-control" id="transactionHash" placeholder="0xabc123..." required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="walletAddress" class="form-label">Wallet Address</label>
+                        <input type="text" class="form-control" id="walletAddress" placeholder="Optional">
+                        <small class="form-text text-muted">Leave blank if not applicable</small>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="submitPayment">Record Payment</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <?php
 $content = ob_get_clean();
@@ -1013,4 +1150,110 @@ function declineTest(userId, userName) {
         }
     });
 }
+
+// Make payment function
+function makePayment(userId, userName) {
+    $('#makePaymentModalLabel').text('Make Payment for ' + userName);
+    $('#paymentUserName').val(userName);
+    $('#paymentUserId').val(userId);
+    
+    // Set current date and time
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const currentDateTime = `${year}-${month}-${day}T${hours}:${minutes}`;
+    $('#paymentDate').val(currentDateTime);
+    
+    // Clear other fields
+    $('#paymentAmount').val('');
+    $('#cryptoType').val('');
+    $('#cryptoNetwork').val('');
+    $('#transactionHash').val('');
+    $('#walletAddress').val('');
+    
+    $('#makePaymentModal').modal('show');
+}
+
+// Handle payment submission
+$(document).ready(function() {
+    $('#submitPayment').on('click', function() {
+        const userId = $('#paymentUserId').val();
+        const amount = $('#paymentAmount').val();
+        const paymentDate = $('#paymentDate').val();
+        const cryptoType = $('#cryptoType').val();
+        const cryptoNetwork = $('#cryptoNetwork').val();
+        const transactionHash = $('#transactionHash').val();
+        const walletAddress = $('#walletAddress').val();
+        
+        // Validate required fields
+        if (!amount || !paymentDate || !cryptoType || !cryptoNetwork || !transactionHash) {
+            Swal.fire({
+                title: 'Validation Error',
+                text: 'Please fill in all required fields.',
+                icon: 'warning',
+                confirmButtonText: 'OK'
+            });
+            return;
+        }
+        
+        // Hide modal
+        $('#makePaymentModal').modal('hide');
+        // Show loading
+        Swal.fire({
+            title: 'Recording Payment...',
+            text: 'Please wait while we record the payment',
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        // Send AJAX request
+        $.ajax({
+            url: 'knowledge_tests.php',
+            type: 'POST',
+            data: {
+                action: 'make_payment',
+                user_id: userId,
+                amount: amount,
+                payment_date: paymentDate,
+                crypto_type: cryptoType,
+                crypto_network: cryptoNetwork,
+                transaction_hash: transactionHash,
+                wallet_address: walletAddress
+            },
+            dataType: 'json',
+            success: function(response) {
+                if (response.success) {
+                    Swal.fire({
+                        title: 'Success!',
+                        text: 'Payment recorded successfully.',
+                        icon: 'success',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                } else {
+                    Swal.fire({
+                        title: 'Error!',
+                        text: response.message || 'Failed to record payment.',
+                        icon: 'error',
+                        confirmButtonText: 'OK'
+                    });
+                }
+            },
+            error: function() {
+                Swal.fire({
+                    title: 'Error!',
+                    text: 'An error occurred while recording the payment.',
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
+            }
+        });
+    });
+});
 </script>

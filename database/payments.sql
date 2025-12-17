@@ -42,3 +42,10 @@ CREATE TABLE IF NOT EXISTS payments (
 -- Sample insert for credit card payment
 -- INSERT INTO payments (user_id, payment_method, amount, card_name, gateway_transaction_id, status)
 -- VALUES (1, 'credit_card', 59.00, 'John Doe', 'ch_1234567890', 'completed');
+
+-- Payment source tracking
+ALTER TABLE payments
+ADD COLUMN payment_source ENUM('user', 'admin') NOT NULL DEFAULT 'user'
+AFTER notes,
+ADD COLUMN created_by_admin_id INT UNSIGNED NULL
+AFTER payment_source;
