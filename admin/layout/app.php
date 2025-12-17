@@ -53,7 +53,7 @@
                         <div class="form-text">Supported formats: PDF, DOC, DOCX, TXT, JPG, JPEG, PNG, GIF. Max size: 10MB</div>
                     </div>
 
-                    <!-- <div class="mb-3">
+                    <div class="mb-3">
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" id="saveAsTemplate" name="save_template">
                             <label class="form-check-label" for="saveAsTemplate">
@@ -63,7 +63,7 @@
                         <div class="mt-2" id="templateNameDiv" style="display: none;">
                             <input type="text" class="form-control" id="templateName" name="template_name" placeholder="Template name">
                         </div>
-                    </div> -->
+                    </div>
                 </form>
             </div>
             <div class="modal-footer">
@@ -205,9 +205,9 @@ function openEmailModal(userId, userName, userEmail) {
     $('#emailBody').val(`Hello ${userName},\n\n`);
     $('#emailTemplate').val('');
     $('#emailAttachment').val(''); // Clear file input
-    // $('#saveAsTemplate').prop('checked', false);
-    // $('#templateNameDiv').hide();
-    // $('#templateName').val('');
+    $('#saveAsTemplate').prop('checked', false);
+    $('#templateNameDiv').hide();
+    $('#templateName').val('');
 
     const modal = new bootstrap.Modal(document.getElementById('emailModal'));
     modal.show();
@@ -217,21 +217,26 @@ function openEmailModal(userId, userName, userEmail) {
 $('#saveAsTemplate').change(function() {
     if ($(this).is(':checked')) {
         $('#templateNameDiv').show();
-        // $('#templateName').attr('required', true);
+        $('#templateName').attr('required', true);
     } else {
         $('#templateNameDiv').hide();
-        // $('#templateName').removeAttr('required');
+        $('#templateName').removeAttr('required');
     }
 });
 
 // Send email function
 function sendEmail(saveTemplate = true) {
+    console.log('sendEmail called with saveTemplate:', saveTemplate);
+    
     const form = document.getElementById('emailForm');
     if (!form.checkValidity()) {
+        console.log('Form validation failed');
         form.reportValidity();
         return;
     }
 
+    console.log('Form is valid, preparing to send...');
+    
     const formData = new FormData(form);
     formData.append('action', 'send_email');
     formData.append('save_template', saveTemplate ? '1' : '0');
@@ -247,6 +252,8 @@ function sendEmail(saveTemplate = true) {
         }
     });
 
+    console.log('Sending AJAX request to ajax/send_email.php');
+    
     $.ajax({
         url: 'ajax/send_email.php',
         type: 'POST',
@@ -255,6 +262,7 @@ function sendEmail(saveTemplate = true) {
         contentType: false,
         dataType: 'json',
         success: function(response) {
+            console.log('AJAX Success Response:', response);
             if (response.success) {
                 // Close modal
                 const modal = bootstrap.Modal.getInstance(document.getElementById('emailModal'));
@@ -263,7 +271,7 @@ function sendEmail(saveTemplate = true) {
                 // Show success message
                 Swal.fire({
                     title: 'Email Sent!',
-                    text: response.message,
+                    text: response.message || 'Email has been sent successfully.',
                     icon: 'success',
                     timer: 2000,
                     showConfirmButton: false
@@ -272,23 +280,37 @@ function sendEmail(saveTemplate = true) {
                     if (saveTemplate) {
                         loadEmailTemplates();
                     }
-
-                    // Reload page
-                    // location.reload();
                 });
             } else {
+                console.error('Email sending failed:', response.message);
                 Swal.fire({
                     title: 'Error!',
-                    text: response.message || 'Failed to send email.',
+                    text: response.message || 'Failed to send email. Please check the SMTP configuration and try again.',
                     icon: 'error',
                     confirmButtonText: 'OK'
                 });
             }
         },
-        error: function() {
+        error: function(xhr, status, error) {
+            console.error('AJAX Error:', status, error);
+            console.error('Response Text:', xhr.responseText);
+            console.error('Status Code:', xhr.status);
+            
+            let errorMessage = 'An error occurred while sending the email.';
+            if (xhr.responseText) {
+                try {
+                    const response = JSON.parse(xhr.responseText);
+                    if (response.message) {
+                        errorMessage = response.message;
+                    }
+                } catch (e) {
+                    console.log('Could not parse error response as JSON');
+                }
+            }
+            
             Swal.fire({
                 title: 'Error!',
-                text: 'An error occurred while sending the email.',
+                text: errorMessage + ' Please check the console for details.',
                 icon: 'error',
                 confirmButtonText: 'OK'
             });

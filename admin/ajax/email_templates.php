@@ -55,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Save template
     $stmt = $pdo->prepare("INSERT INTO email_templates (name, subject, body, created_at) VALUES (?, ?, ?, NOW())");
-    $success = $stmt->execute([$subject, $subject, $body]);
+    $success = $stmt->execute([$name, $subject, $body]);
 
     if ($success) {
         echo json_encode(['success' => true, 'message' => 'Template saved successfully']);
