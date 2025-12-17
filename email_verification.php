@@ -632,7 +632,7 @@ class EmailVerification {
             $body = str_replace('{email}', htmlspecialchars($to), $body);
 
             // Add greeting at the top
-            $body = "Hi " . $name . ",<br/>" . $body;
+            // $body = "Hi " . $name . ",<br/>" . $body;
 
             // Load HTML email template
             $htmlBody = file_get_contents(__DIR__ . '/email_templates/custom_email_template.html');
