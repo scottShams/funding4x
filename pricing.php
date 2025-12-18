@@ -68,22 +68,16 @@
         .header-bg {
             background-color: #240046;
         }
-        /* Custom feature list styling */
-        .feature-list li {
-            padding: 0.5rem 0;
+        .pricing-card {
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            min-height: 550px;
             display: flex;
-            align-items: center;
+            flex-direction: column;
         }
-        .feature-list svg {
-            margin-right: 0.5rem;
-        }
-        /* Card timer style */
-        .timer-card {
-            background-color: #f04040; /* Dark background for visibility */
-            color: #f7f6f4; /* Trophy Gold text */
-            padding: 0.5rem 1rem;
-            border-radius: 0.5rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+        .pricing-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.15);
         }
         .spinner {
             border: 4px solid #f3f4f6;
@@ -104,6 +98,29 @@
             background-color: rgba(17, 24, 39, 0.95);
             backdrop-filter: blur(5px);
         }
+        .tab-button.active {
+            background-color: #4f009d;
+            color: white;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .tab-button:not(.active) {
+            background-color: #e5e7eb;
+            color: #240046;
+        }
+        .tab-nav-container {
+            display: flex;
+            overflow-x: auto;
+            white-space: nowrap;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .tab-nav-container::-webkit-scrollbar {
+            display: none;
+        }
+        .tab-button {
+            flex-shrink: 0;
+            min-width: 50%;
+        }
     </style>
 </head>
 
@@ -111,230 +128,124 @@
 
     <?php include 'header.php'; ?>
 
-    <!-- Main Content: Pricing Tables -->
-    <main class="flex-grow flex flex-col items-center p-4 sm:p-8">
-        <div class="w-full max-w-5xl">
-            
-            <h2 class="text-4xl sm:text-5xl font-extrabold text-header-dark text-center mb-4">
-                Choose Your Path to a Funded Account
-            </h2>
-            <p class="text-lg text-gray-600 text-center mb-6">
-             <!--   Start your evaluation today—either by referring others or by purchasing instant access to Phase 1.-->
-            </p>
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
 
-            <!-- GLOBAL PROMINENT TIMER SECTION (Card Style) -->
-            <div id="timerContainerWrapper" class="flex justify-center mb-12 hidden">
-                <div id="timerContainer" class="font-bold text-center w-full max-w-lg p-2 sm:p-4 transition-all duration-300 ease-in-out">
-                    <p class="text-lg sm:text-xl uppercase tracking-widest mb-3 text-red-700 font-extrabold">LIMITED OFFER ENDS IN:</p>
-                    
-                    <!-- Timer Cards Structure -->
-                    <div class="flex justify-center space-x-3 sm:space-x-4">
-                        <!-- Days Card -->
-                        <div class="timer-card flex-1 max-w-[120px]">
-                            <div id="timerDays" class="text-5xl sm:text-6xl font-extrabold leading-none">00</div>
-                            <div class="text-xs sm:text-sm font-semibold mt-1 text-white/80">DAYS</div>
-                        </div>
+        <h2 class="text-4xl md:text-5xl font-extrabold text-center text-header-dark mb-4">
+            Choose Your Path to Funding
+        </h2>
+        <p class="text-center text-lg text-gray-600 max-w-4xl mx-auto mb-12">
+            We offer plans for every trader: start for free, try a small challenge, or go straight for serious capital. Simple rules, up to 90% profit split.
+        </p>
 
-                        <!-- Hours Card -->
-                        <div class="timer-card flex-1 max-w-[120px]">
-                            <div id="timerHours" class="text-5xl sm:text-6xl font-extrabold leading-none">00</div>
-                            <div class="text-xs sm:text-sm font-semibold mt-1 text-white/80">HOURS</div>
-                        </div>
+        <!-- Tab Navigation (Mobile Only) -->
+        <div class="md:hidden tab-nav-container justify-start p-1 bg-gray-200 rounded-xl max-w-full mx-auto mb-6 shadow-inner">
+            <button id="tab-fast" data-target="card-fast" class="tab-button py-2 text-xs font-bold rounded-lg transition duration-200 active">
+                Fast Access
+            </button>
+            <button id="tab-slow" data-target="card-slow" class="tab-button py-2 text-xs font-bold rounded-lg transition duration-200">
+                Slow Access
+            </button>
+        </div>
 
-                        <!-- Minutes Card -->
-                        <div class="timer-card flex-1 max-w-[120px]">
-                            <div id="timerMinutes" class="text-5xl sm:text-6xl font-extrabold leading-none">00</div>
-                            <div class="text-xs sm:text-sm font-semibold mt-1 text-white/80">MINUTES</div>
-                        </div>
+        <!-- Pricing Cards Container -->
+        <div id="pricing-container" class="grid md:grid-cols-2 gap-6 mx-auto">
 
-                        <!-- Seconds Card -->
-                        <div class="timer-card flex-1 max-w-[120px]">
-                            <div id="timerSeconds" class="text-5xl sm:text-6xl font-extrabold leading-none">00</div>
-                            <div class="text-xs sm:text-sm font-semibold mt-1 text-white/80">SECONDS</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Pricing Grid (Instant Access is the first column) -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                
-                <!-- Card 1 (New Position): PAID Option (Instant Access) -->
-                <div id="instantAccessCard" class="bg-card-white p-6 sm:p-8 rounded-xl shadow-2xl transition duration-500 border-4 border-trophy-gold transform scale-[1.03] lg:scale-100 lg:hover:scale-[1.05]">
-                    
-                    <!-- Badge/Highlight: Displays 38% OFF -->
-                    <div class="text-center mb-4" id="discountBadgeContainer">
-                        <span class="inline-block bg-success-green text-card-white text-lg font-bold px-4 py-1 rounded-full uppercase tracking-wider shadow-md animate-pulse">
-                            LIMITED TIME: 38% OFF!
-                        </span>
-                    </div>
-                    
-                    <h3 class="text-3xl font-extrabold text-header-dark mb-4 text-center">
-                        FAST Access
-                    </h3>
-
-                    <!-- Discounted Price Block -->
-                    <div class="flex flex-col items-center mb-6">
-                        <p class="text-lg font-medium text-red-700 line-through" id="originalPriceDisplay">
-                            Normal Price: $59
-                        </p>
-                        <p class="text-6xl font-extrabold text-primary-purple leading-none" id="currentPriceDisplay">
-                            $36<span class="text-3xl font-semibold">.58</span>
-                        </p>
-                        <p class="text-2xl text-success-green font-bold mt-2" id="saveAmountDisplay">
-                            (Save $22.42 instantly!)
-                        </p>
-                    </div>
-                    
-                    <!-- Key Feature Highlight -->
-                    <div class="bg-trophy-gold/20 p-4 rounded-lg mb-8 border border-trophy-gold" id="limitedOfferHighlight">
-                        <p class="text-lg font-bold text-header-dark text-center">
-                            INSTANT ADMISSION: <br/ >Start Phase 1 Immediately.
-                        </p>
-                        <p class="text-sm text-gray-600 text-center mt-1">
-                            Your evaluation starts the moment your payment is processed.
-                        </p>
-                    </div>
-
-                    <!-- Features -->
-                    <ul class="feature-list text-gray-700 mb-8">
-                        <li>
-                            <svg class="w-5 h-5 text-success-green" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                            Trading Challenge Phase 1
-                        </li>
-                        <li>
-                            <svg class="w-5 h-5 text-success-green" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                            Start Trading within 1 hour
-                        </li>
-                        <li>
-                            <svg class="w-5 h-5 text-success-green" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                            $5,000 Starting Account Balance
-                        </li>
-                        <li>
-                            <svg class="w-5 h-5 text-success-green" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                            1 Free Retry (if you fail)
-                        </li>
-                       
-                        <li>
-                            <svg class="w-5 h-5 text-success-green" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                            2 Chances to Continue if you break Soft Rules
-                        </li>
-                        <li>
-                            <svg class="w-5 h-5 text-success-green" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                            50:50 Profit Share 
-                        </li>
-                         <li>
-                            <svg class="w-5 h-5 text-success-green" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                            Priority Support - No Long Waiting
-                        </li>
-                    </ul>
-
-                    <!-- CTA Button -->
-                    <?php $discounted_price = 36.58; ?>
-                    <a id="pricing-paid-cta" href="login.php?paid=1&price=<?php echo urlencode($discounted_price); ?>" class="w-full py-3 bg-primary-purple text-card-white font-extrabold text-lg rounded-lg shadow-lg hover:bg-secondary-purple transition duration-300 text-center block">
-                        Get My Account Now 
-                    </a>
-
-                    <script>
-                        // Ensure we set the checkout cookie when the user clicks the paid CTA.
-                        (function(){
-                            const btn = document.getElementById('pricing-paid-cta');
-                            if (!btn) return;
-                            btn.addEventListener('click', function () {
-                                try {
-                                    const price = '<?php echo $discounted_price; ?>';
-                                    const expires = new Date(Date.now() + (24 * 60 * 60 * 1000)); // 1 day
-                                    document.cookie = `checkout_price=${price}; path=/; expires=${expires.toUTCString()}`;
-                                    // Also set a short-lived flag to indicate this came from pricing CTA
-                                    const flagExpires = new Date(Date.now() + (60 * 60 * 1000)); // 1 hour
-                                    document.cookie = `checkout_from_pricing=1; path=/; expires=${flagExpires.toUTCString()}`;
-                                } catch (e) {
-                                    // fail silently – server will also set cookie from URL param
-                                }
-                            });
-                        })();
-                    </script>
-
-                </div>
-
-
-                <!-- Card 2 (New Position): FREE Option (Community Access) -->
-                <div class="bg-card-white p-6 sm:p-8 rounded-xl shadow-lg transition duration-300 border border-border-light lg:hover:shadow-xl lg:hover:border-primary-purple">
-                    
-                    <h3 class="text-3xl font-extrabold text-primary-purple mb-4 text-center">
-                        SLOW Access
-                    </h3>
-                    
-                    <!-- Discounted Price Block -->
-                    <div class="flex flex-col items-center mb-6">
-                        
-                        <p class="text-6xl font-extrabold text-primary-purple leading-none" id="currentPriceDisplay">
-                            $0<span class="text-3xl font-semibold">.00</span>
-                        </p>
-                        
-                    </div>
-                    <p class="text-base text-gray-500 font-semibold mb-6 text-center">
-                        
+            <!-- Card 1: FAST Access -->
+            <div id="card-fast" class="card-item pricing-card w-full bg-white p-6 md:p-8 rounded-xl border-t-8 border-trophy-gold hidden md:flex">
+                <div class="text-center">
+                    <p class="text-sm font-semibold text-trophy-gold uppercase tracking-widest">Fast Access</p>
+                    <h3 class="mt-2 text-4xl font-extrabold text-header-dark">$5,000</h3>
+                    <p class="mt-1 text-2xl font-bold text-gray-900">
+                        $36.58
+                        <span class="text-base font-normal text-gray-500">one-time fee</span>
                     </p>
-
-                    <!-- Key Feature Highlight -->
-                    <div class="bg-primary-purple/10 p-4 rounded-lg mb-8 border border-primary-purple">
-                        <p class="text-lg font-bold text-primary-purple text-center">
-                            To Get a Free Trading Challenge you must Refer 5 Forex Traders to Join Us.
-                        </p>
-                        <p class="text-sm text-gray-600 text-center mt-1">
-                            Your referred traders must successfully register AND participate in the Trading Challenge. Only then we will grant you a Free Trading Challenge.
-                        </p>
-                    </div>
-
-                    <!-- Features -->
-                    <ul class="feature-list text-gray-700 mb-8">
-                        <li>
-                            <svg class="w-5 h-5 text-success-green" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                            Trading Challenge Phase 1
-                        </li>
-                        <li>
-                            <svg class="w-5 h-5 text-success-green" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                            Start Trading AFTER you have 5 completed Referrals
-                        </li>
-                        <li>
-                            <svg class="w-5 h-5 text-success-green" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                            $5,000 Starting Account balance
-                        </li>
-                        <li>
-                            <svg class="w-5 h-5 text-success-green" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                            2 Chances to Continue if you break Soft Rules
-                        </li>
-                        <li>
-                            <svg class="w-5 h-5 text-success-green" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                            50:50 Profit Share 
-                        </li>
-                        <li>
-                            <svg class="w-5 h-5 text-success-green" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                            Long Que for Approval
-                        </li>
-                        <li class="opacity-70">
-                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                            No free Retry
-                        </li>
-                        <li class="opacity-70">
-                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                            No Instant Access (Requires Referrals)
-                        </li>
-                    </ul>
-
-                    <!-- CTA Button -->
-                    <a href="login.php" class="w-full py-3 bg-trophy-gold text-header-dark font-extrabold text-lg rounded-lg shadow-lg hover:bg-cta-hover transition duration-300 text-center block">
-                        Get My Account Now
-                    </a>
-                    
                 </div>
 
+                <ul role="list" class="mt-8 space-y-4 text-gray-600 flex-grow">
+                    <li class="flex items-start">
+                        <i class="fas fa-check-circle text-success-green mt-1 mr-3 flex-shrink-0"></i>
+                        <span><strong class="text-gray-900">Trading Challenge Phase 1</strong></span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fas fa-check-circle text-success-green mt-1 mr-3 flex-shrink-0"></i>
+                        <span><strong class="text-gray-900">Start Trading within 1 hour</strong></span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fas fa-check-circle text-success-green mt-1 mr-3 flex-shrink-0"></i>
+                        <span><strong class="text-gray-900">$5,000 Starting Account Balance</strong></span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fas fa-check-circle text-success-green mt-1 mr-3 flex-shrink-0"></i>
+                        <span><strong class="text-gray-900">1 Free Retry (if you fail)</strong></span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fas fa-check-circle text-success-green mt-1 mr-3 flex-shrink-0"></i>
+                        <span><strong class="text-gray-900">2 Chances to Continue if you break Soft Rules</strong></span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fas fa-check-circle text-success-green mt-1 mr-3 flex-shrink-0"></i>
+                        <span><strong class="text-gray-900">50:50 Profit Share</strong></span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fas fa-check-circle text-success-green mt-1 mr-3 flex-shrink-0"></i>
+                        <span><strong class="text-gray-900">Priority Support - No Long Waiting</strong></span>
+                    </li>
+                </ul>
+
+                <a href="login.php?paid=1&price=36.58" class="mt-auto block w-full text-center py-3 px-6 rounded-full text-white font-bold bg-trophy-gold hover:bg-trophy-gold/80 transition duration-300">
+                    Get My Account Now
+                </a>
             </div>
-            
-            <p class="text-center text-sm text-gray-500 mt-8">*All evaluations are subject to Funding4x terms and conditions.</p>
+
+            <!-- Card 2: SLOW Access -->
+            <div id="card-slow" class="card-item pricing-card w-full bg-white p-6 md:p-8 rounded-xl border-t-8 border-success-green hidden md:flex">
+                <div class="text-center">
+                    <p class="text-sm font-semibold text-success-green uppercase tracking-widest">Slow Access</p>
+                    <h3 class="mt-2 text-4xl font-extrabold text-header-dark">$5,000</h3>
+                    <p class="mt-1 text-2xl font-bold text-gray-900">
+                        FREE
+                        <span class="text-base font-normal text-gray-500">with 5 referrals</span>
+                    </p>
+                </div>
+
+                <ul role="list" class="mt-8 space-y-4 text-gray-600 flex-grow">
+                    <li class="flex items-start">
+                        <i class="fas fa-check-circle text-success-green mt-1 mr-3 flex-shrink-0"></i>
+                        <span><strong class="text-gray-900">Trading Challenge Phase 1</strong></span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fas fa-check-circle text-success-green mt-1 mr-3 flex-shrink-0"></i>
+                        <span><strong class="text-gray-900">Start Trading AFTER you have 5 completed Referrals</strong></span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fas fa-check-circle text-success-green mt-1 mr-3 flex-shrink-0"></i>
+                        <span><strong class="text-gray-900">$5,000 Starting Account balance</strong></span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fas fa-check-circle text-success-green mt-1 mr-3 flex-shrink-0"></i>
+                        <span><strong class="text-gray-900">2 Chances to Continue if you break Soft Rules</strong></span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fas fa-check-circle text-success-green mt-1 mr-3 flex-shrink-0"></i>
+                        <span><strong class="text-gray-900">50:50 Profit Share</strong></span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fas fa-times-circle text-red-500 mt-1 mr-3 flex-shrink-0"></i>
+                        <span><strong class="text-gray-900">No free Retry</strong></span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fas fa-times-circle text-red-500 mt-1 mr-3 flex-shrink-0"></i>
+                        <span><strong class="text-gray-900">Long Que for Approval</strong></span>
+                    </li>
+                </ul>
+
+                <a href="login.php" class="mt-auto block w-full text-center py-3 px-6 rounded-full text-white font-bold bg-success-green hover:bg-success-green/80 transition duration-300">
+                    Start Free Trial
+                </a>
+            </div>
 
         </div>
+
     </main>
 
     <!-- Footer (reusing the dark header style for visual consistency) -->
@@ -344,128 +255,79 @@
         </div>
     </footer>
 
+    <!-- JavaScript for Tab Switching -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const tabButtons = document.querySelectorAll('.tab-button');
+            const cardItems = document.querySelectorAll('.card-item');
 
+            // Function to handle tab clicks
+            function switchTab(targetId) {
+                // 1. Reset all button states
+                tabButtons.forEach(btn => {
+                    btn.classList.remove('active');
+                });
+
+                // 2. Hide all cards (only necessary on mobile)
+                cardItems.forEach(card => {
+                    if (window.innerWidth < 768) {
+                        card.classList.add('hidden');
+                    }
+                });
+
+                // 3. Set active button state
+                const activeButton = document.querySelector(`[data-target="${targetId}"]`);
+                if (activeButton) {
+                    activeButton.classList.add('active');
+                }
+
+                // 4. Show the targeted card (only necessary on mobile)
+                const targetCard = document.getElementById(targetId);
+                if (targetCard) {
+                    if (window.innerWidth < 768) {
+                        targetCard.classList.remove('hidden');
+                    }
+                }
+            }
+
+            // Add event listeners to buttons
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const targetId = button.getAttribute('data-target');
+                    switchTab(targetId);
+                });
+            });
+
+            // Initial setup: If on mobile, ensure only the first card (Fast Access) is visible.
+            if (window.innerWidth < 768) {
+                cardItems.forEach(card => card.classList.add('hidden'));
+                switchTab('card-fast');
+            }
+        });
+    </script>
 
     <script>
-        // --- Environment Variables (Required for Canvas Compliance) ---
-        // Note: For this specific timer feature, localStorage is used for client-side persistence.
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-
-        // --- Timer and Price Logic Constants ---
-        const ORIGINAL_PRICE = 59.00;
-        const DISCOUNTED_PRICE = 36.58;
-
-        // Use same timer logic as home.php countdown
-        const startDate = new Date('2025-11-31T00:00:00').getTime();
-        const expirationTime = startDate + (30 * 24 * 60 * 60 * 1000); // 30 days like home.php
-
-        let offerEndTime;
-        let timerInterval;
-
-
-        // Updates all visual elements based on whether the discount is active
-        function updatePriceDisplay(isDiscounted) {
-            const instantAccessCard = document.getElementById('instantAccessCard');
-            const currentPriceDisplay = document.getElementById('currentPriceDisplay');
-            const originalPriceDisplay = document.getElementById('originalPriceDisplay');
-            const saveAmountDisplay = document.getElementById('saveAmountDisplay');
-            const discountBadgeContainer = document.getElementById('discountBadgeContainer');
-            const limitedOfferHighlight = document.getElementById('limitedOfferHighlight');
-            const timerContainerWrapper = document.getElementById('timerContainerWrapper');
-            const ctaButton = document.getElementById('ctaButton');
-
-            // Classes for the prominent discounted state
-            const promoClasses = ['shadow-2xl', 'border-4', 'border-trophy-gold', 'transform', 'scale-[1.03]', 'lg:scale-100', 'lg:hover:scale-[1.05]'];
-            // Classes for the neutral (full price) state - mirroring the free card look
-            const neutralClasses = ['shadow-lg', 'border', 'border-border-light', 'lg:hover:shadow-xl', 'lg:hover:border-primary-purple'];
-
-
-            if (isDiscounted) {
-                // Discounted State: $36.58
-                currentPriceDisplay.innerHTML = `$${DISCOUNTED_PRICE.toFixed(2).split('.')[0]}<span class="text-3xl font-semibold">.${DISCOUNTED_PRICE.toFixed(2).split('.')[1]}</span>`;
-                originalPriceDisplay.classList.remove('hidden');
-                saveAmountDisplay.classList.remove('hidden');
-                discountBadgeContainer.classList.remove('hidden');
-                limitedOfferHighlight.classList.remove('hidden');
-                timerContainerWrapper.classList.remove('hidden'); // Show global timer
-
-                // Card Styling: Apply promo styles, remove neutral styles
-                promoClasses.forEach(cls => instantAccessCard.classList.add(cls));
-                neutralClasses.forEach(cls => instantAccessCard.classList.remove('border-border-light')); // Remove specific conflicting class
-                neutralClasses.forEach(cls => instantAccessCard.classList.remove('shadow-lg')); // Remove specific conflicting class
-
-
-
-            } else {
-                // Full Price State: $59
-                currentPriceDisplay.innerHTML = `$${ORIGINAL_PRICE.toFixed(0)}`;
-                originalPriceDisplay.classList.add('hidden');
-                saveAmountDisplay.classList.add('hidden');
-                discountBadgeContainer.classList.add('hidden');
-                limitedOfferHighlight.classList.add('hidden');
-                timerContainerWrapper.classList.add('hidden'); // Hide global timer
-
-                // Card Styling: Remove promo styles, apply neutral styles
-                promoClasses.forEach(cls => instantAccessCard.classList.remove(cls));
-                neutralClasses.forEach(cls => instantAccessCard.classList.add(cls));
-
-
+        // Ensure we set the checkout cookie when the user clicks the paid CTA.
+        document.addEventListener('DOMContentLoaded', function() {
+            const paidCta = document.querySelector('a[href*="login.php?paid=1&price=36.58"]');
+            if (paidCta) {
+                paidCta.addEventListener('click', function () {
+                    try {
+                        const price = '36.58';
+                        const expires = new Date(Date.now() + (24 * 60 * 60 * 1000)); // 1 day
+                        document.cookie = `checkout_price=${price}; path=/; expires=${expires.toUTCString()}`;
+                        // Also set a short-lived flag to indicate this came from pricing CTA
+                        const flagExpires = new Date(Date.now() + (60 * 60 * 1000)); // 1 hour
+                        document.cookie = `checkout_from_pricing=1; path=/; expires=${flagExpires.toUTCString()}`;
+                    } catch (e) {
+                        // fail silently – server will also set cookie from URL param
+                    }
+                });
             }
-        }
-
-        // Runs every second to check time remaining (same logic as home.php countdown)
-        function updateTimer() {
-            const now = new Date().getTime();
-            const distance = offerEndTime - now;
-
-            const timerHours = document.getElementById('timerHours');
-            const timerMinutes = document.getElementById('timerMinutes');
-            const timerSeconds = document.getElementById('timerSeconds');
-
-            if (distance < 0) {
-                // Offer expired - same behavior as home.php
-                clearInterval(timerInterval);
-                const timerContainer = document.getElementById('timerContainer');
-                if (timerContainer) {
-                    timerContainer.innerHTML = '<span class="text-3xl font-extrabold text-red-700">PROMOTION ENDED!</span>';
-                }
-                updatePriceDisplay(false); // Revert to original price
-                return;
-            }
-
-            // Calculate time remaining (Days, Hours, Minutes, Seconds)
-            const days = Math.floor(distance / (1000 * 60 * 60 * 24)).toString().padStart(2, '0');
-            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)).toString().padStart(2, '0');
-            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60)).toString().padStart(2, '0');
-            const seconds = Math.floor((distance % (1000 * 60)) / 1000).toString().padStart(2, '0');
-
-            // Update card displays
-            const timerDays = document.getElementById('timerDays');
-            if (timerDays) timerDays.textContent = days;
-            if (timerHours) timerHours.textContent = hours;
-            if (timerMinutes) timerMinutes.textContent = minutes;
-            if (timerSeconds) timerSeconds.textContent = seconds;
-
-            updatePriceDisplay(true); // Ensure discounted state while timer is running
-        }
-
-        // Initializes the timer logic on page load (same as home.php countdown)
-        function startCountdown() {
-            // Use fixed expiration time like home.php (no localStorage persistence)
-            offerEndTime = expirationTime;
-
-            // Set up the interval
-            if (timerInterval) clearInterval(timerInterval);
-            updateTimer();
-            timerInterval = setInterval(updateTimer, 1000);
-        }
-
-        window.onload = function() {
-            startCountdown();
-        };
-
+        });
     </script>
+
+
+
 </body>
 </html>
