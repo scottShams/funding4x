@@ -20,7 +20,11 @@ $pdo = getPDO();
 $user = null;
 $referrals = [];
 $showEmailModal = false;
+$showPasswordSetupModal = false;
+$showPasswordModal = false;
 $emailError = '';
+$passwordError = '';
+$passwordSuccess = '';
 $userEmail = '';
 $userName = '';
 
@@ -127,10 +131,6 @@ $stmt->execute([$userId]);
 $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if ($user) {
-    if (isset($user['paid_user']) && (int)$user['paid_user'] === 1) {
-        header('Location: my_dashboard.php');
-        exit;
-    }
     // Check if user status is inactive
     if (isset($user['status']) && $user['status'] === 'inactive') {
         $emailError = 'Your account is currently inactive. Please contact support for assistance.';
@@ -764,6 +764,20 @@ if ($user) {
                         </button>
                     </div>
                 </div>
+
+                <!-- Offer panel - Only show if MT5 details status is fail -->
+                <?php if ($mt5_details && isset($mt5_details['status']) && $mt5_details['status'] === 'fail'): ?>
+                <div class="mt-8 mb-10 p-8 sm:p-12 rounded-2xl bg-primary-purple text-white shadow-2xl transform hover:scale-[1.01] transition duration-300">
+                    <div class="max-w-4xl mx-auto text-center">
+                        <h2 class="text-4xl sm:text-5xl font-extrabold tracking-tight mb-4 text-white">
+                            Special Offer for Referrals!
+                        </h2>
+                        <p class="text-lg mb -4">
+                            As a valued referrer, enjoy an exclusive discount on your funded account test. Use code <strong>REFERRAL20</strong> at checkout for 20% off!
+                        </p>
+                    </div>
+                </div>
+                <?php endif; ?>
             </div>
 
             <!-- Referral Link Content - col-8 on medium+ screens, full width on mobile -->
