@@ -183,6 +183,9 @@
                     $transactionHash
                 ]);
 
+                $stmt = $pdo->prepare("UPDATE waitlist_users SET paid_user = 1 WHERE id = ?");
+                $stmt->execute([$user['id']]);
+
                 // Mark discount as taken if payment was made with discount
                 if ($amount < $checkoutPrice) {
                     $stmt = $pdo->prepare("UPDATE waitlist_users SET discount_taken = 1 WHERE id = ?");

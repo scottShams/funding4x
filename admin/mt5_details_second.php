@@ -296,6 +296,10 @@ if (isset($_POST['action']) && $_POST['action'] === 'make_payment') {
         ]);
 
         if ($success) {
+            
+            $stmt = $pdo->prepare("UPDATE waitlist_users SET paid_user = 1 WHERE id = ?");
+            $stmt->execute([$userId]);
+            
             // Record audit
             $adminId = $_SESSION['admin_id'] ?? null;
             recordAdminAction($pdo, $adminId, 'make_payment', $userId, [

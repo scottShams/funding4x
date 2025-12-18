@@ -306,6 +306,7 @@
         }
     
         try {
+            
             // Insert payment record
             $stmt = $pdo->prepare("INSERT INTO payments (
                 user_id, payment_method, amount, currency, status, crypto_type, crypto_network,
@@ -323,6 +324,9 @@
             ]);
     
             if ($success) {
+                $stmt = $pdo->prepare("UPDATE waitlist_users SET paid_user = 1 WHERE id = ?");
+                $stmt->execute([$userId]);
+
                 // Record audit
                 $adminId = $_SESSION['admin_id'] ?? null;
                 recordAdminAction($pdo, $adminId, 'make_payment', $userId, [
