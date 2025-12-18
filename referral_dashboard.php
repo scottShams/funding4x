@@ -20,7 +20,11 @@ $pdo = getPDO();
 $user = null;
 $referrals = [];
 $showEmailModal = false;
+$showPasswordSetupModal = false;
+$showPasswordModal = false;
 $emailError = '';
+$passwordError = '';
+$passwordSuccess = '';
 $userEmail = '';
 $userName = '';
 
