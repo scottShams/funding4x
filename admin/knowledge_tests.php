@@ -79,6 +79,45 @@ if (isset($_POST['action']) && $_POST['action'] === 'remove_credit') {
     exit;
 }
 
+// Handle toggle paid user action
+if (isset($_POST['action']) && $_POST['action'] === 'toggle_paid_user') {
+    header('Content-Type: application/json');
+
+    $userId = (int)$_POST['user_id'];
+
+    // Get current paid_user status
+    $stmt = $pdo->prepare("SELECT paid_user FROM waitlist_users WHERE id = ?");
+    $stmt->execute([$userId]);
+    $current = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$current) {
+        echo json_encode(['success' => false, 'message' => 'User not found']);
+        exit;
+    }
+
+    $newStatus = $current['paid_user'] == 1 ? 0 : 1;
+
+    // Update paid_user status
+    $stmt = $pdo->prepare("UPDATE waitlist_users SET paid_user = ? WHERE id = ?");
+    $success = $stmt->execute([$newStatus, $userId]);
+
+    if ($success) {
+        // Record audit
+        $adminId = $_SESSION['admin_id'] ?? null;
+        recordAdminAction($pdo, $adminId, 'toggle_paid_user', $userId, ['new_paid_status' => $newStatus]);
+
+        // Prepare new badge HTML
+        $newBadge = $newStatus == 1
+            ? '<span class="badge bg-info text-dark">Paid User</span>'
+            : '<span class="badge bg-secondary">N/A</span>';
+
+        echo json_encode(['success' => true, 'message' => 'Paid status updated successfully', 'new_badge' => $newBadge]);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Failed to update paid status']);
+    }
+    exit;
+}
+
 // Handle make payment action
 if (isset($_POST['action']) && $_POST['action'] === 'make_payment') {
     header('Content-Type: application/json');
@@ -113,7 +152,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'make_payment') {
         ]);
 
         if ($success) {
-            
+
             $stmt = $pdo->prepare("UPDATE waitlist_users SET paid_user = 1 WHERE id = ?");
             $stmt->execute([$userId]);
 
@@ -601,7 +640,7 @@ ob_start();
                             }
                             ?>
                         </td>
-                        <td>
+                        <td id="paid-status-<?php echo $user['id']; ?>">
                             <?php if ((int)$user['paid_user'] === 1): ?>
                                 <span class="badge bg-info text-dark">Paid User</span>
                             <?php else: ?>
@@ -638,6 +677,10 @@ ob_start();
                                     <li><hr class="dropdown-divider"></li>
                                     <li><a class="dropdown-item" href="#" onclick="makePayment(<?php echo $user['id']; ?>, '<?php echo htmlspecialchars($user['name']); ?>')">
                                         <i class="bi bi-credit-card me-2"></i>Make Payment
+                                    </a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="#" onclick="togglePaidUser(<?php echo $user['id']; ?>, '<?php echo htmlspecialchars($user['name']); ?>')">
+                                        <i class="bi bi-toggle-on me-2"></i>Toggle Paid Status
                                     </a></li>
                                     <li><hr class="dropdown-divider"></li>
                                     <li><a class="dropdown-item" href="?export=user_csv&user_id=<?php echo $user['id']; ?>">
@@ -1140,6 +1183,65 @@ function makePayment(userId, userName) {
     $('#paymentDescription').val('');
     
     $('#makePaymentModal').modal('show');
+}
+
+// Toggle paid user function
+function togglePaidUser(userId, userName) {
+    Swal.fire({
+        title: 'Toggle Paid Status',
+        text: `Toggle paid status for "${userName}"?`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#17a2b8',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Yes, toggle!',
+        cancelButtonText: 'Cancel',
+        customClass: {
+            confirmButton: 'btn btn-info',
+            cancelButton: 'btn btn-secondary'
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Send AJAX request
+            $.ajax({
+                url: 'knowledge_tests.php',
+                type: 'POST',
+                data: {
+                    action: 'toggle_paid_user',
+                    user_id: userId
+                },
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        // Update the badge
+                        $('#paid-status-' + userId).html(response.new_badge);
+                        Swal.fire({
+                            title: 'Success!',
+                            text: 'Paid status updated successfully.',
+                            icon: 'success',
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+                    } else {
+                        Swal.fire({
+                            title: 'Error!',
+                            text: response.message || 'Failed to update paid status.',
+                            icon: 'error',
+                            confirmButtonText: 'OK'
+                        });
+                    }
+                },
+                error: function() {
+                    Swal.fire({
+                        title: 'Error!',
+                        text: 'An error occurred while updating paid status.',
+                        icon: 'error',
+                        confirmButtonText: 'OK'
+                    });
+                }
+            });
+        }
+    });
 }
 
 $(document).ready(function() {
