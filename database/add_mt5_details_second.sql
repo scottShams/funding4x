@@ -12,7 +12,7 @@ CREATE TABLE mt5_details_second (
     server VARCHAR(255) NOT NULL,
     instrument VARCHAR(255) NULL,
 
-    status ENUM('pending', 'under_review', 'pass', 'running', 'fail')
+    status ENUM('pending', 'under_review', 'pass', 'running', 'fail', 'updated')
         DEFAULT 'pending',
 
     fail_reason TEXT NULL,
