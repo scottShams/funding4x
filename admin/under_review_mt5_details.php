@@ -1456,6 +1456,15 @@
         };
 
         $('#submitUnderReview').on('click', function() {
+            if (selectedUnderReviewFiles.length === 0) {
+                Swal.fire({
+                    title: 'No files selected',
+                    text: 'Please add at least one file for under review certificate file.',
+                    icon: 'warning',
+                    confirmButtonText: 'OK'
+                });
+                return;
+            }
             // Hide modal
             $('#underReviewModal').modal('hide');
             // Show loading

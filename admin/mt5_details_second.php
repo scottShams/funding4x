@@ -1134,176 +1134,6 @@ $(document).ready(function() {
             }
         });
     });
-
-    // Handle under review submission
-    $(document).ready(function() {
-        let selectedUnderReviewFiles = [];
-
-        // Handle add file button
-        $('#addUnderReviewFileBtn').on('click', function() {
-            const fileInput = document.getElementById('underReviewFile');
-            if (fileInput.files.length === 0) {
-                Swal.fire({
-                    title: 'No file selected',
-                    text: 'Please select a file first.',
-                    icon: 'warning',
-                    confirmButtonText: 'OK'
-                });
-                return;
-            }
-
-            const file = fileInput.files[0];
-
-            // Check if file already exists
-            const fileExists = selectedUnderReviewFiles.some(f => f.name === file.name && f.size === file.size);
-            if (fileExists) {
-                Swal.fire({
-                    title: 'File already added',
-                    text: 'This file has already been added.',
-                    icon: 'warning',
-                    confirmButtonText: 'OK'
-                });
-                return;
-            }
-
-            // Add file to selected files
-            selectedUnderReviewFiles.push(file);
-
-            // Clear input
-            fileInput.value = '';
-
-            // Update display
-            updateUnderReviewSelectedFilesDisplay();
-        });
-
-        // Function to update selected files display
-        function updateUnderReviewSelectedFilesDisplay() {
-            const container = document.getElementById('selectedUnderReviewFilesContainer');
-            const list = document.getElementById('selectedUnderReviewFilesList');
-
-            if (selectedUnderReviewFiles.length > 0) {
-                container.style.display = 'block';
-                list.innerHTML = '';
-
-                selectedUnderReviewFiles.forEach((file, index) => {
-                    const fileItem = document.createElement('div');
-                    fileItem.className = 'd-flex justify-content-between align-items-center mb-2 p-2 bg-light rounded';
-                    fileItem.innerHTML = `
-                        <span class="me-2">
-                            <i class="fas fa-file me-2"></i>${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)
-                        </span>
-                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeUnderReviewFile(${index})">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    `;
-                    list.appendChild(fileItem);
-                });
-            } else {
-                container.style.display = 'none';
-            }
-        }
-
-        // Function to remove file (will be available globally)
-        window.removeUnderReviewFile = function(index) {
-            selectedUnderReviewFiles.splice(index, 1);
-            updateUnderReviewSelectedFilesDisplay();
-        };
-
-        $('#submitUnderReview').on('click', function() {
-            // Hide modal
-            $('#underReviewModal').modal('hide');
-            // Show loading
-            Swal.fire({
-                title: 'Updating...',
-                text: 'Please wait while we update the status',
-                allowOutsideClick: false,
-                allowEscapeKey: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                }
-            });
-
-            // Prepare FormData for file upload
-            const formData = new FormData();
-            formData.append('action', 'update_status');
-            formData.append('mt5_id', window.currentMt5Id);
-            formData.append('status', 'under_review');
-            selectedUnderReviewFiles.forEach(file => {
-                formData.append('underReviewFile[]', file);
-            });
-
-            // Send AJAX request with FormData
-            $.ajax({
-                url: 'mt5_details_second.php',
-                type: 'POST',
-                data: formData,
-                processData: false,
-                contentType: false,
-                dataType: 'json',
-                success: function(response) {
-                    if (response.success) {
-                        // Update the status badge in the same row
-                        const dropdownButton = document.querySelector(`#dropdownMenuButton${window.currentMt5Id}`);
-                        const row = dropdownButton.closest('tr');
-                        const statusCell = row.querySelector('td:nth-child(9) .badge'); // Status is 8th column
-                        statusCell.className = 'badge bg-info';
-                        statusCell.textContent = 'Under Review';
-
-                        // Clear selected files
-                        selectedUnderReviewFiles = [];
-                        updateUnderReviewSelectedFilesDisplay();
-                        $('#underReviewFile').val('');
-
-                        // Check if email was sent
-                        if (response.email_sent) {
-                            Swal.fire({
-                                title: 'Success!',
-                                text: 'Status updated and email sent successfully.',
-                                icon: 'success',
-                                timer: 2000,
-                                showConfirmButton: false
-                            });
-                        } else {
-                            Swal.fire({
-                                title: 'Status Updated',
-                                text: 'Status updated successfully.',
-                                icon: 'success',
-                                confirmButtonText: 'OK'
-                            });
-                        }
-                    } else {
-                        Swal.fire({
-                            title: 'Error!',
-                            text: response.message || 'Failed to update status.',
-                            icon: 'error',
-                            confirmButtonText: 'OK'
-                        });
-                    }
-                },
-                error: function() {
-                    Swal.fire({
-                        title: 'Error!',
-                        text: 'An error occurred while updating the status.',
-                        icon: 'error',
-                        confirmButtonText: 'OK'
-                    });
-                }
-            });
-        });
-
-        // Clear files when modal is shown or closed
-        $('#underReviewModal').on('show.bs.modal', function() {
-            selectedUnderReviewFiles = [];
-            updateUnderReviewSelectedFilesDisplay();
-            $('#underReviewFile').val('');
-        });
-
-        $('#underReviewModal').on('hidden.bs.modal', function() {
-            selectedUnderReviewFiles = [];
-            updateUnderReviewSelectedFilesDisplay();
-            $('#underReviewFile').val('');
-        });
-    });
 });
 
 // Handle pass certificate submission
@@ -1394,6 +1224,186 @@ $(document).ready(function() {
                 });
             }
         });
+    });
+});
+
+
+// Handle under review submission
+$(document).ready(function() {
+    let selectedUnderReviewFiles = [];
+
+    // Handle add file button
+    $('#addUnderReviewFileBtn').on('click', function() {
+        const fileInput = document.getElementById('underReviewFile');
+        if (fileInput.files.length === 0) {
+            Swal.fire({
+                title: 'No file selected',
+                text: 'Please select a file first.',
+                icon: 'warning',
+                confirmButtonText: 'OK'
+            });
+            return;
+        }
+
+        const file = fileInput.files[0];
+
+        // Check if file already exists
+        const fileExists = selectedUnderReviewFiles.some(f => f.name === file.name && f.size === file.size);
+        if (fileExists) {
+            Swal.fire({
+                title: 'File already added',
+                text: 'This file has already been added.',
+                icon: 'warning',
+                confirmButtonText: 'OK'
+            });
+            return;
+        }
+
+        // Add file to selected files
+        selectedUnderReviewFiles.push(file);
+
+        // Clear input
+        fileInput.value = '';
+
+        // Update display
+        updateUnderReviewSelectedFilesDisplay();
+    });
+
+    // Function to update selected files display
+    function updateUnderReviewSelectedFilesDisplay() {
+        const container = document.getElementById('selectedUnderReviewFilesContainer');
+        const list = document.getElementById('selectedUnderReviewFilesList');
+
+        if (selectedUnderReviewFiles.length > 0) {
+            container.style.display = 'block';
+            list.innerHTML = '';
+
+            selectedUnderReviewFiles.forEach((file, index) => {
+                const fileItem = document.createElement('div');
+                fileItem.className = 'd-flex justify-content-between align-items-center mb-2 p-2 bg-light rounded';
+                fileItem.innerHTML = `
+                    <span class="me-2">
+                        <i class="fas fa-file me-2"></i>${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)
+                    </span>
+                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeUnderReviewFile(${index})">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+                list.appendChild(fileItem);
+            });
+        } else {
+            container.style.display = 'none';
+        }
+    }
+
+    // Function to remove file (will be available globally)
+    window.removeUnderReviewFile = function(index) {
+        selectedUnderReviewFiles.splice(index, 1);
+        updateUnderReviewSelectedFilesDisplay();
+    };
+
+    $('#submitUnderReview').on('click', function() {
+        if (selectedUnderReviewFiles.length === 0) {
+            Swal.fire({
+                title: 'No files selected',
+                text: 'Please add at least one file for under review certificate file.',
+                icon: 'warning',
+                confirmButtonText: 'OK'
+            });
+            return;
+        }
+        // Hide modal
+        $('#underReviewModal').modal('hide');
+        // Show loading
+        Swal.fire({
+            title: 'Updating...',
+            text: 'Please wait while we update the status',
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        // Prepare FormData for file upload
+        const formData = new FormData();
+        formData.append('action', 'update_status');
+        formData.append('mt5_id', window.currentMt5Id);
+        formData.append('status', 'under_review');
+        selectedUnderReviewFiles.forEach(file => {
+            formData.append('underReviewFile[]', file);
+        });
+
+        // Send AJAX request with FormData
+        $.ajax({
+            url: 'mt5_details_second.php',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            dataType: 'json',
+            success: function(response) {
+                if (response.success) {
+                    // Update the status badge in the same row
+                    const dropdownButton = document.querySelector(`#dropdownMenuButton${window.currentMt5Id}`);
+                    const row = dropdownButton.closest('tr');
+                    const statusCell = row.querySelector('td:nth-child(9) .badge'); // Status is 8th column
+                    statusCell.className = 'badge bg-info';
+                    statusCell.textContent = 'Under Review';
+
+                    // Clear selected files
+                    selectedUnderReviewFiles = [];
+                    updateUnderReviewSelectedFilesDisplay();
+                    $('#underReviewFile').val('');
+
+                    // Check if email was sent
+                    if (response.email_sent) {
+                        Swal.fire({
+                            title: 'Success!',
+                            text: 'Status updated and email sent successfully.',
+                            icon: 'success',
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+                    } else {
+                        Swal.fire({
+                            title: 'Status Updated',
+                            text: 'Status updated successfully.',
+                            icon: 'success',
+                            confirmButtonText: 'OK'
+                        });
+                    }
+                } else {
+                    Swal.fire({
+                        title: 'Error!',
+                        text: response.message || 'Failed to update status.',
+                        icon: 'error',
+                        confirmButtonText: 'OK'
+                    });
+                }
+            },
+            error: function() {
+                Swal.fire({
+                    title: 'Error!',
+                    text: 'An error occurred while updating the status.',
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
+            }
+        });
+    });
+
+    // Clear files when modal is shown or closed
+    $('#underReviewModal').on('show.bs.modal', function() {
+        selectedUnderReviewFiles = [];
+        updateUnderReviewSelectedFilesDisplay();
+        $('#underReviewFile').val('');
+    });
+
+    $('#underReviewModal').on('hidden.bs.modal', function() {
+        selectedUnderReviewFiles = [];
+        updateUnderReviewSelectedFilesDisplay();
+        $('#underReviewFile').val('');
     });
 });
 
