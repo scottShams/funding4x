@@ -378,12 +378,12 @@ ob_start();
                                     <li><a class="dropdown-item text-info" href="#" onclick="updatePaymentStatus(<?php echo $payment['payment_id']; ?>, 'refund', '<?php echo htmlspecialchars($payment['name']); ?>')">
                                         <i class="bi bi-arrow-return-left me-2"></i>Mark as Refund
                                     </a></li>
-                                    <li><a class="dropdown-item text-danger" href="#" onclick="updatePaymentStatus(<?php echo $payment['payment_id']; ?>, 'failed', '<?php echo htmlspecialchars($payment['name']); ?>')">
+                                    <!-- <li><a class="dropdown-item text-danger" href="#" onclick="updatePaymentStatus(<?php echo $payment['payment_id']; ?>, 'failed', '<?php echo htmlspecialchars($payment['name']); ?>')">
                                         <i class="bi bi-x-circle me-2"></i>Mark as Failed
                                     </a></li>
                                     <li><a class="dropdown-item text-secondary" href="#" onclick="updatePaymentStatus(<?php echo $payment['payment_id']; ?>, 'cancelled', '<?php echo htmlspecialchars($payment['name']); ?>')">
                                         <i class="bi bi-dash-circle me-2"></i>Mark as Cancelled
-                                    </a></li>
+                                    </a></li> -->
                                     <li><hr class="dropdown-divider"></li>
                                     <li><a class="dropdown-item" href="#" onclick="deletePayment(<?php echo $payment['payment_id']; ?>)">
                                         <i class="bi bi-trash me-2"></i>Delete Payment
