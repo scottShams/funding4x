@@ -33,7 +33,7 @@ try {
     //     throw new Exception('reCAPTCHA verification failed');
     // }
 
-    // Check if user exists and is verified
+    // Check if user exists
     $stmt = $pdo->prepare("SELECT id, name, email, password, email_verified FROM waitlist_users WHERE email = ?");
     $stmt->execute([$email]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -42,13 +42,19 @@ try {
         throw new Exception('Invalid email or password');
     }
 
-    if (!$user['email_verified']) {
-        throw new Exception('Please verify your email address before logging in');
-    }
-
     // Verify password
     if (!password_verify($password, $user['password'])) {
         throw new Exception('Invalid email or password');
+    }
+
+    // Check email verification
+    $forceLogin = isset($_POST['force_login']) && $_POST['force_login'] == '1';
+    if (!$user['email_verified'] && !$forceLogin) {
+        echo json_encode([
+            'status' => 'email_not_verified',
+            'message' => 'Please verify your email address before logging in'
+        ]);
+        exit;
     }
 
     // Set session

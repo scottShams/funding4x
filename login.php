@@ -52,6 +52,7 @@
     <!-- Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <!-- <script src="https://www.google.com/recaptcha/api.js" async defer></script> -->
     <script>
         // Theme configuration reused for consistency
@@ -160,6 +161,38 @@
         </div>
     </main>
 
+    <!-- Email Verification Modal -->
+    <div id="emailVerificationModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4" style="display: none; pointer-events: auto;">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full">
+            <div class="text-center mb-6">
+                <h2 class="text-2xl font-bold text-primary-purple mb-2">
+                    Email Verification Required
+                </h2>
+                <p class="text-gray-600">
+                    You need to verify your email address to access the dashboard.
+                </p>
+            </div>
+
+            <!-- Email verification message -->
+            <div class="bg-orange-100 border border-orange-300 rounded-lg p-4 mb-4">
+                <div class="text-center">
+                    <h4 class="font-bold text-orange-800 mb-2">📧 Check Your Email</h4>
+                    <p id="verificationMessage" class="text-orange-700 text-sm mb-3">
+                        Please verify your email address before logging in.
+                    </p>
+                    <p class="text-sm text-gray-600">
+                        Didn't receive an email? Click "Verify Me" to resend.
+                    </p>
+                </div>
+            </div>
+
+            <div class="flex space-x-3">
+                <button id="closeModalBtn" class="flex-1 bg-gray-500 text-white font-semibold py-3 px-4 rounded-lg hover:bg-gray-600 transition">Cancel</button>
+                <button id="verifyMeBtn" class="flex-1 bg-primary-purple text-white font-semibold py-3 px-4 rounded-lg hover:bg-secondary-purple transition">Verify Me</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Footer -->
     <footer class="bg-header-dark text-white mt-auto">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 text-center">
@@ -231,6 +264,9 @@
                             window.location.href = result.redirect || 'referral_dashboard.php';
                         });
 
+                    } else if (result.status === 'email_not_verified') {
+                        $('#verificationMessage').text(result.message);
+                        $('#emailVerificationModal').show();
                     } else {
                         Swal.fire({
                             icon: 'error',
@@ -257,6 +293,102 @@
             });
         });
 
+        // Verify Me button event listener
+        document.getElementById('verifyMeBtn').addEventListener('click', async function() {
+            const email = loginForm.querySelector('input[name="email"]').value.trim();
+            try {
+                const formData = new FormData();
+                formData.append('email', email);
+                const response = await fetch(window.location.origin + '/resend_verification.php', {
+                    method: 'POST',
+                    body: formData
+                });
+                const res = await response.json();
+                if (res.status === 'success') {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Email Sent',
+                        text: res.message,
+                        confirmButtonColor: '#4f009d'
+                    });
+                    $('#emailVerificationModal').hide();
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: res.message,
+                        confirmButtonColor: '#4f009d'
+                    });
+                }
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Connection Error',
+                    text: 'Could not send verification email.',
+                    confirmButtonColor: '#4f009d'
+                });
+            }
+        });
+
+        // Close modal button event listener - force login
+        document.getElementById('closeModalBtn').addEventListener('click', async function() {
+            const email = loginForm.querySelector('input[name="email"]').value.trim();
+            const password = loginForm.querySelector('input[name="password"]').value.trim();
+
+            try {
+                // Show loader
+                showLoginLoader();
+
+                const formData = new FormData();
+                formData.append('email', email);
+                formData.append('password', password);
+                formData.append('force_login', '1');
+
+                const response = await fetch(window.location.origin + '/login_process.php', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                // Hide loader
+                hideLoginLoader();
+                ensureNoLoginLoaderRemains();
+
+                if (result.status === 'success') {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Login Successful!',
+                        text: 'Welcome back to Funding4x!',
+                        timer: 1500,
+                        showConfirmButton: false
+                    }).then(() => {
+                        window.location.href = result.redirect || 'referral_dashboard.php';
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Login Failed',
+                        text: result.message || 'Invalid email or password.',
+                        confirmButtonColor: '#4f009d'
+                    });
+                }
+
+                $('#emailVerificationModal').hide();
+
+            } catch (error) {
+                // Hide loader
+                hideLoginLoader();
+                ensureNoLoginLoaderRemains();
+
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Connection Error',
+                    text: 'We couldn\'t submit your request. Please check your connection and try again.',
+                    confirmButtonColor: '#4f009d'
+                });
+            }
+        });
 
         // Login loader
         function showLoginLoader() {
