@@ -158,12 +158,8 @@
                         }
                     }
 
-                    // Send under review email (you may need to create this method or use an existing one)
-                    // For now, we'll use a generic email or create a simple notification
-                    $emailSent = true; // Set to true for now, you can implement actual email sending
-                    
-                    // If you have a specific email method for under review, use it here:
-                    // $emailSent = EmailVerification::sendUnderReviewEmail($userData['email'], $userData['name'], $attachmentPaths);
+                    // Send under review email with attachments
+                    $emailSent = EmailVerification::sendUnderReviewEmail($userData['email'], $userData['name'], $attachmentPaths);
                 }
             }
 

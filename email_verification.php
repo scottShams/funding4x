@@ -409,6 +409,70 @@ class EmailVerification {
     }
 
     /**
+     * Send an "Under Review" email to the user with optional attachments
+     * @param string $email User email
+     * @param string $name User name
+     * @param array $attachmentPaths Array of paths to files to attach
+     * @return bool Success status
+     */
+    public static function sendUnderReviewEmail($email, $name, $attachmentPaths = []) {
+        try {
+            // Get SMTP config
+            $smtpHost = EnvLoader::get('SMTP_HOST', 'localhost');
+            $smtpUsername = EnvLoader::get('SMTP_USERNAME', '');
+            $smtpPassword = EnvLoader::get('SMTP_PASSWORD', '');
+            $smtpPort = EnvLoader::get('SMTP_PORT', 587);
+            $smtpEncryption = EnvLoader::get('SMTP_ENCRYPTION', 'tls');
+
+            // Build a simple HTML body for under review notification
+            $body = "<div style='font-family: Arial, sans-serif; font-size: 16px; color: #333;'>"
+                  . "<p>Hello " . htmlspecialchars($name) . ",</p>"
+                  . "<p>Your trading test has been marked <strong>Under Review</strong> by our team. Please find any relevant documents attached.</p>"
+                  . "<p>We will notify you with further updates after review.</p>"
+                  . "<p>Best regards,<br/>Funding4x Team</p>"
+                  . "</div>";
+
+            $subject = "Your Trading Test Is Under Review";
+
+            // PHPMailer
+            $mail = new PHPMailer(true);
+
+            $mail->isSMTP();
+            $mail->Host = $smtpHost;
+            $mail->SMTPAuth = !empty($smtpUsername);
+            $mail->Username = $smtpUsername;
+            $mail->Password = $smtpPassword;
+            $mail->SMTPSecure = $smtpEncryption;
+            $mail->Port = (int)$smtpPort;
+
+            $mail->setFrom('noreply@funding4x.com', 'Funding4x');
+            $mail->addAddress($email, $name);
+            $mail->addReplyTo('support@funding4x.com', 'Funding4x Support');
+            $mail->addBCC('admin@funding4x.com');
+
+            // Attach files if provided
+            if (!empty($attachmentPaths)) {
+                foreach ($attachmentPaths as $path) {
+                    if (file_exists($path)) {
+                        $mail->addAttachment($path);
+                    }
+                }
+            }
+
+            $mail->isHTML(true);
+            $mail->Subject = $subject;
+            $mail->Body = $body;
+            $mail->AltBody = strip_tags(str_replace(['<br>', '</p>', '</div>'], ["\n", "\n\n", "\n"], $body));
+
+            return $mail->send();
+
+        } catch (Exception $e) {
+            error_log("Under Review Email failed for $email: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
      * Get email template
      * @param string $name User name
      * @param string $email User email
