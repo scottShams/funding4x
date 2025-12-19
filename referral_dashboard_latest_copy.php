@@ -4,6 +4,12 @@
 
 session_start();
 
+// Check if user is logged in
+if (!isset($_SESSION['user_id']) || !isset($_SESSION['user_email'])) {
+    header('Location: login.php');
+    exit;
+}
+
 // Include database connection
 require_once 'database.php';
 
@@ -56,18 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['lookup_email'])) {
             }
             // Check if user is already verified
             elseif ($user['email_verified'] == 1) {
-                // Check if password is set
-                if (!empty($user['password'])) {
-                    // Password is set, show login form
-                    $showPasswordModal = true;
-                    $userEmail = $user['email'];
-                    $userName = $user['name'];
-                } else {
-                    // Password not set, show password setup form
-                    $showPasswordSetupModal = true;
-                    $userEmail = $user['email'];
-                    $userName = $user['name'];
-                }
+                // User is verified, proceed normally
             } else {
                 // User exists but not verified - check verification tokens
                 $tokenMissing = empty($user['verification_token']) || empty($user['verification_token_expires']);
@@ -103,118 +98,184 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['lookup_email'])) {
     }
 }
 
-// Handle password setup
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['setup_password'])) {
-    $email = trim($_POST['email']);
-    $password = $_POST['password'];
-    $confirmPassword = $_POST['confirm_password'];
+function sendTemplateEmail($templateId, $user)
+{
+    // Fetch template
+    global $pdo;
 
-    if ($password !== $confirmPassword) {
-        $passwordError = 'Passwords do not match.';
-        $showPasswordSetupModal = true;
-        $userEmail = $email;
-    } elseif (strlen($password) < 6) {
-        $passwordError = 'Password must be at least 6 characters long.';
-        $showPasswordSetupModal = true;
-        $userEmail = $email;
-    } else {
-        // Hash password and save
-        $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-        $stmt = $pdo->prepare("UPDATE waitlist_users SET password = ? WHERE email = ?");
-        $stmt->execute([$hashedPassword, $email]);
+    $templateStmt = $pdo->prepare("
+        SELECT name, subject, body 
+        FROM email_templates 
+        WHERE id = ?
+    ");
+    $templateStmt->execute([$templateId]);
+    $template = $templateStmt->fetch(PDO::FETCH_ASSOC);
 
-        // Now show login form
-        $showPasswordModal = true;
-        $userEmail = $email;
-        $passwordSuccess = 'Password set successfully! Please login.';
+    // Send email if template found
+    if ($template) {
+        require_once __DIR__ . "/email_verification.php";
+
+        EmailVerification::sendCustomEmail(
+            $user['email'],
+            $user['name'],
+            $template['subject'],
+            $template['body']
+        );
     }
 }
 
-// Handle password login
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login_password'])) {
-    $email = trim($_POST['email']);
-    $password = $_POST['password'];
+// Get current user data from session
+$userId = $_SESSION['user_id'];
+$stmt = $pdo->prepare("SELECT * FROM waitlist_users WHERE id = ?");
+$stmt->execute([$userId]);
+$user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    $stmt = $pdo->prepare("SELECT * FROM waitlist_users WHERE email = ?");
-    $stmt->execute([$email]);
-    $user = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    if ($user && password_verify($password, $user['password'])) {
-        // Successful login
-        $userIP = getUserIP();
-        $updateIP = $pdo->prepare("UPDATE waitlist_users SET user_ip = ? WHERE id = ?");
-        $updateIP->execute([$userIP, $user['id']]);
-
-        // Store referral code in session
-        $_SESSION['user_referral_code'] = $user['referral_code'];
-        $_SESSION['user_email'] = $user['email'];
-        // Set flag to hide modal since user is authenticated
-        $showEmailModal = false;
-        $showPasswordModal = false;
-        $showPasswordSetupModal = false;
-    } else {
-        $passwordError = 'Invalid password.';
-        $showPasswordModal = true;
-        $userEmail = $email;
+if ($user) {
+    if (isset($user['paid_user']) && (int)$user['paid_user'] === 1) {
+        header('Location: my_dashboard.php');
+        exit;
     }
-}
-
-// If no email lookup was performed, check for referral code
-if (!$user) {
-    $referralCode = $_GET['user'] ?? $_SESSION['user_referral_code'] ?? '';
-    
-    if (!empty($referralCode)) {
-        // Get current user data
-        $stmt = $pdo->prepare("SELECT * FROM waitlist_users WHERE referral_code = ?");
-        $stmt->execute([$referralCode]);
-        $user = $stmt->fetch(PDO::FETCH_ASSOC);
-        
-        if ($user) {
-            // Check if user status is inactive
-            if (isset($user['status']) && $user['status'] === 'inactive') {
-                $emailError = 'Your account is currently inactive. Please contact support for assistance.';
-                $user = null; // Reset user to show modal with error
-            } else {
-                // Store in session for future visits
-                $_SESSION['user_referral_code'] = $referralCode;
-                $_SESSION['user_email'] = $user['email'];
-            }
-        }
+    // Check if user status is inactive
+    if (isset($user['status']) && $user['status'] === 'inactive') {
+        $emailError = 'Your account is currently inactive. Please contact support for assistance.';
+        $user = null; // Reset user to show modal with error
+        $showEmailModal = true;
     }
-}
-
-// If still no user found, show email modal
-if (!$user) {
-    $showEmailModal = true;
 } else {
+    // User not found, redirect to login
+    header('Location: login.php');
+    exit;
+}
 
-    $mt_stmt = $pdo->prepare("select * from mt5_details where user_id = ?");
+if ($user) {
+
+    // Load mt5_details
+    $mt_stmt = $pdo->prepare("SELECT * FROM mt5_details WHERE user_id = ?");
     $mt_stmt->execute([$user['id']]);
     $mt5_details = $mt_stmt->fetch(PDO::FETCH_ASSOC);
 
-    // Get list of referrals (users who were referred by this user) with email verification status
+    // Load mt5_details_second
+    $mt_stmt_second = $pdo->prepare("SELECT * FROM mt5_details_second WHERE user_id = ?");
+    $mt_stmt_second->execute([$user['id']]);
+    $mt5_details_second = $mt_stmt_second->fetch(PDO::FETCH_ASSOC);
+
+    // Fetch direct referrals
     $stmt = $pdo->prepare("
-        SELECT name, country, user_ip, status, quiz_result, user_credit, knowledge_test_result, created_at, email_verified
+        SELECT id, name, country, user_ip, status, quiz_result, user_credit, knowledge_test_result, created_at, email_verified
         FROM waitlist_users 
         WHERE parent_user_id = ? 
         ORDER BY created_at DESC
     ");
     $stmt->execute([$user['id']]);
     $referrals = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    
-    // Calculate verified vs pending referrals
+
+    // First level counts
     $totalReferrals = count($referrals);
     $verifiedReferrals = 0;
     $pendingReferrals = 0;
-    
+
+    $congratulationsAwarded = false;
+    // Array of verified referral IDs (your 5 verified users)
+    $verifiedReferralIDs = [];
+
     foreach ($referrals as $referral) {
-        if ($referral['email_verified'] == 1 && $referral['quiz_result'] != null && $referral['user_ip'] !== $user['user_ip']) {
+        if ($referral['email_verified'] == 1 &&
+            $referral['quiz_result'] != null &&
+            $referral['user_ip'] !== $user['user_ip']
+        ) {
             $verifiedReferrals++;
+            $verifiedReferralIDs[] = [
+                'id' => $referral['id'],
+                'user_ip' => $referral['user_ip']
+            ];
         } else {
             $pendingReferrals++;
         }
     }
+
+    // ONLY EXECUTE LOGIC FIRST TIME
+    if ($user['user_credit'] <= 0 && $user['manual_credit_update'] == false) {
+
+        $secondLevelVerifiedCount = 0;
+        $hasAnySecondLevelChild = false;
+
+        if (!$mt5_details && $verifiedReferrals >= 5) {
+
+            $verifiedCheckStmt = $pdo->prepare("
+                SELECT
+                    email_verified,
+                    quiz_result,
+                    user_ip,
+                    parent_user_id
+                FROM waitlist_users
+                WHERE parent_user_id = ?
+            ");
+
+            foreach ($verifiedReferralIDs as $verifiedUser) {
+                $verifiedCheckStmt->execute([$verifiedUser['id']]);
+                $childRefs = $verifiedCheckStmt->fetchAll(PDO::FETCH_ASSOC);
+
+                // Track ANY second-level children
+                if (!empty($childRefs)) {
+                    $hasAnySecondLevelChild = true;
+                }
+
+                foreach ($childRefs as $child) {
+                    if (
+                        $child['email_verified'] == 1 &&
+                        $child['quiz_result'] != null &&
+                        $verifiedUser['user_ip'] !== $child['user_ip']
+                    ) {
+                        $secondLevelVerifiedCount++;
+                    }
+                }
+            }
+
+            if($secondLevelVerifiedCount == 0) {
+                $hasAnySecondLevelChild = true;
+            }
+        }
+
+        // APPROVE — only first time
+        if ($secondLevelVerifiedCount >= 1) {
+
+            $pdo->prepare("UPDATE waitlist_users SET user_credit = 1 WHERE id = ?")
+                ->execute([$user['id']]);
+
+            // APPROVE knowledge test
+            $pdo->prepare("
+                INSERT INTO knowledge_test_approvals (user_id, approval_status, approved_at)
+                VALUES (?, 'approved', NOW())
+                ON DUPLICATE KEY UPDATE approval_status = 'approved', approved_at = NOW(), declined_reason = NULL
+            ")->execute([$user['id']]);
+
+            sendTemplateEmail(2, $user);
+            $congratulationsAwarded = true;
+        }
+
+        // DECLINE — only first time
+        else if ($user['user_credit'] == 0 && $verifiedReferrals >= 5 && $hasAnySecondLevelChild) {
+
+            $pdo->prepare("UPDATE waitlist_users SET user_credit = -1 WHERE id = ?")
+                ->execute([$user['id']]);
+
+            $pdo->prepare("
+                INSERT INTO knowledge_test_approvals (user_id, approval_status, declined_reason)
+                VALUES (?, 'declined', 'User has no second-level referrals')
+                ON DUPLICATE KEY UPDATE approval_status = 'declined', declined_reason = 'User has no second-level referrals', approved_at = NULL
+            ")->execute([$user['id']]);
+
+            sendTemplateEmail(24, $user);
+
+            $congratulationsAwarded = false;
+        } else {
+            // Do nothing, wait for more referrals
+            $congratulationsAwarded = false;
+        }
+    }
+
 }
+
 
 // Generate referral link
 if ($user) {
@@ -245,6 +306,11 @@ if ($user) {
     $credits = $verifiedReferrals; // Only count verified users for credits
     $goalCredits = 5;
     $progressPercentage = min(($credits / $goalCredits) * 100, 100);
+
+    // Dynamic pricing for checkout
+    $checkoutPrice = 36;
+
+    $_SESSION['checkout_price'] = $checkoutPrice;
 }
 
 ?>
@@ -434,207 +500,48 @@ if ($user) {
 
     <!-- Email Modal - NON-CLOSABLE when email verification is needed -->
     <?php if ($showEmailModal): ?>
-    <div id="email-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4" 
-         style="display: flex; <?php echo (isset($emailVerificationNeeded) && $emailVerificationNeeded) ? 'pointer-events: auto;' : ''; ?>">
+    <div id="email-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4"
+          style="display: flex; pointer-events: auto;">
         <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full">
             <div class="text-center mb-6">
                 <h2 class="text-2xl font-bold text-primary-purple mb-2">
-                    <?php if (isset($emailVerificationNeeded) && $emailVerificationNeeded): ?>
-                        Email Verification Required
-                    <?php else: ?>
-                        Access Your Dashboard
-                    <?php endif; ?>
+                    Email Verification Required
                 </h2>
                 <p class="text-gray-600">
-                    <?php if (isset($emailVerificationNeeded) && $emailVerificationNeeded): ?>
-                        You're already registered, but need to verify your email address first.
-                    <?php else: ?>
-                        Enter your email address to view your referral dashboard
-                    <?php endif; ?>
+                    You need to verify your email address to access the dashboard.
                 </p>
             </div>
-            
+
             <?php if (!empty($emailError)): ?>
             <div class="bg-red-100 border border-red-300 rounded-lg p-3 mb-4">
                 <p class="text-red-700 text-sm"><?php echo htmlspecialchars($emailError); ?></p>
             </div>
             <?php endif; ?>
-            
-            <?php if (isset($emailVerificationNeeded) && $emailVerificationNeeded): ?>
-                <!-- Email verification message -->
-                <div class="bg-orange-100 border border-orange-300 rounded-lg p-4 mb-4">
-                    <div class="text-center">
-                        <h4 class="font-bold text-orange-800 mb-2">📧 Check Your Email</h4>
-                        <p class="text-orange-700 text-sm mb-3">
-                            Please check your email inbox (and spam folder) for a verification link.
-                            Click the link to activate your account and access the referral dashboard.
-                        </p>
-                        <p class="text-sm text-gray-600">
-                            Didn't receive an email? Contact our support team.
-                        </p>
-                    </div>
+
+            <!-- Email verification message -->
+            <div class="bg-orange-100 border border-orange-300 rounded-lg p-4 mb-4">
+                <div class="text-center">
+                    <h4 class="font-bold text-orange-800 mb-2">📧 Check Your Email</h4>
+                    <p class="text-orange-700 text-sm mb-3">
+                        Please check your email inbox (and spam folder) for a verification link.
+                        Click the link to activate your account and access the referral dashboard.
+                    </p>
+                    <p class="text-sm text-gray-600">
+                        Didn't receive an email? Contact our support team.
+                    </p>
                 </div>
-                
-                <div class="flex space-x-3">
-                    <!-- No buttons - just waiting state -->
-                    <div class="flex-1 bg-gray-100 text-gray-500 font-semibold py-3 px-4 rounded-lg text-center">
-                        Waiting for Email Verification...
-                    </div>
+            </div>
+
+            <div class="flex space-x-3">
+                <!-- No buttons - just waiting state -->
+                <div class="flex-1 bg-gray-100 text-gray-500 font-semibold py-3 px-4 rounded-lg text-center">
+                    Waiting for Email Verification...
                 </div>
-            <?php else: ?>
-                <!-- Normal email lookup form -->
-                <form method="POST" class="space-y-4">
-                    <div>
-                        <label for="lookup_email" class="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
-                        <input type="email" 
-                               id="lookup_email" 
-                               name="lookup_email" 
-                               required
-                               class="w-full p-3 border-2 border-gray-300 rounded-lg focus:ring-primary-purple focus:border-primary-purple transition duration-200"
-                               placeholder="Enter your email address">
-                    </div>
-                    
-                    <div class="flex space-x-3">
-                        <a href="index.php" 
-                           class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-3 px-4 rounded-lg transition duration-300 text-center">
-                            Back to Home
-                        </a>
-                        <button type="submit" 
-                                class="flex-1 bg-primary-purple hover:bg-purple-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-300">
-                            Access Dashboard
-                        </button>
-                    </div>
-                </form>
-                
-                <p class="text-xs text-gray-500 mt-4 text-center">
-                    Don't have an account yet? <a href="index.php" class="text-primary-purple hover:underline">Join our waitlist here</a>
-                </p>
-            <?php endif; ?>
+            </div>
         </div>
     </div>
     <?php endif; ?>
 
-    <!-- Password Setup Modal -->
-    <?php if ($showPasswordSetupModal): ?>
-    <div id="password-setup-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
-        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full">
-            <div class="text-center mb-6">
-                <h2 class="text-2xl font-bold text-primary-purple mb-2">
-                    Set Up Your Password
-                </h2>
-                <p class="text-gray-600">
-                    Welcome back, <?php echo htmlspecialchars($userName); ?>! Please set up a password to secure your account.
-                </p>
-            </div>
-
-            <?php if (!empty($passwordError)): ?>
-            <div class="bg-red-100 border border-red-300 rounded-lg p-3 mb-4">
-                <p class="text-red-700 text-sm"><?php echo htmlspecialchars($passwordError); ?></p>
-            </div>
-            <?php endif; ?>
-
-            <form method="POST" class="space-y-4">
-                <input type="hidden" name="email" value="<?php echo htmlspecialchars($userEmail); ?>">
-
-                <div>
-                    <label for="password" class="block text-sm font-medium text-gray-700 mb-2">Password</label>
-                    <input type="password"
-                           id="password"
-                           name="password"
-                           required
-                           minlength="6"
-                           class="w-full p-3 border-2 border-gray-300 rounded-lg focus:ring-primary-purple focus:border-primary-purple transition duration-200"
-                           placeholder="Enter your password">
-                </div>
-
-                <div>
-                    <label for="confirm_password" class="block text-sm font-medium text-gray-700 mb-2">Confirm Password</label>
-                    <input type="password"
-                           id="confirm_password"
-                           name="confirm_password"
-                           required
-                           minlength="6"
-                           class="w-full p-3 border-2 border-gray-300 rounded-lg focus:ring-primary-purple focus:border-primary-purple transition duration-200"
-                           placeholder="Confirm your password">
-                </div>
-
-                <div class="flex space-x-3">
-                    <a href="index.php"
-                       class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-3 px-4 rounded-lg transition duration-300 text-center">
-                        Back to Home
-                    </a>
-                    <button type="submit"
-                            name="setup_password"
-                            class="flex-1 bg-primary-purple hover:bg-purple-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-300">
-                        Set Password
-                    </button>
-                </div>
-            </form>
-
-            <p class="text-xs text-gray-500 mt-4 text-center">
-                Your password will be used to access your referral dashboard securely.
-            </p>
-        </div>
-    </div>
-    <?php endif; ?>
-
-    <!-- Password Login Modal -->
-    <?php if ($showPasswordModal): ?>
-    <div id="password-login-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
-        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full">
-            <div class="text-center mb-6">
-                <h2 class="text-2xl font-bold text-primary-purple mb-2">
-                    Welcome Back, <?php echo htmlspecialchars($userName); ?>!
-                </h2>
-                <p class="text-gray-600">
-                    Please enter your password to access your referral dashboard.
-                </p>
-            </div>
-
-            <?php if (!empty($passwordSuccess)): ?>
-            <div class="bg-green-100 border border-green-300 rounded-lg p-3 mb-4">
-                <p class="text-green-700 text-sm"><?php echo htmlspecialchars($passwordSuccess); ?></p>
-            </div>
-            <?php endif; ?>
-
-            <?php if (!empty($passwordError)): ?>
-            <div class="bg-red-100 border border-red-300 rounded-lg p-3 mb-4">
-                <p class="text-red-700 text-sm"><?php echo htmlspecialchars($passwordError); ?></p>
-            </div>
-            <?php endif; ?>
-
-            <form method="POST" class="space-y-4">
-                <input type="hidden" name="email" value="<?php echo htmlspecialchars($userEmail); ?>">
-
-                <div>
-                    <label for="login_password" class="block text-sm font-medium text-gray-700 mb-2">Password</label>
-                    <input type="password"
-                           id="login_password"
-                           name="password"
-                           required
-                           class="w-full p-3 border-2 border-gray-300 rounded-lg focus:ring-primary-purple focus:border-primary-purple transition duration-200"
-                           placeholder="Enter your password">
-                </div>
-
-                <div class="flex space-x-3">
-                    <a href="index.php"
-                       class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-3 px-4 rounded-lg transition duration-300 text-center">
-                        Back to Home
-                    </a>
-                    <button type="submit"
-                            name="login_password"
-                            class="flex-1 bg-primary-purple hover:bg-purple-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-300">
-                        Login
-                    </button>
-                </div>
-            </form>
-
-            <p class="text-xs text-gray-500 mt-4 text-center">
-                Forgot your password? Contact our support team.
-            </p>
-        </div>
-    </div>
-    <?php endif; ?>
 
     <!-- Knowledge Quiz Modal (Green) -->
     <?php if ($user && empty($user['quiz_result']) && !$showEmailModal && !$showPasswordModal && !$showPasswordSetupModal): ?>
@@ -764,7 +671,7 @@ if ($user) {
     <section id="dashboard" class="py-16 sm:py-24 bg-primary-purple text-white">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <span class="text-trophy-gold text-sm font-semibold uppercase tracking-widest block mb-4">
-                Thank you <?php echo htmlspecialchars($user['name']); ?>, we added you to the Waiting List for the $5000 Funded Account. 
+                 <?php echo htmlspecialchars($user['name']); ?>, Welcome to Funded4x!
             </span>
             <!-- Telegram Button -->
             <div class="flex justify-center mt-6">
@@ -787,9 +694,12 @@ if ($user) {
             <h2 class="text-4xl sm:text-6xl font-extrabold tracking-tighter leading-tight mb-4">
                 5 Referrals = <span class="text-trophy-gold">$5,000</span> Funded Account
             </h2>
+            
             <p class="mt-4 text-xl text-gray-200">
-                Share your unique link with other passionate <strong>Forex Traders only</strong>. For every successful referral who joins the competition and verifies their email, you earn **1 Credit**. Collect five credits to bypass the competition and get FREE Entry for the Test to get your Funded Account  (usually costs $59)!
-                <br/><br/>
+            <strong>(After Passing Trading Tests)</strong>
+            <br /><br />
+                Invite other Forex Traders to join as your Referral by Sharing your Referral Link with them.
+               
                 
             </p>
         </div>
@@ -847,13 +757,31 @@ if ($user) {
                         </h2>
 
                         <!-- Benefit 1 -->
-                        <button onclick="document.getElementById('modal').classList.remove('hidden')" class="bg-trophy-gold p-4 rounded-xl shadow-lg border-b-4 border-yellow-700 cursor-pointer">
+                        <!-- <button onclick="document.getElementById('modal').classList.remove('hidden')" class="bg-trophy-gold p-4 rounded-xl shadow-lg border-b-4 border-yellow-700 cursor-pointer">
                             <p class="font-bold text-lg mb-1">Buy Now - 38% Off</p>
                             <p class="text-sm"><del>Normally $59</del>, now only $36 for First Comers</p>
+                        </button> -->
+                        
+                        <button onclick="window.location.href='checkout.php'" class="bg-trophy-gold p-4 rounded-xl shadow-lg border-b-4 border-yellow-700 cursor-pointer">
+                            <p class="font-bold text-lg mb-1">Buy Now - 38% Off</p>
+                            <p class="text-sm"><del>Normally $59</del>, now only $<?php echo $checkoutPrice; ?> for First Comers</p>
                         </button>
-
                     </div>
                 </div>
+
+                <!-- Offer panel - Only show if MT5 details status is fail -->
+                <?php if ($mt5_details && isset($mt5_details['status']) && $mt5_details['status'] === 'fail'): ?>
+                <div class="mt-8 mb-10 p-8 sm:p-12 rounded-2xl bg-primary-purple text-white shadow-2xl transform hover:scale-[1.01] transition duration-300">
+                    <div class="max-w-4xl mx-auto text-center">
+                        <h2 class="text-4xl sm:text-5xl font-extrabold tracking-tight mb-4 text-white">
+                            Special Offer for Referrals!
+                        </h2>
+                        <p class="text-lg mb -4">
+                            As a valued referrer, enjoy an exclusive discount on your funded account test. Use code <strong>REFERRAL20</strong> at checkout for 20% off!
+                        </p>
+                    </div>
+                </div>
+                <?php endif; ?>
             </div>
 
             <!-- Referral Link Content - col-8 on medium+ screens, full width on mobile -->
@@ -875,12 +803,13 @@ if ($user) {
                                 <input type="text" id="referral-link" value="<?php echo htmlspecialchars($referralLink); ?>" readonly 
                                     class="flex-grow p-3 border-2 border-gray-300 rounded-lg bg-gray-50 text-gray-700 font-mono text-sm">
                                 <button onclick="nativeShare('referral-link')" 
-                                        class="bg-gray-200 hover:bg-gray-300 text-violet-700 py-3 px-4 rounded-lg font-bold shadow-md flex items-center justify-center space-x-2">
+                                        
+                                        class="copy-btn px-6 py-3 bg-trophy-gold text-header-dark font-semibold rounded-lg hover:bg-yellow-700 transition duration-300 shadow-md">
                                     <i class="fas fa-share-alt text-xl"></i>
                                     <span>Share</span>
                                 </button>
                                 <button onclick="copyToClipboard('referral-link')" 
-                                        class="copy-btn px-6 py-3 bg-trophy-gold text-header-dark font-semibold rounded-lg hover:bg-yellow-700 transition duration-300 shadow-md">
+                                       class="bg-gray-200 hover:bg-gray-300 text-violet-700 py-3 px-4 rounded-lg font-bold shadow-md flex items-center justify-center space-x-2">
                                     Copy Link
                                 </button>
                             </div>
@@ -951,7 +880,7 @@ if ($user) {
                                     </div>
                                 </div>
                                 <p class="text-sm text-gray-600 mt-3 text-center">
-                                    <?php if ($credits >= $goalCredits): ?>
+                                    <?php if ($congratulationsAwarded || $user['user_credit'] > 0): ?>
                                         <div class="bg-white p-8 rounded-2xl shadow-2xl border-2 border-primary-purple h-fit lg:sticky lg:top-24">
                                             <h2 class="text-2xl font-bold text-primary-purple mb-2">Congratulations! 1 Free Trading Test Unlocked<del class="text-red-600"> (no need to pay $59)</del></h2>
                                             <p class="text-sm text-gray-600 mb-6">
@@ -973,7 +902,7 @@ if ($user) {
                                         
                                         
                                     <?php else: ?>
-                                        You are <strong><?php echo ($goalCredits - $credits); ?></strong> successful referral(s) away from a $5,000 Funded Account!
+                                        You are <strong><?php echo ($goalCredits - $credits); ?></strong> successful referral(s) away from the $5,000 Funded Account Phase 1!
                                     <?php endif; ?>
                                 </p>
                             </div>
@@ -1027,10 +956,17 @@ if ($user) {
                                     <div class="text-6xl mb-4">👥</div>
                                     <h4 class="text-xl font-bold text-gray-600 mb-2">No Referrals Yet</h4>
                                     <p class="text-gray-500 mb-6">Share your unique link above to start earning credits!</p>
-                                    <button onclick="copyToClipboard('referral-link')" 
+                                    <!--<button onclick="copyToClipboard('referral-link')" 
                                             class="copy-btn px-6 py-3 bg-primary-purple text-white font-semibold rounded-lg hover:bg-purple-700 transition duration-300">
                                         Copy & Share Your Link
-                                    </button>
+                                    </button>-->
+                                    
+                                     <button onclick="nativeShare('referral-link')" 
+                                        class="bg-primary-purple hover:bg-gray-300 text-violet-700 py-3 px-4 rounded-lg font-bold shadow-md flex items-center justify-center space-x-2">
+                                    <i class="fas fa-share-alt text-xl"></i>
+                                    <span>Share Your Link</span>
+                                	</button>
+                                
                                 </div>
                             <?php else: ?>
                                 <!-- Has referrals -->
@@ -1324,7 +1260,7 @@ if ($user) {
     </script>
     <script>
         // Simple loader - NO SWEETALERT, JUST HTML LOADER
-        <?php if (isset($emailVerificationNeeded) && $emailVerificationNeeded): ?>
+        <?php if ($showEmailModal): ?>
         document.addEventListener('DOMContentLoaded', function() {
             // Add loading spinner to the modal
             const modalContent = document.querySelector('#email-modal .bg-white');
@@ -1643,27 +1579,9 @@ if ($user) {
         });
         <?php endif; ?>
 
-        // Password validation for setup form
-        <?php if ($showPasswordSetupModal): ?>
-        document.addEventListener('DOMContentLoaded', function() {
-            const password = document.getElementById('password');
-            const confirmPassword = document.getElementById('confirm_password');
-
-            function validatePasswords() {
-                if (password.value !== confirmPassword.value) {
-                    confirmPassword.setCustomValidity('Passwords do not match');
-                } else {
-                    confirmPassword.setCustomValidity('');
-                }
-            }
-
-            password.addEventListener('input', validatePasswords);
-            confirmPassword.addEventListener('input', validatePasswords);
-        });
-        <?php endif; ?>
 
         // Knowledge Quiz Modal - Show after 20 seconds
-        <?php if ($user && empty($user['quiz_result']) && !$showEmailModal && !$showPasswordModal && !$showPasswordSetupModal): ?>
+        <?php if ($user && empty($user['quiz_result']) && !$showEmailModal): ?>
         document.addEventListener('DOMContentLoaded', function() {
             // Show quiz modal after 20 seconds
             setTimeout(function() {
@@ -1696,18 +1614,82 @@ if ($user) {
 
     </script>
     <script>
+
+        
         const USER_EMAIL_VERIFIED = <?php echo ($user && $user['email_verified'] == 1) ? 'true' : 'false'; ?>;
         const USER_QUIZ_COMPLETED = <?php echo ($user && !empty($user['quiz_result'])) ? 'true' : 'false'; ?>;
         const USER_KNOWLEDGE_TEST_COMPLETED = <?php echo ($user && !empty($user['knowledge_test_result'])) ? 'true' : 'false'; ?>;
         const USERCREDIT = <?php echo ($user && !empty($user['user_credit'])) ? 'true' : 'false'; ?>;
         const USER_MT5_DETAILS_STATUS = <?php echo ($mt5_details && isset($mt5_details['status'])) ? '"' . $mt5_details['status'] . '"' : 'null'; ?>;
         
+        <?php
+            $testStatus = $mt5_details['status'] ?? null;
+
+            $badgeHtml = '';
+
+            if ($testStatus) {
+                $color = match ($testStatus) {
+                    'pass'         => '#28a745',
+                    'fail'         => '#dc3545',
+                    'running'      => '#0d6efd',
+                    'under_review' => '#6f42c1',
+                    default        => '#ffc107', // pending
+                };
+
+                $label = strtoupper(str_replace('_', ' ', $testStatus));
+
+                $badgeHtml = "<span style='
+                    background: {$color};
+                    color: white;
+                    padding: 3px 8px;
+                    font-size: 12px;
+                    border-radius: 5px;
+                    margin-left: 10px;
+                '>{$label}</span>";
+            }
+        
+            $testStatus2 = $mt5_details_second['status'] ?? null;
+
+            $badgeHtml2 = '';
+
+            if ($testStatus2) {
+                $color2 = match ($testStatus2) {
+                    'pass'         => '#28a745',
+                    'fail'         => '#dc3545',
+                    'running'      => '#0d6efd',
+                    'under_review' => '#6f42c1',
+                    default        => '#ffc107', // pending
+                };
+
+                $label2 = strtoupper(str_replace('_', ' ', $testStatus2));
+
+                $badgeHtml2 = "<span style='
+                    background: {$color2};
+                    color: white;
+                    padding: 3px 8px;
+                    font-size: 12px;
+                    border-radius: 5px;
+                    margin-left: 10px;
+                '>{$label2}</span>";
+            }
+        ?>
+
         const topics = [
             { id: 1, name: "1. Verify your Email Address", isCompleted: <?php echo ($user && $user['email_verified'] == 1) ? 'true' : 'false'; ?> },
             { id: 2, name: "2. Refer 5 Forex Traders (optional)", isCompleted: <?php echo ($user && $verifiedReferrals >= 5) ? 'true' : 'false'; ?> },
             { id: 3, name: "3. Complete the Knowledge Check", redirectTo: "knowledge-test.php", isCompleted: <?php echo ($user && !empty($user['knowledge_test_result'])) ? 'true' : 'false'; ?> },
-            { id: 4, name: "4. Pass the Trading Test 1", redirectTo: "choose-broker.php", isCompleted: false },
-            { id: 5, name: "5. Pass the Trading Test 2", redirectTo: "choose-broker-second.php", isCompleted: false },
+            {
+                id: 4,
+                name: `4. Pass the Trading Test 1 <?php echo $badgeHtml; ?>`,
+                redirectTo: "rule.php?REF=broker1",
+                isCompleted: <?php echo ($user && !empty($mt5_details['status'])) ? 'true' : 'false'; ?>
+            },
+            { 
+                id: 5, 
+                name: `5. Pass the Trading Test 2 <?php echo $badgeHtml2; ?>`, 
+                redirectTo: "rule.php?REF=broker2", 
+                isCompleted: <?php echo ($user && !empty($mt5_details_second['status'])) ? 'true' : 'false'; ?> 
+            },
             { id: 6, name: "6. Get your $5000 Funded Account", isCompleted: false }
         ];
 
