@@ -68,7 +68,7 @@
         <?php
         exit;
     }
-    ;
+    
     $stmt = $pdo->prepare("SELECT * FROM waitlist_users WHERE id = ?");
     $stmt->execute([$userId]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
