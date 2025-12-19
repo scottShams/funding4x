@@ -9,8 +9,8 @@
     
     // Get database connection
     $pdo = getPDO();
-    $email = $_SESSION['user_email'];
-    $userId = $_SESSION['user_id'];
+    $email = $_SESSION['user_email'] ?? '';
+    $userId = $_SESSION['user_id'] ?? '';
     if(empty($email) && empty($userId)){
         // If user arrived with a GET (e.g. ?REF=...) store the full request URI
         // so we can redirect them back here after login. Keep it for 1 hour.
@@ -56,7 +56,7 @@
                             You need to be logged in to access this page.
                         </p>
                         <div class="flex justify-center space-x-4">
-                            <a href="login.php" class="px-8 py-4 bg-primary-purple text-white font-bold rounded-xl shadow-lg hover:bg-header-dark transition-all duration-300 transform hover:scale-105">
+                            <a href="login.php?intended=<?php echo urlencode($_SERVER['REQUEST_URI']); ?>" class="px-8 py-4 bg-primary-purple text-white font-bold rounded-xl shadow-lg hover:bg-header-dark transition-all duration-300 transform hover:scale-105">
                                 Login Now
                             </a>
                         </div>

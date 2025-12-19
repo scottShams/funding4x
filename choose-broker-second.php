@@ -2,11 +2,28 @@
     session_start();
     // Include database connection
     require_once 'database.php';
+    $allowUpdate = $userId = $email = null;
+    // Check if update is allowed via REF=mt5s parameter
+    $allowUpdate = isset($_GET['REF']) && $_GET['REF'] === 'mt5ts';
 
     // Get database connection
     $pdo = getPDO();
-    $email = $_SESSION['user_email'];
-    if(empty($email)){
+    $email = $_SESSION['user_email'] ?? '';
+    $userId = $_SESSION['user_id'] ?? '';
+    if (empty($email) && empty($userId)) {
+        // If user arrived with a GET (e.g. ?REF=...) store the full request URI
+        // so we can redirect them back here after login. Keep it for 1 hour.
+        if (!empty($_SERVER['REQUEST_URI'])) {
+            $requestUri = $_SERVER['REQUEST_URI'];
+            if (strpos($requestUri, '?') !== false) {
+                setcookie('intended_url', $requestUri, time() + 3600, '/');
+            } else {
+                // Also set cookie if REF param exists explicitly in $_GET even without full query
+                if (!empty($_GET['REF'])) {
+                    setcookie('intended_url', $requestUri, time() + 3600, '/');
+                }
+            }
+        }
         ?>
         <!DOCTYPE html>
         <html lang="en">
@@ -37,7 +54,7 @@
                             You need to be logged in to access this page.
                         </p>
                         <div class="flex justify-center space-x-4">
-                            <a href="login.php" class="px-8 py-4 bg-primary-purple text-white font-bold rounded-xl shadow-lg hover:bg-header-dark transition-all duration-300 transform hover:scale-105">
+                            <a href="login.php?intended=<?php echo urlencode($_SERVER['REQUEST_URI']); ?>" class="px-8 py-4 bg-primary-purple text-white font-bold rounded-xl shadow-lg hover:bg-header-dark transition-all duration-300 transform hover:scale-105">
                                 Login Now
                             </a>
                         </div>
@@ -60,12 +77,12 @@
     // }
 
     // Check if MT5 details are already submitted
-    // $stmt = $pdo->prepare("SELECT id FROM mt5_details WHERE user_id = ?");
-    // $stmt->execute([$user['id']]);
-    // if($stmt->fetch(PDO::FETCH_ASSOC)){
-    //     header("Location: referral_dashboard.php");
-    //     exit;
-    // }
+    $stmt = $pdo->prepare("SELECT * FROM mt5_details_second WHERE user_id = ?");
+    $stmt->execute([$user['id']]);
+    $mt5DetailsSecond = $stmt->fetch(PDO::FETCH_ASSOC);
+    $hasMT5DetailsSecond = $mt5DetailsSecond ? true : false;
+    $isUpdateModeSecond = $allowUpdate && $hasMT5DetailsSecond;
+
 ?>
 
 <!DOCTYPE html>
@@ -235,7 +252,7 @@
 
                 <!-- RIGHT COLUMN: MT5 Login Form (Step 4) -->
                 <div class="bg-white p-8 rounded-2xl shadow-2xl border-2 border-primary-purple h-fit lg:sticky lg:top-24">
-                    <h2 class="text-2xl font-bold text-primary-purple mb-2">Step 4: Account Submission</h2>
+                    <h2 class="text-2xl font-bold text-primary-purple mb-2">Step 4: <?php echo $isUpdateModeSecond ? 'Update Account Details' : 'Account Submission'; ?></h2>
                     <p class="text-sm text-gray-600 mb-6">
                         Enter the **Demo Account** details you created in Step 2. We will set up the trade monitoring for the competition.
                     </p>
@@ -246,21 +263,23 @@
                             <label for="username" class="block text-sm font-semibold text-gray-700 mb-1">MT5 Login ID</label>
                             <input type="text" id="username" name="username" required 
                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-primary-purple focus:border-primary-purple transition duration-150 ease-in-out bg-gray-50"
-                                   placeholder="e.g. 50123456">
+                                   placeholder="e.g. 50123456"
+                                   value="<?php echo htmlspecialchars($mt5DetailsSecond['username'] ?? ''); ?>">
                         </div>
 
                         <div class="mb-4">
                             <label for="password" class="block text-sm font-semibold text-gray-700 mb-1">Trader Password</label>
                             <input type="password" id="password" name="password" required 
                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-primary-purple focus:border-primary-purple transition duration-150 ease-in-out bg-gray-50"
-                                   placeholder="********">
+                                   placeholder="********" value="<?php echo htmlspecialchars($mt5DetailsSecond['password'] ?? ''); ?>">
                         </div>
 
                         <div class="mb-6">
                             <label for="server" class="block text-sm font-semibold text-gray-700 mb-1">Broker Server Name</label>
                             <input type="text" id="server" name="server" required 
                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-primary-purple focus:border-primary-purple transition duration-150 ease-in-out bg-gray-50"
-                                   placeholder="e.g., Exness-Trial9">
+                                   placeholder="e.g., Exness-Trial9"
+                                   value="<?php echo htmlspecialchars($mt5DetailsSecond['server'] ?? ''); ?>">
                         </div>
 
                         <button type="submit" 
@@ -289,30 +308,104 @@
         </div>
     </main>
 
+    <!-- Success Modal -->
+    <div id="success-modal" class="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-50 hidden animate-fade-in">
+        <div class="bg-white p-10 rounded-3xl shadow-2xl max-w-lg mx-4 border-t-4 border-trophy-gold transform scale-95 animate-modal-appear">
+            <div class="text-center">
+                <div class="mx-auto w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-6">
+                    <svg class="w-12 h-12 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                </div>
+
+                <h2 class="text-3xl font-extrabold text-primary-purple mb-4"><?php echo $isUpdateModeSecond ? 'Details Updated' : 'Thank You'; ?> <?php echo htmlspecialchars($user['name']); ?>!</h2>
+                <p class="text-gray-700 mb-8 leading-relaxed text-lg">
+                    <?php if ($isUpdateModeSecond): ?>
+                        Your MT5 details have been updated successfully. Our team will review the changes and update you by email within a few hours.
+                    <?php else: ?>
+                        We got your details. Please wait for us to setup your monitoring. We will update you by Email within few hours. We are excited to see you in action!
+                    <?php endif; ?>
+                </p>
+
+                <div class="flex justify-center space-x-4">
+                    <a href="referral_dashboard.php" class="px-8 py-4 bg-primary-purple text-white font-bold rounded-xl shadow-lg hover:bg-header-dark transition-all duration-300 transform hover:scale-105">
+                        Go to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Already Submitted Modal -->
+    <div id="already-submitted-modal" class="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-50 <?php echo ($hasMT5DetailsSecond && !$allowUpdate) ? '' : 'hidden'; ?> animate-fade-in">
+        <div class="bg-white p-10 rounded-3xl shadow-2xl max-w-lg mx-4 border-t-4 border-primary-purple transform scale-95 animate-modal-appear">
+            <div class="text-center">
+                <div class="mx-auto w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mb-6">
+                    <svg class="w-12 h-12 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 20h.01"></path>
+                    </svg>
+                </div>
+
+                <h2 class="text-3xl font-extrabold text-primary-purple mb-4">Details Already Submitted</h2>
+                <p class="text-gray-700 mb-8 leading-relaxed text-lg">
+                    Hello <?php echo htmlspecialchars($user['name']); ?>, you have already submitted your Trading Test 2 details for monitoring.
+                    Our team is currently setting up your account. Please check back later or contact support if you need assistance.
+                </p>
+
+                <div class="flex justify-center space-x-4">
+                    <a href="referral_dashboard.php" class="px-8 py-4 bg-primary-purple text-white font-bold rounded-xl shadow-lg hover:bg-header-dark transition-all duration-300 transform hover:scale-105">
+                        Go to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
-        function handleFormSubmit(event) {
+        async function handleFormSubmit(event) {
             event.preventDefault(); 
-            
             const form = document.getElementById('mt5-form');
             const username = form.username.value;
+            const password = form.password ? form.password.value : '';
             const server = form.server.value;
             const messageBox = document.getElementById('message-box');
 
-            // Simulate submission
-            console.log("Details Submitted:", { username, server });
+            // Build payload
+            const payload = {
+                mt5_details: { username, password, server },
+                allow_update: <?php echo $isUpdateModeSecond ? 'true' : 'false'; ?>
+            };
 
-            messageBox.innerHTML = `
-                <span class="text-lg block mb-1">✅ Details Received!</span>
-                Monitoring setup for account <strong>${username}</strong> on <strong>${server}</strong> initiated. 
-                <br>Please wait for email confirmation before taking your first trade.
-            `;
-            messageBox.className = 'mt-4 p-4 rounded-lg text-sm text-center bg-green-50 text-green-800 border border-green-200 block shadow-inner';
-            
-            form.reset();
+            try {
+                const res = await fetch('store_mt5_details_second.php', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(payload)
+                });
 
-            setTimeout(() => {
-                messageBox.classList.add('hidden');
-            }, 8000);
+                const data = await res.json();
+
+                if (res.ok && data.success) {
+                    // Show success modal
+                    document.getElementById('success-modal').classList.remove('hidden');
+                    form.reset();
+                } else {
+                    // Handle specific errors
+                    if (res.status === 409) {
+                        // Already submitted
+                        document.getElementById('already-submitted-modal').classList.remove('hidden');
+                    } else {
+                        messageBox.innerHTML = `<span class="text-red-600">Error: ${data.error || 'An error occurred'}</span>`;
+                        messageBox.className = 'mt-4 p-4 rounded-lg text-sm text-center bg-red-50 text-red-800 border border-red-200 block';
+                        messageBox.classList.remove('hidden');
+                    }
+                }
+            } catch (err) {
+                console.error(err);
+                messageBox.innerHTML = `<span class="text-red-600">Network error. Please try again.</span>`;
+                messageBox.className = 'mt-4 p-4 rounded-lg text-sm text-center bg-red-50 text-red-800 border border-red-200 block';
+                messageBox.classList.remove('hidden');
+            }
         }
     </script>
 </body>

@@ -1,6 +1,14 @@
 <?php
     session_start();
 
+    // If an intended URL was provided as a GET parameter (e.g. ?intended=/choose-broker-second.php%3FREF%3Dmt5ts), persist it in a cookie
+    if (!empty($_GET['intended'])) {
+        $intendedGet = $_GET['intended'];
+        if (is_string($intendedGet) && strpos($intendedGet, '/') === 0 && strpos($intendedGet, "\n") === false && strpos($intendedGet, "\r") === false) {
+            setcookie('intended_url', $intendedGet, time() + 3600, '/');
+        }
+    }
+
     // Check if user is already logged in
     if (isset($_SESSION['user_id']) || isset($_SESSION['user_email'])) {
         // If user has an active checkout price, send them to checkout instead
@@ -8,6 +16,18 @@
             header('Location: checkout.php');
             exit;
         }
+
+        // If there's an intended URL stored (and it's safe), prefer redirecting there
+        if (!empty($_COOKIE['intended_url'])) {
+            $intended = $_COOKIE['intended_url'];
+            if (is_string($intended) && strpos($intended, '/') === 0 && strpos($intended, "\n") === false && strpos($intended, "\r") === false) {
+                // Clear the cookie and redirect
+                setcookie('intended_url', '', time() - 3600, '/');
+                header('Location: ' . $intended);
+                exit;
+            }
+        }
+
         header('Location: referral_dashboard.php');
         exit;
     }

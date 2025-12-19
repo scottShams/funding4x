@@ -47,11 +47,17 @@ try {
     $stmt->execute([$userId]);
     $firstPhase = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    if (!$firstPhase || $firstPhase['status'] !== 'pass') {
+    if (!$firstPhase) {
         http_response_code(403);
         echo json_encode(['error' => 'You must pass Trading Test 1 first']);
         exit;
     }
+
+    // if (!$firstPhase || $firstPhase['status'] !== 'pass') {
+    //     http_response_code(403);
+    //     echo json_encode(['error' => 'You must pass Trading Test 1 first']);
+    //     exit;
+    // }
 
     // Define mt5_details_id
     $mt5DetailsId = $firstPhase['id'];
@@ -59,10 +65,23 @@ try {
     // Check if already submitted Test 2
     $stmt = $pdo->prepare("SELECT id FROM mt5_details_second WHERE user_id = ?");
     $stmt->execute([$userId]);
-    if ($stmt->fetch(PDO::FETCH_ASSOC)) {
-        http_response_code(409);
-        echo json_encode(['error' => 'Trading Test 2 details already submitted']);
-        exit;
+    $existing = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    $allowUpdate = isset($data['allow_update']) && $data['allow_update'] === true;
+
+    if ($existing) {
+        if ($allowUpdate) {
+            // Update existing Test 2 details
+            $stmt = $pdo->prepare("UPDATE mt5_details_second SET username = ?, password = ?, server = ? WHERE user_id = ?");
+            $stmt->execute([$mt5Details['username'], $mt5Details['password'], $mt5Details['server'], $userId]);
+
+            echo json_encode(['success' => true, 'message' => 'MT5 Test 2 details updated successfully']);
+            exit;
+        } else {
+            http_response_code(409);
+            echo json_encode(['error' => 'Trading Test 2 details already submitted']);
+            exit;
+        }
     }
 
     // Insert Trading Test 2
