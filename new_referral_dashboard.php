@@ -366,10 +366,6 @@
             padding: 1.5rem;
             transition: transform 0.3s ease;
         }
-        .card:hover {
-             /* Light hover effect only on smaller cards */
-            /* transform: translateY(-2px); */
-        }
         
         /* Custom ring for the profile picture */
         .profile-ring {
