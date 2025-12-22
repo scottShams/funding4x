@@ -79,9 +79,19 @@
     // ===============================
     // DISCOUNT LOGIC FOR NEW USERS
     // ===============================
+    // If GET has price → use it
+    if (isset($_GET['price'])) {
 
+        $checkoutPrice = (int) $_GET['price'];
+        $discountPrice = null;
+
+        // Store in session & cookie
+        $_SESSION['checkout_price'] = $checkoutPrice;
+        setcookie('checkout_price', $checkoutPrice, time() + (1 * 24 * 60 * 60), "/");
+
+    }
     // Apply discount only when session price exists (NOT GET price)
-    if (isset($_SESSION['checkout_price'])) {
+    elseif (isset($_SESSION['checkout_price'])) {
 
         $sessionPrice = $checkoutPrice = (int) $_SESSION['checkout_price'];
 
@@ -125,17 +135,6 @@
             // No discount
             $discountPrice = null;
         }
-
-    }
-    // If GET has price → use it
-    elseif (isset($_GET['price'])) {
-
-        $checkoutPrice = (int) $_GET['price'];
-        $discountPrice = null;
-
-        // Store in session & cookie
-        $_SESSION['checkout_price'] = $checkoutPrice;
-        setcookie('checkout_price', $checkoutPrice, time() + (1 * 24 * 60 * 60), "/");
 
     }
     // If cookie exists → use it (when session is empty)
