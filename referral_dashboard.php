@@ -782,6 +782,22 @@ if ($user) {
                     </div>
                 </div>
                 <?php endif; ?>
+
+                <?php if ($user && isset($user['user_credit']) && $user['user_credit'] < 0): ?>
+                <div class="mt-8 mb-10 p-8 sm:p-12 rounded-2xl bg-slate-800 text-white shadow-2xl transform hover:scale-[1.01] transition duration-300 border-l-8 border-red-500">
+                    <div class="max-w-4xl mx-auto text-center">
+                        <h2 class="text-4xl sm:text-5xl font-extrabold tracking-tight mb-4 text-white">
+                            Application Status Update
+                        </h2>
+                        <p class="text-lg mb-4 opacity-90">
+                            Thank you for your interest in our funded account program. After a careful review of your recent evaluation, we regret to inform you that your application has been <strong>declined</strong> at this time.
+                        </p>
+                        <p class="text-md opacity-75 italic">
+                            Please check your email for detailed feedback and information on when you are eligible to re-apply.
+                        </p>
+                    </div>
+                </div>
+                <?php endif; ?>
             </div>
 
             <!-- Referral Link Content - col-8 on medium+ screens, full width on mobile -->
