@@ -2,13 +2,11 @@
     session_start();
     // Include database connection
     require_once 'database.php';
-
-
-
+    
     // Get database connection
     $pdo = getPDO();
-    $email = $_SESSION['user_email'];
-    $userId = $_SESSION['user_id'];
+    $email = $_SESSION['user_email'] ?? '';
+    $userId = $_SESSION['user_id'] ?? '';
     if(empty($email) && empty($userId)){
         // If user arrived with a GET (e.g. ?REF=...) store the full request URI
         // so we can redirect them back here after login. Keep it for 1 hour.
