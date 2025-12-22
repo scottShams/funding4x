@@ -410,6 +410,7 @@ class EmailVerification {
 
     /**
      * Send an "Under Review" email to the user with optional attachments
+     * Uses an HTML template located at email_templates/under_review.html
      * @param string $email User email
      * @param string $name User name
      * @param array $attachmentPaths Array of paths to files to attach
@@ -424,13 +425,20 @@ class EmailVerification {
             $smtpPort = EnvLoader::get('SMTP_PORT', 587);
             $smtpEncryption = EnvLoader::get('SMTP_ENCRYPTION', 'tls');
 
-            // Build a simple HTML body for under review notification
-            $body = "<div style='font-family: Arial, sans-serif; font-size: 16px; color: #333;'>"
-                  . "<p>Hello " . htmlspecialchars($name) . ",</p>"
-                  . "<p>Your trading test has been marked <strong>Under Review</strong> by our team. Please find any relevant documents attached.</p>"
-                  . "<p>We will notify you with further updates after review.</p>"
-                  . "<p>Best regards,<br/>Funding4x Team</p>"
-                  . "</div>";
+            // Load the under review HTML template (preferred) or fall back to a simple body
+            $templatePath = __DIR__ . "/email_templates/under_review.html";
+            if (file_exists($templatePath)) {
+                $body = file_get_contents($templatePath);
+                $body = str_replace("USER_NAME", htmlspecialchars($name), $body);
+                $body = str_replace("USER_EMAIL", htmlspecialchars($email), $body);
+            } else {
+                $body = "<div style='font-family: Arial, sans-serif; font-size: 16px; color: #333;'>"
+                      . "<p>Hello " . htmlspecialchars($name) . ",</p>"
+                      . "<p>Your trading test has been marked <strong>Under Review</strong> by our team. Please find any relevant documents attached.</p>"
+                      . "<p>We will notify you with further updates after review.</p>"
+                      . "<p>Best regards,<br/>Funding4x Team</p>"
+                      . "</div>";
+            }
 
             $subject = "Your Trading Test Is Under Review";
 
