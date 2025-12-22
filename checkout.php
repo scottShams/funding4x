@@ -75,10 +75,7 @@
 
     $discountPrice = null;
 
-    // If session has price → use it (highest priority)
-    // ===============================
-    // DISCOUNT LOGIC FOR NEW USERS
-    // ===============================
+    
     // If GET has price → use it
     if (isset($_GET['price'])) {
 
@@ -90,7 +87,11 @@
         setcookie('checkout_price', $checkoutPrice, time() + (1 * 24 * 60 * 60), "/");
 
     }
-    // Apply discount only when session price exists (NOT GET price)
+    /* If session has price → use it (highest priority)
+    ===============================
+    DISCOUNT LOGIC FOR NEW USERS
+    =============================== */
+    //Apply discount only when session price exists (NOT GET price)
     elseif (isset($_SESSION['checkout_price'])) {
 
         $sessionPrice = $checkoutPrice = (int) $_SESSION['checkout_price'];
