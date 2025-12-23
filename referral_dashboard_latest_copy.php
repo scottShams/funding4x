@@ -721,8 +721,22 @@ if ($user) {
                         <i class="fas fa-star text-trophy-gold ml-2"></i>
                     </div>
                 </div>
-                <br />
                 <?php endif; ?>
+                <!-- View Challenges Button -->
+                <!-- <div class="mt-8 mb-10 p-8 sm:p-12 rounded-2xl bg-gradient-to-br from-primary-purple via-purple-600 to-indigo-600 text-white shadow-2xl transform hover:scale-[1.01] transition duration-300">
+    
+                    <div class="max-w-4xl mx-auto text-center">
+                        <button
+                            onclick="window.location.href='new_referral_dashboard.php'"
+                            class="inline-flex items-center justify-center px-10 py-4 text-lg font-bold rounded-xl
+                                bg-white text-primary-purple
+                                hover:bg-gray-100 transition duration-300
+                                shadow-lg hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-white/40">
+                            View my Challenges
+                        </button>
+                    </div>
+                </div> -->
+
                 <!-- Title Block -->
                 <div class="mb-8 p-4 bg-white rounded-xl shadow-lg border-l-4 border-primary-purple">
                     <h2 class="text-3xl font-extrabold text-primary-purple mb-2">
@@ -782,6 +796,23 @@ if ($user) {
                     </div>
                 </div>
                 <?php endif; ?>
+
+                <?php if ($user && isset($user['user_credit']) && $user['user_credit'] < 0): ?>
+                <div class="mt-8 mb-10 p-8 sm:p-12 rounded-2xl bg-slate-800 text-white shadow-2xl transform hover:scale-[1.01] transition duration-300 border-l-8 border-red-500">
+                    <div class="max-w-4xl mx-auto text-center">
+                        <h2 class="text-4xl sm:text-5xl font-extrabold tracking-tight mb-4 text-white">
+                            Application Status Update
+                        </h2>
+                        <p class="text-lg mb-4 opacity-90">
+                            Thank you for your interest in our funded account program. After a careful review of your recent evaluation, we regret to inform you that your application has been <strong>declined</strong> at this time.
+                        </p>
+                        <p class="text-md opacity-75 italic">
+                            Please check your email for detailed feedback and information on when you are eligible to re-apply.
+                        </p>
+                    </div>
+                </div>
+                <?php endif; ?>
+                
             </div>
 
             <!-- Referral Link Content - col-8 on medium+ screens, full width on mobile -->
@@ -1614,8 +1645,6 @@ if ($user) {
 
     </script>
     <script>
-
-        
         const USER_EMAIL_VERIFIED = <?php echo ($user && $user['email_verified'] == 1) ? 'true' : 'false'; ?>;
         const USER_QUIZ_COMPLETED = <?php echo ($user && !empty($user['quiz_result'])) ? 'true' : 'false'; ?>;
         const USER_KNOWLEDGE_TEST_COMPLETED = <?php echo ($user && !empty($user['knowledge_test_result'])) ? 'true' : 'false'; ?>;
