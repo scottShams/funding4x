@@ -374,28 +374,28 @@
                             <label for="username" class="block text-sm font-semibold text-gray-700 mb-1">MT5 Login ID</label>
                             <input type="text" id="username" name="username" required
                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-primary-purple focus:border-primary-purple transition duration-150 ease-in-out bg-gray-50"
-                                   placeholder="e.g. 50123456" value="<?php echo $isUpdateMode ? htmlspecialchars($mt5Details['username']) : ''; ?>">
+                                   placeholder="e.g. 50123456" value="<?php echo $isUpdateMode ? htmlspecialchars($mt5Details['username'] ?? '') : ''; ?>">
                         </div>
 
                         <div class="mb-4">
                             <label for="password" class="block text-sm font-semibold text-gray-700 mb-1">Trader Password</label>
                             <input type="text" id="password" name="password" required
                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-primary-purple focus:border-primary-purple transition duration-150 ease-in-out bg-gray-50"
-                                   placeholder="password" value="<?php echo $isUpdateMode ? htmlspecialchars($mt5Details['password']) : ''; ?>">
+                                   placeholder="password" value="<?php echo $isUpdateMode ? htmlspecialchars($mt5Details['password'] ?? '') : ''; ?>">
                         </div>
 
                         <div class="mb-6">
                             <label for="server" class="block text-sm font-semibold text-gray-700 mb-1">Broker Server Name</label>
                             <input type="text" id="server" name="server" required
                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-primary-purple focus:border-primary-purple transition duration-150 ease-in-out bg-gray-50"
-                                   placeholder="e.g., Exness-Trial9" value="<?php echo $isUpdateMode ? htmlspecialchars($mt5Details['server']) : ''; ?>">
+                                   placeholder="e.g., Exness-Trial9" value="<?php echo $isUpdateMode ? htmlspecialchars($mt5Details['server'] ?? '') : ''; ?>">
                         </div>
 
                         <div class="mb-6">
                             <label for="instrument" class="block text-sm font-semibold text-gray-700 mb-1">Which instrument will you be trading Mainly?</label>
                             <input type="text" id="instrument" name="instrument" required
                                     class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-primary-purple focus:border-primary-purple transition duration-150 ease-in-out bg-gray-50"
-                                    placeholder="e.g., Apple Stock, Gold Futures, EUR/USD" value="<?php echo $isUpdateMode ? htmlspecialchars($mt5Details['instrument']) : ''; ?>">
+                                    placeholder="e.g., Apple Stock, Gold Futures, EUR/USD" value="<?php echo $isUpdateMode ? htmlspecialchars($mt5Details['instrument'] ?? '') : ''; ?>">
                         </div>
 
                         <!-- Agreement Checkbox -->
