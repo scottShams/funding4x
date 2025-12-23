@@ -149,15 +149,26 @@
 
     if ($user) {
 
-        // Load mt5_details
-        $mt_stmt = $pdo->prepare("SELECT * FROM mt5_details WHERE user_id = ?");
-        $mt_stmt->execute([$user['id']]);
-        $mt5_details = $mt_stmt->fetch(PDO::FETCH_ASSOC);
+        // Load challenges for user (each challenge contains Phase 1 & Phase 2 mt5 records)
+        $challengeStmt = $pdo->prepare("SELECT * FROM challenges WHERE user_id = ? ORDER BY created_at DESC");
+        $challengeStmt->execute([$user['id']]);
+        $challenges = $challengeStmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // Load mt5_details_second
-        $mt_stmt_second = $pdo->prepare("SELECT * FROM mt5_details_second WHERE user_id = ?");
-        $mt_stmt_second->execute([$user['id']]);
-        $mt5_details_second = $mt_stmt_second->fetch(PDO::FETCH_ASSOC);
+        // Build challenge data including Phase 1 and Phase 2 rows
+        $challengeData = [];
+        $mtStmt = $pdo->prepare("SELECT * FROM mt5_details WHERE challenge_id = ?");
+        $mtStmt2 = $pdo->prepare("SELECT * FROM mt5_details_second WHERE challenge_id = ?");
+        foreach ($challenges as $c) {
+            $mtStmt->execute([$c['id']]);
+            $p1 = $mtStmt->fetch(PDO::FETCH_ASSOC);
+            $mtStmt2->execute([$c['id']]);
+            $p2 = $mtStmt2->fetch(PDO::FETCH_ASSOC);
+            $challengeData[] = [
+                'challenge' => $c,
+                'phase1' => $p1,
+                'phase2' => $p2
+            ];
+        }
 
         // Fetch direct referrals
         $stmt = $pdo->prepare("
@@ -716,13 +727,83 @@
                         </div>
                     </div>
                 </div>
-                
+                <!-- <div class="card">
+                    <h3 class="text-xl font-bold text-primary-purple mb-4 flex items-center">
+                        <i class="fas fa-link mr-2"></i> Your Referral Link
+                    </h3>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <input type="text" readonly
+                            value="<?php echo htmlspecialchars($referralLink); ?>"
+                            class="w-full bg-gray-100 text-sm text-gray-700 font-mono p-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-purple"
+                            onclick="this.select(); document.execCommand('copy'); alert('Referral link copied to clipboard!');"
+                        >
+                        <p class="text-xs text-gray-500 mt-2">
+                            Click the box to copy your referral link to clipboard.
+                        </p>
+                    </div>
+                </div> -->
+                <div class="card">
+                    <div class="max-w-4xl mx-auto text-center">
+                        <button id="new-challenge-btn" onclick="createChallenge()" class="bg-trophy-gold p-4 rounded-xl shadow-lg border-b-4 border-yellow-700 cursor-pointer">
+                            <p class="font-bold text-lg mb-1">New Challenge</p>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Challenges list -->
+                <!-- <div class="card">
+                    <h3 class="text-xl font-bold text-primary-purple mb-4 flex items-center">
+                        <i class="fas fa-flag-checkered mr-2"></i> Trading Accounts (Challenges)
+                    </h3>
+                    <?php if (!empty($challengeData)): ?>
+                        <div class="grid gap-6">
+                            <?php foreach ($challengeData as $cd): $ch = $cd['challenge']; $p1 = $cd['phase1']; $p2 = $cd['phase2']; ?>
+                                <div id="challenge-<?php echo $ch['id']; ?>" class="p-4 border rounded-lg bg-white">
+                                    <div class="flex justify-between items-center mb-2">
+                                        <div>
+                                            <strong><?php echo htmlspecialchars($ch['challenge_name'] ?: 'Challenge #' . $ch['challenge_number']); ?></strong>
+                                            <div class="text-xs text-gray-500">Created: <?php echo $ch['created_at']; ?></div>
+                                        </div>
+                                        <div>
+                                            <a href="choose-broker.php?challenge_id=<?php echo $ch['id']; ?>" class="px-3 py-1 bg-primary-purple text-white rounded">Phase 1</a>
+                                            <a href="choose-broker-second.php?challenge_id=<?php echo $ch['id']; ?>" class="px-3 py-1 bg-primary-purple text-white rounded ml-2">Phase 2</a>
+                                        </div>
+                                    </div>
+
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div class="p-3 border rounded">
+                                            <h4 class="font-bold">Phase 1</h4>
+                                            <?php if ($p1): ?>
+                                                <p class="text-sm">Status: <?php echo htmlspecialchars($p1['status']); ?></p>
+                                                <p class="text-sm">Server: <?php echo htmlspecialchars($p1['server'] ?? '--'); ?></p>
+                                            <?php else: ?>
+                                                <p class="text-sm text-gray-500">Not submitted</p>
+                                            <?php endif; ?>
+                                        </div>
+
+                                        <div class="p-3 border rounded">
+                                            <h4 class="font-bold">Phase 2</h4>
+                                            <?php if ($p2): ?>
+                                                <p class="text-sm">Status: <?php echo htmlspecialchars($p2['status']); ?></p>
+                                                <p class="text-sm">Server: <?php echo htmlspecialchars($p2['server'] ?? '--'); ?></p>
+                                            <?php else: ?>
+                                                <p class="text-sm text-gray-500">Not submitted</p>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php else: ?>
+                        <p class="text-gray-500">You haven't created any challenges yet — click New Challenge to get started.</p>
+                    <?php endif; ?>
+                </div> -->
                 <!-- Referral Stats Card -->
                 <div class="card">
                     <h3 class="text-xl font-bold text-primary-purple mb-4 flex items-center">
                         <i class="fas fa-share-alt mr-2"></i> Referral Network Summary
                     </h3>
-<?php
+                    <?php
                         // Calculate referral earnings from payments notes (simple heuristic)
                         $referralEarnings = 0;
                         if (!empty($payments)) {
@@ -759,120 +840,95 @@
                         <i class="fas fa-briefcase mr-2"></i> Trading Accounts & Evaluations
                     </h3>
 
-                    <!-- Account Container (Start of $100K Challenge) -->
-                    <div class="border border-gray-200 rounded-xl mb-6 overflow-hidden">
-                        <div class="bg-primary-purple text-white p-4 flex justify-between items-center">
-                            <h4 class="text-lg font-semibold">$100,000 Apex Challenge</h4>
-                            <span class="bg-trophy-gold text-header-dark text-sm font-bold px-3 py-1 rounded-full">LIVE FUNDED</span>
-                        </div>
+                    <!-- Render challenges dynamically -->
+                    <div id="challenge-list">
+                        <?php if (!empty($challengeData)): ?>
+                            <?php foreach ($challengeData as $cdIndex => $cd): $ch = $cd['challenge']; $p1 = $cd['phase1']; $p2 = $cd['phase2']; ?>
+                                <div id="challenge-card-<?php echo $ch['id']; ?>" class="border border-gray-200 rounded-xl mb-6 overflow-hidden">
+                                    <div class="bg-primary-purple text-white p-4 flex justify-between items-center">
+                                        <h4 class="text-lg font-semibold"><?php echo htmlspecialchars($ch['challenge_name'] ?: 'Challenge #' . $ch['challenge_number']); ?></h4>
+                                        <span class="bg-trophy-gold text-header-dark text-sm font-bold px-3 py-1 rounded-full"><?php echo htmlspecialchars(ucfirst($ch['status'])); ?></span>
+                                    </div>
 
-                        <!-- Phase 2 (Completed/Funded) -->
-                        <div class="p-4 border-b border-gray-100 bg-success-green/5">
-                            <button onclick="toggleDetails('mt5-details-1', 'icon-1')" class="w-full flex justify-between items-center text-left">
-                                <span class="font-bold text-header-dark flex items-center">
-                                    <i class="fas fa-check-circle text-success-green mr-3"></i> Phase 2: Verification Complete
-                                </span>
-                                <span class="text-sm text-success-green font-bold">8.1% Gain</span>
-                                <i id="icon-1" class="fas fa-chevron-down text-header-dark transition-transform duration-300"></i>
-                            </button>
-                            
-                            <!-- MT5 Details Content -->
-                            <div id="mt5-details-1" class="mt-4 pt-3 border-t border-gray-200 hidden">
-                                <p class="font-semibold text-primary-purple mb-2">MT5 Account Details (Funded)</p>
-                                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 bg-gray-50 p-3 rounded-lg text-sm">
-                                    <div><span class="font-medium">Server:</span> <code class="font-mono">Funding4x-Live</code></div>
-                                    <div><span class="font-medium">Login:</span> <code class="font-mono" id="login-1">601934</code></div>
-                                    <div><span class="font-medium">Password:</span> <code class="font-mono" id="password-1">ATrade!2025</code></div>
-                                </div>
-                                <div class="mt-3 flex justify-end space-x-2">
-                                    <button id="btn-login-1" onclick="copyToClipboard('601934', 'btn-login-1')" class="text-xs bg-primary-purple text-white px-3 py-1 rounded-full hover:bg-opacity-80 transition"><i class="fas fa-copy"></i> Copy Login</button>
-                                    <button id="btn-password-1" onclick="copyToClipboard('ATrade!2025', 'btn-password-1')" class="text-xs bg-primary-purple text-white px-3 py-1 rounded-full hover:bg-opacity-80 transition"><i class="fas fa-copy"></i> Copy Password</button>
-                                </div>
-                            </div>
-                        </div>
+                                    <!-- Phase 2 -->
+                                    <div class="p-4 border-b border-gray-100 <?php echo ($p2 && $p2['status'] === 'pass') ? 'bg-success-green/5' : ''; ?>">
+                                        <div class="w-full flex justify-between items-center text-left">
+                                            <a href="choose-broker-second.php?challenge_id=<?php echo $ch['id']; ?>" class="flex-1 text-left">
+                                                <span class="font-bold text-header-dark flex items-center">
+                                                    <?php if ($p2 && $p2['status'] === 'pass'): ?>
+                                                        <i class="fas fa-check-circle text-success-green mr-3"></i> Phase 2: <?php echo htmlspecialchars(ucfirst($p2['status'])); ?>
+                                                    <?php else: ?>
+                                                        <i class="fas fa-clock text-gray-500 mr-3"></i> Phase 2: <?php echo ($p2 ? htmlspecialchars(ucfirst($p2['status'])) : 'Not submitted'); ?>
+                                                    <?php endif; ?>
+                                                </span>
+                                            </a>
+                                            <div class="flex items-center">
+                                                <span class="text-sm text-success-green font-bold mr-3"><?php echo (!empty($p2['gain']) ? htmlspecialchars($p2['gain']) : '--'); ?></span>
+                                                <button onclick="toggleDetails('mt5-details-p2-<?php echo $ch['id']; ?>', 'icon-p2-<?php echo $ch['id']; ?>')" class="text-header-dark">
+                                                    <i id="icon-p2-<?php echo $ch['id']; ?>" class="fas fa-chevron-down transition-transform duration-300"></i>
+                                                </button>
+                                            </div>
+                                        </div>
 
-                        <!-- Phase 1 (Passed) -->
-                        <div class="p-4 border-b border-gray-100 bg-success-green/5">
-                            <button onclick="toggleDetails('mt5-details-2', 'icon-2')" class="w-full flex justify-between items-center text-left">
-                                <span class="font-bold text-header-dark flex items-center">
-                                    <i class="fas fa-check-circle text-success-green mr-3"></i> Phase 1: Qualification Passed
-                                </span>
-                                <span class="text-sm text-success-green font-bold">10.3% Gain</span>
-                                <i id="icon-2" class="fas fa-chevron-down text-header-dark transition-transform duration-300"></i>
-                            </button>
-                            
-                            <!-- MT5 Details Content -->
-                            <div id="mt5-details-2" class="mt-4 pt-3 border-t border-gray-200 hidden">
-                                <p class="font-semibold text-primary-purple mb-2">MT5 Account Details (Phase 1)</p>
-                                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 bg-gray-50 p-3 rounded-lg text-sm">
-                                    <div><span class="font-medium">Server:</span> <code class="font-mono">Funding4x-Demo</code></div>
-                                    <div><span class="font-medium">Login:</span> <code class="font-mono" id="login-2">501934</code></div>
-                                    <div><span class="font-medium">Password:</span> <code class="font-mono" id="password-2">P1-Verify</code></div>
+                                        <?php if ($p2): ?>
+                                        <div id="mt5-details-p2-<?php echo $ch['id']; ?>" class="mt-4 pt-3 border-t border-gray-200 hidden">
+                                            <p class="font-semibold text-primary-purple mb-2">MT5 Account Details (Phase 2)</p>
+                                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 bg-gray-50 p-3 rounded-lg text-sm">
+                                                <div><span class="font-medium">Server:</span> <code class="font-mono"><?php echo htmlspecialchars($p2['server'] ?? '--'); ?></code></div>
+                                                <div><span class="font-medium">Login:</span> <code class="font-mono" id="login-p2-<?php echo $ch['id']; ?>"><?php echo htmlspecialchars($p2['username'] ?? '--'); ?></code></div>
+                                                <div><span class="font-medium">Password:</span> <code class="font-mono" id="password-p2-<?php echo $ch['id']; ?>"><?php echo htmlspecialchars($p2['password'] ?? '--'); ?></code></div>
+                                            </div>
+                                            <div class="mt-3 flex justify-end space-x-2">
+                                                <button id="btn-login-p2-<?php echo $ch['id']; ?>" onclick="copyToClipboard(<?php echo json_encode($p2['username'] ?? ''); ?>, 'btn-login-p2-<?php echo $ch['id']; ?>')" class="text-xs bg-primary-purple text-white px-3 py-1 rounded-full hover:bg-opacity-80 transition"><i class="fas fa-copy"></i> Copy Login</button>
+                                                <button id="btn-password-p2-<?php echo $ch['id']; ?>" onclick="copyToClipboard(<?php echo json_encode($p2['password'] ?? ''); ?>, 'btn-password-p2-<?php echo $ch['id']; ?>')" class="text-xs bg-primary-purple text-white px-3 py-1 rounded-full hover:bg-opacity-80 transition"><i class="fas fa-copy"></i> Copy Password</button>
+                                            </div>
+                                        </div>
+                                        <?php endif; ?>
+                                    </div>
+
+                                    <!-- Phase 1 -->
+                                    <div class="p-4 border-b border-gray-100 <?php echo ($p1 && $p1['status'] === 'pass') ? 'bg-success-green/5' : ''; ?>">
+                                        <div class="w-full flex justify-between items-center text-left">
+                                            <a href="choose-broker.php?challenge_id=<?php echo $ch['id']; ?>" class="flex-1 text-left">
+                                                <span class="font-bold text-header-dark flex items-center">
+                                                    <?php if ($p1 && $p1['status'] === 'pass'): ?>
+                                                        <i class="fas fa-check-circle text-success-green mr-3"></i> Phase 1: <?php echo htmlspecialchars(ucfirst($p1['status'])); ?>
+                                                    <?php else: ?>
+                                                        <i class="fas fa-clock text-gray-500 mr-3"></i> Phase 1: <?php echo ($p1 ? htmlspecialchars(ucfirst($p1['status'])) : 'Not submitted'); ?>
+                                                    <?php endif; ?>
+                                                </span>
+                                            </a>
+                                            <div class="flex items-center">
+                                                <span class="text-sm text-success-green font-bold mr-3"><?php echo (!empty($p1['gain']) ? htmlspecialchars($p1['gain']) : '--'); ?></span>
+                                                <button onclick="toggleDetails('mt5-details-p1-<?php echo $ch['id']; ?>', 'icon-p1-<?php echo $ch['id']; ?>')" class="text-header-dark">
+                                                    <i id="icon-p1-<?php echo $ch['id']; ?>" class="fas fa-chevron-down transition-transform duration-300"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <?php if ($p1): ?>
+                                        <div id="mt5-details-p1-<?php echo $ch['id']; ?>" class="mt-4 pt-3 border-t border-gray-200 hidden">
+                                            <p class="font-semibold text-primary-purple mb-2">MT5 Account Details (Phase 1)</p>
+                                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 bg-gray-50 p-3 rounded-lg text-sm">
+                                                <div><span class="font-medium">Server:</span> <code class="font-mono"><?php echo htmlspecialchars($p1['server'] ?? '--'); ?></code></div>
+                                                <div><span class="font-medium">Login:</span> <code class="font-mono" id="login-p1-<?php echo $ch['id']; ?>"><?php echo htmlspecialchars($p1['username'] ?? '--'); ?></code></div>
+                                                <div><span class="font-medium">Password:</span> <code class="font-mono" id="password-p1-<?php echo $ch['id']; ?>"><?php echo htmlspecialchars($p1['password'] ?? '--'); ?></code></div>
+                                            </div>
+                                            <div class="mt-3 flex justify-end space-x-2">
+                                                <button id="btn-login-p1-<?php echo $ch['id']; ?>" onclick="copyToClipboard(<?php echo json_encode($p1['username'] ?? ''); ?>, 'btn-login-p1-<?php echo $ch['id']; ?>')" class="text-xs bg-primary-purple text-white px-3 py-1 rounded-full hover:bg-opacity-80 transition"><i class="fas fa-copy"></i> Copy Login</button>
+                                                <button id="btn-password-p1-<?php echo $ch['id']; ?>" onclick="copyToClipboard(<?php echo json_encode($p1['password'] ?? ''); ?>, 'btn-password-p1-<?php echo $ch['id']; ?>')" class="text-xs bg-primary-purple text-white px-3 py-1 rounded-full hover:bg-opacity-80 transition"><i class="fas fa-copy"></i> Copy Password</button>
+                                            </div>
+                                        </div>
+                                        <?php endif; ?>
+                                    </div>
                                 </div>
-                                <div class="mt-3 flex justify-end space-x-2">
-                                    <button id="btn-login-2" onclick="copyToClipboard('501934', 'btn-login-2')" class="text-xs bg-primary-purple text-white px-3 py-1 rounded-full hover:bg-opacity-80 transition"><i class="fas fa-copy"></i> Copy Login</button>
-                                    <button id="btn-password-2" onclick="copyToClipboard('P1-Verify', 'btn-password-2')" class="text-xs bg-primary-purple text-white px-3 py-1 rounded-full hover:bg-opacity-80 transition"><i class="fas fa-copy"></i> Copy Password</button>
-                                </div>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <div id="no-challenges-msg" class="border border-gray-200 rounded-xl mb-6 overflow-hidden">
+                                <div class="p-6 text-center text-gray-500">You haven't created any Trading Accounts yet — click <strong>New Challenge</strong> to get started.</div>
                             </div>
-                        </div>
+                        <?php endif; ?>
                     </div>
-                    <!-- End of $100K Challenge Account -->
-
-                    <!-- Account Container (Start of $50K Test) -->
-                    <div class="border border-gray-200 rounded-xl overflow-hidden">
-                        <div class="bg-header-dark text-white p-4 flex justify-between items-center">
-                            <h4 class="text-lg font-semibold">$50,000 Quick Test</h4>
-                            <span class="bg-primary-purple text-white text-sm font-bold px-3 py-1 rounded-full">IN PROGRESS</span>
-                        </div>
-
-                        <!-- Phase 1 (In Progress) -->
-                        <div class="p-4 border-b border-gray-100 bg-primary-purple/5">
-                            <button onclick="toggleDetails('mt5-details-3', 'icon-3')" class="w-full flex justify-between items-center text-left">
-                                <span class="font-bold text-header-dark flex items-center">
-                                    <i class="fas fa-spinner fa-spin text-primary-purple mr-3"></i> Phase 1: Qualification (45%)
-                                </span>
-                                <span class="text-sm text-primary-purple font-bold">4.5% Gain</span>
-                                <i id="icon-3" class="fas fa-chevron-down text-header-dark transition-transform duration-300"></i>
-                            </button>
-                            
-                            <!-- MT5 Details Content -->
-                            <div id="mt5-details-3" class="mt-4 pt-3 border-t border-gray-200 hidden">
-                                <p class="font-semibold text-primary-purple mb-2">MT5 Account Details (Active)</p>
-                                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 bg-gray-50 p-3 rounded-lg text-sm">
-                                    <div><span class="font-medium">Server:</span> <code class="font-mono">Funding4x-Demo</code></div>
-                                    <div><span class="font-medium">Login:</span> <code class="font-mono" id="login-3">408712</code></div>
-                                    <div><span class="font-medium">Password:</span> <code class="font-mono" id="password-3">QuickTest!</code></div>
-                                </div>
-                                <div class="mt-3 flex justify-end space-x-2">
-                                    <button id="btn-login-3" onclick="copyToClipboard('408712', 'btn-login-3')" class="text-xs bg-primary-purple text-white px-3 py-1 rounded-full hover:bg-opacity-80 transition"><i class="fas fa-copy"></i> Copy Login</button>
-                                    <button id="btn-password-3" onclick="copyToClipboard('QuickTest!', 'btn-password-3')" class="text-xs bg-primary-purple text-white px-3 py-1 rounded-full hover:bg-opacity-80 transition"><i class="fas fa-copy"></i> Copy Password</button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Phase 1 (Failed Attempt) -->
-                        <div class="p-4 bg-fail-red/5">
-                            <button onclick="toggleDetails('mt5-details-4', 'icon-4')" class="w-full flex justify-between items-center text-left">
-                                <span class="font-bold text-header-dark flex items-center">
-                                    <i class="fas fa-times-circle text-fail-red mr-3"></i> Phase 1: Initial Attempt Failed
-                                </span>
-                                <span class="text-sm text-fail-red font-bold">Max DD Breach</span>
-                                <i id="icon-4" class="fas fa-chevron-down text-header-dark transition-transform duration-300"></i>
-                            </button>
-                            
-                             <!-- MT5 Details Content (for review) -->
-                            <div id="mt5-details-4" class="mt-4 pt-3 border-t border-gray-200 hidden">
-                                <p class="font-semibold text-primary-purple mb-2">MT5 Account Details (Failed Attempt)</p>
-                                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 bg-gray-50 p-3 rounded-lg text-sm opacity-50">
-                                    <div><span class="font-medium">Server:</span> <code class="font-mono">Funding4x-Demo</code></div>
-                                    <div><span class="font-medium">Login:</span> <code class="font-mono">400010</code></div>
-                                    <div><span class="font-medium">Password:</span> <code class="font-mono">Old-Test</code></div>
-                                </div>
-                                <p class="text-xs text-fail-red mt-2">This account is closed due to a rule breach (Max Daily Drawdown).</p>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- End of $50K Test Account -->
 
                 </div>
             </div>
@@ -896,34 +952,34 @@
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-200 text-gray-700">
-<?php if (!empty($referrals)): ?>
-    <?php foreach ($referrals as $r): ?>
-        <tr class="table-row">
-            <td class="px-6 py-4 whitespace-nowrap"><?php echo htmlspecialchars($r['name'] ?: ($r['email'] ?? '—')); ?></td>
-            <td class="px-6 py-4 whitespace-nowrap"><?php
-                $statusText = 'Pending';
-                $statusClass = 'text-gray-600';
-                if ($r['email_verified'] == 1 && $r['quiz_result'] != null && $r['user_ip'] !== $user['user_ip']) {
-                    $statusText = 'Funded';
-                    $statusClass = 'text-success-green';
-                } else if ($r['quiz_result'] == null) {
-                    $statusText = 'Phase 1';
-                    $statusClass = 'text-primary-purple';
-                } else {
-                    $statusText = 'Failed/Retry';
-                    $statusClass = 'text-fail-red';
-                }
-                echo "<span class=\"$statusClass font-medium\">$statusText</span>";
-            ?></td>
-            <td class="px-6 py-4 whitespace-nowrap"><?php echo date('M j, Y', strtotime($r['created_at'])); ?></td>
-            <td class="px-6 py-4 whitespace-nowrap text-right"><?php echo '$' . number_format(($r['commission'] ?? 0), 2); ?></td>
-        </tr>
-    <?php endforeach; ?>
-<?php else: ?>
-    <tr class="table-row">
-        <td colspan="4" class="px-6 py-4 text-center">No referrals yet.</td>
-    </tr>
-<?php endif; ?>
+                            <?php if (!empty($referrals)): ?>
+                                <?php foreach ($referrals as $r): ?>
+                                    <tr class="table-row">
+                                        <td class="px-6 py-4 whitespace-nowrap"><?php echo htmlspecialchars($r['name'] ?: ($r['email'] ?? '—')); ?></td>
+                                        <td class="px-6 py-4 whitespace-nowrap"><?php
+                                            $statusText = 'Pending';
+                                            $statusClass = 'text-gray-600';
+                                            if ($r['email_verified'] == 1 && $r['quiz_result'] != null && $r['user_ip'] !== $user['user_ip']) {
+                                                $statusText = 'Funded';
+                                                $statusClass = 'text-success-green';
+                                            } else if ($r['quiz_result'] == null) {
+                                                $statusText = 'Phase 1';
+                                                $statusClass = 'text-primary-purple';
+                                            } else {
+                                                $statusText = 'Failed/Retry';
+                                                $statusClass = 'text-fail-red';
+                                            }
+                                            echo "<span class=\"$statusClass font-medium\">$statusText</span>";
+                                        ?></td>
+                                        <td class="px-6 py-4 whitespace-nowrap"><?php echo date('M j, Y', strtotime($r['created_at'])); ?></td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-right"><?php echo '$' . number_format(($r['commission'] ?? 0), 2); ?></td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                            <tr class="table-row">
+                                <td colspan="4" class="px-6 py-4 text-center">No referrals yet.</td>
+                            </tr>
+                            <?php endif; ?>
                         </tbody>
                     </table>
                 </div>
@@ -949,47 +1005,26 @@
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-200 text-gray-700">
-<?php if (!empty($payments)): ?>
-    <?php foreach ($payments as $p): ?>
-        <tr class="table-row">
-            <td class="px-6 py-4 whitespace-nowrap"><?php echo date('M j, Y', strtotime($p['created_at'])); ?></td>
-            <td class="px-6 py-4 whitespace-nowrap"><?php echo htmlspecialchars(ucfirst(str_replace('_', ' ', $p['payment_method'] ?? ''))); ?></td>
-            <td class="px-6 py-4 whitespace-nowrap"><?php echo htmlspecialchars($p['notes'] ?? ($p['payment_gateway'] ?? '')); ?></td>
-            <td class="px-6 py-4 whitespace-nowrap text-right <?php echo (($p['amount'] < 0) ? 'text-fail-red' : 'text-success-green'); ?>"><?php echo (($p['amount'] < 0) ? '-' : '') . '$' . number_format(abs($p['amount']), 2); ?></td>
-            <td class="px-6 py-4 whitespace-nowrap"><span class="<?php echo (($p['status'] == 'completed') ? 'text-success-green' : 'text-fail-red'); ?> font-medium"><?php echo ucfirst($p['status']); ?></span></td>
-        </tr>
-    <?php endforeach; ?>
-<?php else: ?>
-    <tr class="table-row">
-        <td colspan="5" class="px-6 py-4 text-center">No payment history yet.</td>
-    </tr>
-<?php endif; ?>
+                            <?php if (!empty($payments)): ?>
+                                <?php foreach ($payments as $p): ?>
+                                    <tr class="table-row">
+                                        <td class="px-6 py-4 whitespace-nowrap"><?php echo date('M j, Y', strtotime($p['created_at'])); ?></td>
+                                        <td class="px-6 py-4 whitespace-nowrap"><?php echo htmlspecialchars(ucfirst(str_replace('_', ' ', $p['payment_method'] ?? ''))); ?></td>
+                                        <td class="px-6 py-4 whitespace-nowrap"><?php echo htmlspecialchars($p['notes'] ?? ($p['payment_gateway'] ?? '')); ?></td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-right <?php echo (($p['amount'] < 0) ? 'text-fail-red' : 'text-success-green'); ?>"><?php echo (($p['amount'] < 0) ? '-' : '') . '$' . number_format(abs($p['amount']), 2); ?></td>
+                                        <td class="px-6 py-4 whitespace-nowrap"><span class="<?php echo (($p['status'] == 'completed') ? 'text-success-green' : 'text-fail-red'); ?> font-medium"><?php echo ucfirst($p['status']); ?></span></td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <tr class="table-row">
+                                    <td colspan="5" class="px-6 py-4 text-center">No payment history yet.</td>
+                                </tr>
+                            <?php endif; ?>
                         </tbody>
                     </table>
                 </div>
             </div>
-
-            <!-- Pie Chart Section -->
-            <!-- <div class="lg:col-span-1">
-                <div class="card">
-                    <h3 class="text-xl font-bold text-primary-purple mb-4 flex items-center">
-                        <i class="fas fa-chart-pie mr-2"></i> Referrals Breakdown
-                    </h3>
-                    <?php if ($totalReferrals > 0): ?>
-                        <div class="pie-chart">
-                            <canvas id="referralPieChart"></canvas>
-                        </div>
-                        <div class="mt-4 text-center text-sm text-gray-600">
-                            <div>Completed: <?php echo $verifiedReferrals; ?></div>
-                            <div>Total: <?php echo $totalReferrals; ?></div>
-                        </div>
-                    <?php else: ?>
-                        <p class="text-sm text-gray-500 text-center">No referrals yet to analyze.</p>
-                    <?php endif; ?>
-                </div>
-            </div> -->
         </div>
-
     </main>
 
     <!-- Footer -->
@@ -1075,6 +1110,137 @@
             });
         }
     </script>
+    <script>
+        async function createChallenge(){
+            const btn = document.getElementById('new-challenge-btn');
+            if (!btn) return;
+            btn.disabled = true;
+            const original = btn.innerHTML;
+            btn.innerHTML = '<p class="font-bold text-lg mb-1">Creating...</p>';
+            try {
+                const res = await fetch('create_challenge.php', { method: 'POST', headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+                const data = await res.json();
+                if (data.success && data.challenge) {
+                    insertChallengeCard(data.challenge, data.phase1 || null, data.phase2 || null);
+                    const el = document.getElementById('challenge-card-' + data.challenge.id);
+                    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    btn.disabled = false;
+                    btn.innerHTML = original;
+                } else {
+                    alert('Failed to create challenge: ' + (data.message || 'Unknown'));
+                    btn.disabled = false;
+                    btn.innerHTML = original;
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Network error. Please try again.');
+                btn.disabled = false;
+                btn.innerHTML = original;
+            }
+        }
+
+        function escapeHtml(str) {
+            if (str === null || typeof str === 'undefined') return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function insertChallengeCard(ch, p1, p2) {
+            const list = document.getElementById('challenge-list');
+            if (!list) return;
+
+            const noMsg = document.getElementById('no-challenges-msg');
+            if (noMsg) noMsg.remove();
+
+            const id = ch.id;
+            const name = escapeHtml(ch.challenge_name || ('Challenge #' + ch.challenge_number));
+            const status = escapeHtml(ch.status || 'pending');
+            const p1server = escapeHtml((p1 && p1.server) ? p1.server : '--');
+            const p1user = escapeHtml((p1 && p1.username) ? p1.username : '--');
+            const p1pass = escapeHtml((p1 && p1.password) ? p1.password : '--');
+            const p2server = escapeHtml((p2 && p2.server) ? p2.server : '--');
+            const p2user = escapeHtml((p2 && p2.username) ? p2.username : '--');
+            const p2pass = escapeHtml((p2 && p2.password) ? p2.password : '--');
+            const p1Submitted = p1 ? true : false;
+            const p2Submitted = p2 ? true : false;
+
+            const card = document.createElement('div');
+            card.id = 'challenge-card-' + id;
+            card.className = 'border border-gray-200 rounded-xl mb-6 overflow-hidden';
+            card.innerHTML = `
+                <div class="bg-primary-purple text-white p-4 flex justify-between items-center">
+                    <h4 class="text-lg font-semibold">${name}</h4>
+                    <span class="bg-trophy-gold text-header-dark text-sm font-bold px-3 py-1 rounded-full">${status}</span>
+                </div>
+
+                <div class="p-4 border-b border-gray-100">
+                    <div class="w-full flex justify-between items-center text-left">
+                        <a href="choose-broker-second.php?challenge_id=${id}" class="flex-1 text-left">
+                            <span class="font-bold text-header-dark flex items-center">
+                                <i class="fas fa-clock text-gray-500 mr-3"></i> ${p2Submitted ? 'Phase 2: Submitted' : 'Phase 2: Not submitted'}
+                            </span>
+                        </a>
+                        <div class="flex items-center">
+                            <span class="text-sm text-success-green font-bold mr-3">${p2Submitted ? 'Submitted' : '--'}</span>
+                            <button onclick="toggleDetails('mt5-details-p2-${id}', 'icon-p2-${id}')" class="text-header-dark">
+                                <i id="icon-p2-${id}" class="fas fa-chevron-down transition-transform duration-300"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="mt5-details-p2-${id}" class="mt-4 pt-3 border-t border-gray-200 hidden">
+                        <p class="font-semibold text-primary-purple mb-2">MT5 Account Details (Phase 2)</p>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 bg-gray-50 p-3 rounded-lg text-sm">
+                            <div><span class="font-medium">Server:</span> <code class="font-mono">${p2server}</code></div>
+                            <div><span class="font-medium">Login:</span> <code class="font-mono" id="login-p2-${id}">${p2user}</code></div>
+                            <div><span class="font-medium">Password:</span> <code class="font-mono" id="password-p2-${id}">${p2pass}</code></div>
+                        </div>
+                        <div class="mt-3 flex justify-end space-x-2">
+                            ${p2Submitted ? (`<button id="btn-login-p2-${id}" onclick="copyToClipboard(${JSON.stringify(p2user)}, 'btn-login-p2-${id}')" class="text-xs bg-primary-purple text-white px-3 py-1 rounded-full hover:bg-opacity-80 transition"><i class="fas fa-copy"></i> Copy Login</button>
+                            <button id="btn-password-p2-${id}" onclick="copyToClipboard(${JSON.stringify(p2pass)}, 'btn-password-p2-${id}')" class="text-xs bg-primary-purple text-white px-3 py-1 rounded-full hover:bg-opacity-80 transition"><i class="fas fa-copy"></i> Copy Password</button>`) : ''}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-4 border-b border-gray-100">
+                    <div class="w-full flex justify-between items-center text-left">
+                        <a href="choose-broker.php?challenge_id=${id}" class="flex-1 text-left">
+                            <span class="font-bold text-header-dark flex items-center">
+                                <i class="fas fa-clock text-gray-500 mr-3"></i> ${p1Submitted ? 'Phase 1: Submitted' : 'Phase 1: Not submitted'}
+                            </span>
+                        </a>
+                        <div class="flex items-center">
+                            <span class="text-sm text-success-green font-bold mr-3">${p1Submitted ? 'Submitted' : '--'}</span>
+                            <button onclick="toggleDetails('mt5-details-p1-${id}', 'icon-p1-${id}')" class="text-header-dark">
+                                <i id="icon-p1-${id}" class="fas fa-chevron-down transition-transform duration-300"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="mt5-details-p1-${id}" class="mt-4 pt-3 border-t border-gray-200 hidden">
+                        <p class="font-semibold text-primary-purple mb-2">MT5 Account Details (Phase 1)</p>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 bg-gray-50 p-3 rounded-lg text-sm">
+                            <div><span class="font-medium">Server:</span> <code class="font-mono">${p1server}</code></div>
+                            <div><span class="font-medium">Login:</span> <code class="font-mono" id="login-p1-${id}">${p1user}</code></div>
+                            <div><span class="font-medium">Password:</span> <code class="font-mono" id="password-p1-${id}">${p1pass}</code></div>
+                        </div>
+                        <div class="mt-3 flex justify-end space-x-2">
+                            ${p1Submitted ? (`<button id="btn-login-p1-${id}" onclick="copyToClipboard(${JSON.stringify(p1user)}, 'btn-login-p1-${id}')" class="text-xs bg-primary-purple text-white px-3 py-1 rounded-full hover:bg-opacity-80 transition"><i class="fas fa-copy"></i> Copy Login</button>
+                            <button id="btn-password-p1-${id}" onclick="copyToClipboard(${JSON.stringify(p1pass)}, 'btn-password-p1-${id}')" class="text-xs bg-primary-purple text-white px-3 py-1 rounded-full hover:bg-opacity-80 transition"><i class="fas fa-copy"></i> Copy Password</button>`) : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Insert at top
+            list.insertBefore(card, list.firstChild);
+        }
+    </script>
+
     <!--Start of Tawk.to Script-->
     <script type="text/javascript">
         var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
