@@ -491,6 +491,19 @@
             </div>
         </div>
     </div>
+    
+    <!-- Blocked Update Modal (pass/fail) -->
+    <div id="blocked-update-modal" class="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-50 hidden animate-fade-in">
+        <div class="bg-white p-8 rounded-2xl shadow-2xl max-w-lg mx-4 border-t-4 border-primary-purple transform scale-95 animate-modal-appear">
+            <div class="text-center">
+                <h3 class="text-2xl font-semibold text-primary-purple mb-4">Update Not Allowed</h3>
+                <p id="blocked-update-text" class="text-gray-700 mb-6">Your test status is final and cannot be changed.</p>
+                <div class="flex justify-center">
+                    <button onclick="document.getElementById('blocked-update-modal').classList.add('hidden')" class="px-6 py-3 bg-primary-purple text-white rounded-lg font-bold">OK</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script>
         function handleFormSubmit(event) {
@@ -530,10 +543,20 @@
                     //     window.location.href = "referral_dashboard.php";
                     // }, 5000);
                 } else {
-                    // Show error
-                    messageBox.innerHTML = `<span class="text-red-600">Error: ${data.error}</span>`;
-                    messageBox.className = 'mt-4 p-4 rounded-lg text-sm text-center bg-red-50 text-red-800 border border-red-200 block';
-                    messageBox.classList.remove('hidden');
+                    if (data.status === 403) {
+                        // Blocked due to final status — show server-provided message
+                        const msg = data.message || data.error || 'Update not allowed';
+                        const modalMessageEl = document.getElementById('blocked-update-text');
+                        if (modalMessageEl) modalMessageEl.textContent = msg;
+                        document.getElementById('blocked-update-modal').classList.remove('hidden');
+                    }
+                    else{
+                        // Show error
+                        messageBox.innerHTML = `<span class="text-red-600">Error: ${data.error}</span>`;
+                        messageBox.className = 'mt-4 p-4 rounded-lg text-sm text-center bg-red-50 text-red-800 border border-red-200 block';
+                        messageBox.classList.remove('hidden');
+                    }
+                    
                 }
             })
             .catch(error => {

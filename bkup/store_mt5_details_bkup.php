@@ -46,12 +46,23 @@ try {
     $userId = $user['id'];
 
     // Check if MT5 details already exist
-    $stmt = $pdo->prepare("SELECT id FROM mt5_details WHERE user_id = ?");
+    $stmt = $pdo->prepare("
+        SELECT id, status 
+        FROM mt5_details 
+        WHERE user_id = ?
+    ");
     $stmt->execute([$userId]);
     $existing = $stmt->fetch(PDO::FETCH_ASSOC);
 
     $isUpdate = false;
     if ($existing) {
+        // Block updates when status is pass or fail
+        if (in_array($existing['status'], ['pass', 'fail'])) {
+            http_response_code(403);
+            echo json_encode(['error' => "Sorry! You cannot update this as you have already '{$existing['status']}' this Test"]);
+            exit;
+        }
+        
         // Update existing MT5 details
         $stmt = $pdo->prepare("UPDATE mt5_details SET username = ?, password = ?, server = ?, instrument = ?, status = 'updated' WHERE user_id = ?");
         $stmt->execute([$mt5Details['username'], $mt5Details['password'], $mt5Details['server'], $mt5Details['instrument'], $userId]);
