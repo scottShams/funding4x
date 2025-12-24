@@ -7,10 +7,10 @@ CREATE TABLE mt5_details_second (
     -- One-to-one relation with mt5_details
     mt5_details_id INT NOT NULL UNIQUE,
 
-    username VARCHAR(255) NOT NULL,
-    password VARCHAR(255) NOT NULL,
-    server VARCHAR(255) NOT NULL,
-    instrument VARCHAR(255) NULL,
+    username VARCHAR(255) DEFAULT NULL,
+    password VARCHAR(255) DEFAULT NULL,
+    server VARCHAR(255) DEFAULT NULL,
+    instrument VARCHAR(255) DEFAULT NULL,
 
     status ENUM('pending', 'under_review', 'pass', 'running', 'fail', 'updated')
         DEFAULT 'pending',
@@ -25,6 +25,12 @@ CREATE TABLE mt5_details_second (
     status_updated_at TIMESTAMP NULL,
     submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
+    -- Relation to challenge
+    challenge_id INT NOT NULL,
+
     FOREIGN KEY (user_id) REFERENCES waitlist_users(id) ON DELETE CASCADE,
-    FOREIGN KEY (mt5_details_id) REFERENCES mt5_details(id) ON DELETE CASCADE
+    FOREIGN KEY (mt5_details_id) REFERENCES mt5_details(id) ON DELETE CASCADE,
+    FOREIGN KEY (challenge_id) REFERENCES challenges(id) ON DELETE CASCADE,
+
+    UNIQUE KEY uq_challenge_second (challenge_id)
 );

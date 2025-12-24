@@ -8,10 +8,10 @@ CREATE TABLE mt5_details (
     -- Relation
     user_id INT NOT NULL,
 
-    -- MT5 account details
-    username VARCHAR(255) NOT NULL,
-    password VARCHAR(255) NOT NULL,
-    server VARCHAR(255) NOT NULL,
+    -- MT5 account details (nullable to allow placeholder records)
+    username VARCHAR(255) DEFAULT NULL,
+    password VARCHAR(255) DEFAULT NULL,
+    server VARCHAR(255) DEFAULT NULL,
     instrument VARCHAR(255) DEFAULT NULL,
 
     -- Review & status
@@ -28,6 +28,12 @@ CREATE TABLE mt5_details (
     submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     status_updated_at TIMESTAMP NULL,
 
-    -- Foreign key
-    FOREIGN KEY (user_id) REFERENCES waitlist_users(id)
+    -- Relation to challenge
+    challenge_id INT NOT NULL,
+
+    -- Foreign keys
+    FOREIGN KEY (user_id) REFERENCES waitlist_users(id),
+    FOREIGN KEY (challenge_id) REFERENCES challenges(id) ON DELETE CASCADE,
+
+    UNIQUE KEY uq_challenge (challenge_id)
 );

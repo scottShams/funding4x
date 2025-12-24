@@ -79,12 +79,23 @@
         exit;
     }
 
-    // Check if MT5 details are already submitted
-    $stmt = $pdo->prepare("SELECT * FROM mt5_details WHERE user_id = ?");
-    $stmt->execute([$user['id']]);
-    $mt5Details = $stmt->fetch(PDO::FETCH_ASSOC);
+    // Get challenge ID from query param
+    $challengeId = isset($_GET['challenge_id']) ? (int)$_GET['challenge_id'] : null;
+
+    // Check if MT5 details are already submitted for this challenge
+    if ($challengeId) {
+        $stmt = $pdo->prepare("SELECT * FROM mt5_details WHERE user_id = ? AND challenge_id = ?");
+        $stmt->execute([$user['id'], $challengeId]);
+        $mt5Details = $stmt->fetch(PDO::FETCH_ASSOC);
+    } else {
+        // fallback behavior: use latest record (legacy)
+        $stmt = $pdo->prepare("SELECT * FROM mt5_details WHERE user_id = ? ORDER BY submitted_at DESC LIMIT 1");
+        $stmt->execute([$user['id']]);
+        $mt5Details = $stmt->fetch(PDO::FETCH_ASSOC);
+    }
     $hasMT5Details = $mt5Details ? true : false;
-    $isUpdateMode = $allowUpdate && $hasMT5Details;
+    // Allow update when a challenge-specific record exists (enable resubmit per challenge)
+    $isUpdateMode = $hasMT5Details ? true : ($allowUpdate && $hasMT5Details);
 ?>
 
 <!DOCTYPE html>
@@ -369,33 +380,34 @@
                     </p>
 
                     <form id="mt5-form" onsubmit="handleFormSubmit(event)">
+                        <input type="hidden" name="challenge_id" value="<?php echo isset($challengeId) ? (int)$challengeId : ''; ?>">
                         
                         <div class="mb-4">
                             <label for="username" class="block text-sm font-semibold text-gray-700 mb-1">MT5 Login ID</label>
                             <input type="text" id="username" name="username" required
                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-primary-purple focus:border-primary-purple transition duration-150 ease-in-out bg-gray-50"
-                                   placeholder="e.g. 50123456" value="<?php echo $isUpdateMode ? htmlspecialchars($mt5Details['username']) : ''; ?>">
+                                   placeholder="e.g. 50123456" value="<?php echo $isUpdateMode ? htmlspecialchars($mt5Details['username'] ?? '') : ''; ?>">
                         </div>
 
                         <div class="mb-4">
                             <label for="password" class="block text-sm font-semibold text-gray-700 mb-1">Trader Password</label>
                             <input type="text" id="password" name="password" required
                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-primary-purple focus:border-primary-purple transition duration-150 ease-in-out bg-gray-50"
-                                   placeholder="password" value="<?php echo $isUpdateMode ? htmlspecialchars($mt5Details['password']) : ''; ?>">
+                                   placeholder="password" value="<?php echo $isUpdateMode ? htmlspecialchars($mt5Details['password'] ?? '') : ''; ?>">
                         </div>
 
                         <div class="mb-6">
                             <label for="server" class="block text-sm font-semibold text-gray-700 mb-1">Broker Server Name</label>
                             <input type="text" id="server" name="server" required
                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-primary-purple focus:border-primary-purple transition duration-150 ease-in-out bg-gray-50"
-                                   placeholder="e.g., Exness-Trial9" value="<?php echo $isUpdateMode ? htmlspecialchars($mt5Details['server']) : ''; ?>">
+                                   placeholder="e.g., Exness-Trial9" value="<?php echo $isUpdateMode ? htmlspecialchars($mt5Details['server'] ?? '') : ''; ?>">
                         </div>
 
                         <div class="mb-6">
                             <label for="instrument" class="block text-sm font-semibold text-gray-700 mb-1">Which instrument will you be trading Mainly?</label>
                             <input type="text" id="instrument" name="instrument" required
                                     class="w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-primary-purple focus:border-primary-purple transition duration-150 ease-in-out bg-gray-50"
-                                    placeholder="e.g., Apple Stock, Gold Futures, EUR/USD" value="<?php echo $isUpdateMode ? htmlspecialchars($mt5Details['instrument']) : ''; ?>">
+                                    placeholder="e.g., Apple Stock, Gold Futures, EUR/USD" value="<?php echo $isUpdateMode ? htmlspecialchars($mt5Details['instrument'] ?? '') : ''; ?>">
                         </div>
 
                         <!-- Agreement Checkbox -->
@@ -467,7 +479,7 @@
     </div>
 
     <!-- Already Submitted Modal -->
-    <div id="already-submitted-modal" class="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-50 <?php echo ($hasMT5Details && !$allowUpdate) ? '' : 'hidden'; ?> animate-fade-in">
+    <div id="already-submitted-modal" class="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-50 <?php echo ($hasMT5Details && !$isUpdateMode) ? '' : 'hidden'; ?> animate-fade-in">
         <div class="bg-white p-10 rounded-3xl shadow-2xl max-w-lg mx-4 border-t-4 border-primary-purple transform scale-95 animate-modal-appear">
             <div class="text-center">
                 <!-- Info Icon -->
@@ -492,6 +504,19 @@
         </div>
     </div>
 
+    <!-- Blocked Update Modal (pass/fail) -->
+    <div id="blocked-update-modal" class="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-50 hidden animate-fade-in">
+        <div class="bg-white p-8 rounded-2xl shadow-2xl max-w-lg mx-4 border-t-4 border-primary-purple transform scale-95 animate-modal-appear">
+            <div class="text-center">
+                <h3 class="text-2xl font-semibold text-primary-purple mb-4">Update Not Allowed</h3>
+                <p id="blocked-update-text" class="text-gray-700 mb-6">Your test status is final and cannot be changed.</p>
+                <div class="flex justify-center">
+                    <button onclick="document.getElementById('blocked-update-modal').classList.add('hidden')" class="px-6 py-3 bg-primary-purple text-white rounded-lg font-bold">OK</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         function handleFormSubmit(event) {
             event.preventDefault();
@@ -511,29 +536,43 @@
                 submitted_at: new Date().toISOString()
             };
 
-            // Send to server
-            fetch('store_mt5_details.php', {
+            const challengeId = '<?php echo isset($challengeId) ? (int)$challengeId : ''; ?>';
+
+            // Send to server (include challenge_id) — use new submit endpoint and include allow_update flag
+            fetch('submit_mt5_phase1.php', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
                 },
-                body: JSON.stringify({ mt5_details: mt5Details }),
+                body: JSON.stringify({ mt5_details: mt5Details, challenge_id: challengeId, allow_update: <?php echo $isUpdateMode ? 'true' : 'false'; ?> }),
             })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
+            .then(async response => {
+                const data = await response.json().catch(() => ({}));
+                if (response.ok && data.success) {
                     // Show modal
                     document.getElementById('success-modal').classList.remove('hidden');
                     form.reset();
 
-                    // setTimeout(() => {
-                    //     window.location.href = "referral_dashboard.php";
-                    // }, 5000);
+                    // Update dashboard card if present
+                    const id = challengeId;
+                    const loginEl = document.getElementById('login-p1-' + id);
+                    if (loginEl && data.mt5) loginEl.textContent = data.mt5.username;
                 } else {
-                    // Show error
-                    messageBox.innerHTML = `<span class="text-red-600">Error: ${data.error}</span>`;
-                    messageBox.className = 'mt-4 p-4 rounded-lg text-sm text-center bg-red-50 text-red-800 border border-red-200 block';
-                    messageBox.classList.remove('hidden');
+                    if (response.status === 403) {
+                        // Blocked due to final status — show server-provided message
+                        const msg = data.message || data.error || 'Update not allowed';
+                        const modalMessageEl = document.getElementById('blocked-update-text');
+                        if (modalMessageEl) modalMessageEl.textContent = msg;
+                        document.getElementById('blocked-update-modal').classList.remove('hidden');
+                    } else if (response.status === 409) {
+                        document.getElementById('already-submitted-modal').classList.remove('hidden');
+                    } else {
+                        // Show error
+                        messageBox.innerHTML = `<span class="text-red-600">Error: ${data.message || data.error || 'Unknown'}</span>`;
+                        messageBox.className = 'mt-4 p-4 rounded-lg text-sm text-center bg-red-50 text-red-800 border border-red-200 block';
+                        messageBox.classList.remove('hidden');
+                    }
                 }
             })
             .catch(error => {

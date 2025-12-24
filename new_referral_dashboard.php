@@ -170,6 +170,15 @@
             ];
         }
 
+        // Load user's mt5 details (if any) to preserve legacy checks and UI
+        $mt_user_stmt = $pdo->prepare("SELECT * FROM mt5_details WHERE user_id = ?");
+        $mt_user_stmt->execute([$user['id']]);
+        $mt5_details = $mt_user_stmt->fetch(PDO::FETCH_ASSOC);
+
+        $mt_user_stmt2 = $pdo->prepare("SELECT * FROM mt5_details_second WHERE user_id = ?");
+        $mt_user_stmt2->execute([$user['id']]);
+        $mt5_details_second = $mt_user_stmt2->fetch(PDO::FETCH_ASSOC);
+
         // Fetch direct referrals
         $stmt = $pdo->prepare("
             SELECT id, name, country, user_ip, status, quiz_result, user_credit, knowledge_test_result, created_at, email_verified
@@ -727,6 +736,19 @@
                         </div>
                     </div>
                 </div>
+                
+                <!-- Credit Notification -->
+                <?php if ($user && isset($user['user_credit']) && $user['user_credit'] >= 1): ?>
+                <div class="card">
+                    <div class="bg-trophy-gold text-white p-4 rounded-xl shadow-lg mb-4 border-l-4 border-trophy-gold">
+                        <div class="flex items-center justify-center">
+                            <i class="fas fa-star text-trophy-gold mr-2"></i>
+                            <span class="text-lg font-semibold">Congratulations!  You have <?php echo $user['user_credit']; ?> Credit<?php echo $user['user_credit'] > 1 ? 's' : ''; ?>. <br /> Go Ahead and Start your Trading!</span>
+                            <i class="fas fa-star text-trophy-gold ml-2"></i>
+                        </div>
+                    </div>
+                </div>
+                <?php endif; ?>
                 <!-- <div class="card">
                     <h3 class="text-xl font-bold text-primary-purple mb-4 flex items-center">
                         <i class="fas fa-link mr-2"></i> Your Referral Link
@@ -742,13 +764,49 @@
                         </p>
                     </div>
                 </div> -->
+                <!-- New Challenge Button -->
                 <div class="card">
                     <div class="max-w-4xl mx-auto text-center">
-                        <button id="new-challenge-btn" onclick="createChallenge()" class="bg-trophy-gold p-4 rounded-xl shadow-lg border-b-4 border-yellow-700 cursor-pointer">
+                        <button id="new-challenge-btn" data-user-credit="<?php echo (int)($user['user_credit'] ?? 0); ?>" onclick="createChallenge()" class="bg-trophy-gold p-4 rounded-xl shadow-lg border-b-4 border-yellow-700 cursor-pointer">
                             <p class="font-bold text-lg mb-1">New Challenge</p>
                         </button>
                     </div>
                 </div>
+                <!-- Buy Now Section (Checkout CTA) -->
+                <div class="card mt-4">
+                    <div class="max-w-4xl mx-auto text-center">
+                        <h4 class="text-lg font-bold text-primary-purple mb-2">Buy Your Funded Account Test</h4>
+                        <p class="text-sm text-gray-500 mb-4">Try the paid route anytime — discounted for referrals.</p>
+                        <button onclick="window.location.href='checkout.php'" class="bg-trophy-gold p-4 rounded-xl shadow-lg border-b-4 border-yellow-700 cursor-pointer">
+                            <p class="font-bold text-lg mb-1">Buy Now - 38% Off</p>
+                            <p class="text-sm"><del>Normally $59</del>, now only $<?php echo $checkoutPrice; ?> for First Comers</p>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Offer panel - show if any challenge has a failed phase -->
+                <?php
+                    $hasAnyFail = false;
+                    if (!empty($challengeData)) {
+                        foreach ($challengeData as $cd) {
+                            if (($cd['phase1'] && isset($cd['phase1']['status']) && $cd['phase1']['status'] === 'fail') ||
+                                ($cd['phase2'] && isset($cd['phase2']['status']) && $cd['phase2']['status'] === 'fail')) {
+                                $hasAnyFail = true; break;
+                            }
+                        }
+                    }
+                    if ($hasAnyFail):
+                ?>
+                <div class="card mt-4 bg-primary-purple text-white">
+                    <div class="p-6 text-center">
+                        <h4 class="text-xl font-extrabold">Special Offer for Referrals!</h4>
+                        <p class="text-sm mt-2">As a valued referrer, enjoy an exclusive discount on your funded account test. Use code <strong>REFERRAL20</strong> at checkout for 20% off!</p>
+                        <div class="mt-4">
+                            <button onclick="window.location.href='checkout.php'" class="bg-trophy-gold text-header-dark px-4 py-2 rounded-md font-semibold">Go to Checkout</button>
+                        </div>
+                    </div>
+                </div>
+                <?php endif; ?>
 
                 <!-- Challenges list -->
                 <!-- <div class="card">
@@ -798,37 +856,7 @@
                         <p class="text-gray-500">You haven't created any challenges yet — click New Challenge to get started.</p>
                     <?php endif; ?>
                 </div> -->
-                <!-- Referral Stats Card -->
-                <div class="card">
-                    <h3 class="text-xl font-bold text-primary-purple mb-4 flex items-center">
-                        <i class="fas fa-share-alt mr-2"></i> Referral Network Summary
-                    </h3>
-                    <?php
-                        // Calculate referral earnings from payments notes (simple heuristic)
-                        $referralEarnings = 0;
-                        if (!empty($payments)) {
-                            foreach ($payments as $p) {
-                                if (!empty($p['notes']) && (stripos($p['notes'], 'referral') !== false || stripos($p['notes'], 'commission') !== false)) {
-                                    $referralEarnings += (float)$p['amount'];
-                                }
-                            }
-                        }
-                    ?>
-                    <div class="grid grid-cols-2 gap-4 text-center">
-                        <div class="p-4 bg-gray-50 rounded-lg">
-                            <p class="text-3xl font-extrabold text-primary-purple"><?php echo (int)$totalReferrals; ?></p>
-                            <p class="text-sm text-gray-500 mt-1">Total Referrals</p>
-                        </div>
-                        <div class="p-4 bg-gray-50 rounded-lg">
-                            <p class="text-3xl font-extrabold text-success-green"><?php echo (int)$verifiedReferrals; ?></p>
-                            <p class="text-sm text-gray-500 mt-1">Funded Referrals</p>
-                        </div>
-                    </div>
-                    <div class="mt-4 pt-4 border-t border-gray-100 text-center">
-                        <p class="text-sm text-gray-500">Total Referral Earnings:</p>
-                        <p class="text-3xl font-extrabold text-trophy-gold mt-1"><?php echo '$' . number_format($referralEarnings, 2); ?></p>
-                    </div>
-                </div>
+                
             </div>
 
             <!-- RIGHT COLUMN (Trading Accounts) -->
@@ -930,6 +958,72 @@
                         <?php endif; ?>
                     </div>
 
+                </div>
+
+                <!-- Credits & Referral Link -->
+                <div class="card">
+                    <h3 class="text-xl font-bold text-primary-purple mb-4 flex items-center">
+                        <i class="fas fa-gift mr-2"></i> Credits & Referral Link
+                    </h3>
+                    <div class="grid grid-cols-1 gap-4">
+                        <div class="bg-gray-50 p-4 rounded-lg text-center">
+                            <p class="text-sm text-gray-500">Referral Credits</p>
+                            <p class="text-3xl font-extrabold text-primary-purple mt-2"><?php echo (int)$credits; ?> / <?php echo (int)$goalCredits; ?></p>
+                            <div class="mt-3">
+                                <div class="w-full bg-gray-200 rounded-full h-3">
+                                    <div class="h-3 rounded-full bg-success-green" style="width: <?php echo (int)$progressPercentage; ?>%;"></div>
+                                </div>
+                                <p class="text-xs text-gray-500 mt-2"><?php echo (int)$progressPercentage; ?>% to FREE entry</p>
+                            </div>
+                        </div>
+
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <h4 class="font-bold text-sm text-primary-purple mb-2">Your Unique Referral Link</h4>
+                            <div class="flex items-center space-x-2">
+                                <input type="text" id="referralLink" value="<?php echo htmlspecialchars($referralLink); ?>" readonly class="flex-grow bg-white p-2 rounded-md border border-gray-200 font-mono text-sm" onclick="this.select()">
+                                <button onclick="copyReferralLink()" class="px-3 py-2 bg-primary-purple text-white rounded-md text-sm"><i class="fas fa-copy mr-2"></i>Copy</button>
+                                <button onclick="shareReferral()" class="px-3 py-2 bg-trophy-gold text-header-dark rounded-md text-sm"><i class="fas fa-share-alt mr-2"></i>Share</button>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-2">Refer 5 real traders (verified) to get a free funded account test.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Referral Stats Card -->
+                <div class="card">
+                    <h3 class="text-xl font-bold text-primary-purple mb-4 flex items-center">
+                        <i class="fas fa-share-alt mr-2"></i> Referral Network Summary
+                    </h3>
+                    <?php
+                        // Calculate referral earnings from payments notes (simple heuristic)
+                        $referralEarnings = 0;
+                        if (!empty($payments)) {
+                            foreach ($payments as $p) {
+                                if (!empty($p['notes']) && (stripos($p['notes'], 'referral') !== false || stripos($p['notes'], 'commission') !== false)) {
+                                    $referralEarnings += (float)$p['amount'];
+                                }
+                            }
+                        }
+                    ?>
+                    <div class="grid grid-cols-2 gap-4 text-center">
+                        <div class="p-4 bg-gray-50 rounded-lg">
+                            <p class="text-3xl font-extrabold text-primary-purple"><?php echo (int)$totalReferrals; ?></p>
+                            <p class="text-sm text-gray-500 mt-1">Total Referrals</p>
+                        </div>
+                        <div class="p-4 bg-gray-50 rounded-lg">
+                            <p class="text-3xl font-extrabold text-success-green"><?php echo (int)$verifiedReferrals; ?></p>
+                            <p class="text-sm text-gray-500 mt-1">Funded Referrals</p>
+                        </div>
+                    </div>
+                    <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+                        <div class="text-center">
+                            <canvas id="referralPieChart" width="200" height="200"></canvas>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-sm text-gray-500">Total Referral Earnings:</p>
+                            <p class="text-3xl font-extrabold text-trophy-gold mt-1"><?php echo '$' . number_format($referralEarnings, 2); ?></p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1107,18 +1201,57 @@
             const link = document.getElementById('referralLink').value;
             navigator.clipboard.writeText(link).then(() => {
                 alert('Referral link copied to clipboard');
+            }).catch(() => {
+                // Fallback using older API
+                const el = document.createElement('textarea'); el.value = link; document.body.appendChild(el); el.select(); try { document.execCommand('copy'); alert('Referral link copied to clipboard'); } catch (e) { alert('Please copy the link manually'); } document.body.removeChild(el);
             });
+        }
+
+        // Use native sharing when available
+        function shareReferral() {
+            const link = document.getElementById('referralLink').value;
+            if (navigator.share) {
+                navigator.share({ title: 'Join Funding4x', text: 'Join Funding4x using my referral link!', url: link })
+                    .catch(err => console.error('Share failed:', err));
+            } else {
+                copyReferralLink();
+                alert('Referral link copied to clipboard. Share it with your friends!');
+            }
         }
     </script>
     <script>
         async function createChallenge(){
             const btn = document.getElementById('new-challenge-btn');
             if (!btn) return;
+
+            // Client-side quick check: if user_credit < 1, send them to checkout immediately
+            const userCredit = parseInt(btn.getAttribute('data-user-credit') || '0', 10);
+            if (userCredit < 1) {
+                
+                window.location.href = 'checkout.php';
+                return;
+            }
+
             btn.disabled = true;
             const original = btn.innerHTML;
             btn.innerHTML = '<p class="font-bold text-lg mb-1">Creating...</p>';
             try {
                 const res = await fetch('create_challenge.php', { method: 'POST', headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+
+                // If server responds with a non-200 status and a JSON redirect, handle it
+                if (res.status === 403) {
+                    try {
+                        const errData = await res.json();
+                        if (errData.redirect) {
+                            alert(errData.message || 'Insufficient credits');
+                            window.location.href = errData.redirect;
+                            return;
+                        }
+                    } catch (e) {
+                        // Fall through
+                    }
+                }
+
                 const data = await res.json();
                 if (data.success && data.challenge) {
                     insertChallengeCard(data.challenge, data.phase1 || null, data.phase2 || null);
@@ -1126,6 +1259,9 @@
                     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     btn.disabled = false;
                     btn.innerHTML = original;
+                } else if (data && data.redirect) {
+                    alert(data.message || 'Redirecting to Checkout');
+                    window.location.href = data.redirect;
                 } else {
                     alert('Failed to create challenge: ' + (data.message || 'Unknown'));
                     btn.disabled = false;

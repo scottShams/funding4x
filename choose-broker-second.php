@@ -70,18 +70,20 @@
     $stmt->execute([$email]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    // // Check if knowledge test is already completed
-    // if(empty($user['knowledge_test_result'])){
-    //     header("Location: knowledge-test.php");
-    //     exit;
-    // }
-
-    // Check if MT5 details are already submitted
-    $stmt = $pdo->prepare("SELECT * FROM mt5_details_second WHERE user_id = ?");
-    $stmt->execute([$user['id']]);
-    $mt5DetailsSecond = $stmt->fetch(PDO::FETCH_ASSOC);
+    // Check if MT5 details are already submitted for this challenge
+    $challengeId = isset($_GET['challenge_id']) ? (int)$_GET['challenge_id'] : null;
+    if ($challengeId) {
+        $stmt = $pdo->prepare("SELECT * FROM mt5_details_second WHERE user_id = ? AND challenge_id = ?");
+        $stmt->execute([$user['id'], $challengeId]);
+        $mt5DetailsSecond = $stmt->fetch(PDO::FETCH_ASSOC);
+    } else {
+        $stmt = $pdo->prepare("SELECT * FROM mt5_details_second WHERE user_id = ? ORDER BY submitted_at DESC LIMIT 1");
+        $stmt->execute([$user['id']]);
+        $mt5DetailsSecond = $stmt->fetch(PDO::FETCH_ASSOC);
+    }
     $hasMT5DetailsSecond = $mt5DetailsSecond ? true : false;
-    $isUpdateModeSecond = $allowUpdate && $hasMT5DetailsSecond;
+    // Allow updates per challenge
+    $isUpdateModeSecond = $hasMT5DetailsSecond ? true : ($allowUpdate && $hasMT5DetailsSecond);
 
 ?>
 
@@ -258,6 +260,7 @@
                     </p>
 
                     <form id="mt5-form" onsubmit="handleFormSubmit(event)">
+                        <input type="hidden" name="challenge_id" value="<?php echo isset($challengeId) ? (int)$challengeId : ''; ?>">
                         
                         <div class="mb-4">
                             <label for="username" class="block text-sm font-semibold text-gray-700 mb-1">MT5 Login ID</label>
@@ -337,7 +340,7 @@
     </div>
 
     <!-- Already Submitted Modal -->
-    <div id="already-submitted-modal" class="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-50 <?php echo ($hasMT5DetailsSecond && !$allowUpdate) ? '' : 'hidden'; ?> animate-fade-in">
+    <div id="already-submitted-modal" class="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-50 <?php echo ($hasMT5DetailsSecond && !$isUpdateModeSecond) ? '' : 'hidden'; ?> animate-fade-in">
         <div class="bg-white p-10 rounded-3xl shadow-2xl max-w-lg mx-4 border-t-4 border-primary-purple transform scale-95 animate-modal-appear">
             <div class="text-center">
                 <div class="mx-auto w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mb-6">
@@ -361,6 +364,19 @@
         </div>
     </div>
 
+    <!-- Blocked Update Modal (pass/fail) -->
+    <div id="blocked-update-modal-second" class="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-50 hidden animate-fade-in">
+        <div class="bg-white p-8 rounded-2xl shadow-2xl max-w-lg mx-4 border-t-4 border-primary-purple transform scale-95 animate-modal-appear">
+            <div class="text-center">
+                <h3 class="text-2xl font-semibold text-primary-purple mb-4">Update Not Allowed</h3>
+                <p id="blocked-update-text-second" class="text-gray-700 mb-6">Your test status is final and cannot be changed.</p>
+                <div class="flex justify-center">
+                    <button onclick="document.getElementById('blocked-update-modal-second').classList.add('hidden')" class="px-6 py-3 bg-primary-purple text-white rounded-lg font-bold">OK</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         async function handleFormSubmit(event) {
             event.preventDefault(); 
@@ -371,31 +387,43 @@
             const messageBox = document.getElementById('message-box');
 
             // Build payload
+            const challengeId = '<?php echo isset($challengeId) ? (int)$challengeId : ''; ?>';
             const payload = {
                 mt5_details: { username, password, server },
-                allow_update: <?php echo $isUpdateModeSecond ? 'true' : 'false'; ?>
+                allow_update: <?php echo $isUpdateModeSecond ? 'true' : 'false'; ?>,
+                challenge_id: challengeId
             };
 
             try {
-                const res = await fetch('store_mt5_details_second.php', {
+                const res = await fetch('submit_mt5_phase2.php', {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
+                    headers: {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'},
                     body: JSON.stringify(payload)
                 });
 
-                const data = await res.json();
+                const data = await res.json().catch(() => ({}));
 
                 if (res.ok && data.success) {
                     // Show success modal
                     document.getElementById('success-modal').classList.remove('hidden');
                     form.reset();
+
+                    // Update dashboard card if present
+                    const id = challengeId;
+                    const loginEl = document.getElementById('login-p2-' + id);
+                    if (loginEl && data.mt5_second) loginEl.textContent = data.mt5_second.username;
                 } else {
                     // Handle specific errors
-                    if (res.status === 409) {
+                    if (res.status === 403) {
+                        const msg = data.message || data.error || 'Update not allowed';
+                        const modalMessageEl = document.getElementById('blocked-update-text-second');
+                        if (modalMessageEl) modalMessageEl.textContent = msg;
+                        document.getElementById('blocked-update-modal-second').classList.remove('hidden');
+                    } else if (res.status === 409) {
                         // Already submitted
                         document.getElementById('already-submitted-modal').classList.remove('hidden');
                     } else {
-                        messageBox.innerHTML = `<span class="text-red-600">Error: ${data.error || 'An error occurred'}</span>`;
+                        messageBox.innerHTML = `<span class="text-red-600">Error: ${data.error || data.message || 'An error occurred'}</span>`;
                         messageBox.className = 'mt-4 p-4 rounded-lg text-sm text-center bg-red-50 text-red-800 border border-red-200 block';
                         messageBox.classList.remove('hidden');
                     }
