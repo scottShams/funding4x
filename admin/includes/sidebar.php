@@ -55,6 +55,12 @@
                 </a>
             </li>
             <li class="nav-item">
+                <a class="nav-link d-flex align-items-center <?php echo basename($_SERVER['PHP_SELF']) == 'promo_codes.php' ? 'active' : ''; ?>" href="promo_codes.php">
+                    <i class="bi bi-ticket-perforated me-2"></i>
+                    <span>Promo Codes</span>
+                </a>
+            </li>
+            <li class="nav-item">
                 <a class="nav-link d-flex align-items-center <?php echo basename($_SERVER['PHP_SELF']) == 'under_review_mt5_details.php' ? 'active' : ''; ?>" href="under_review_mt5_details.php">
                     <i class="bi bi-hourglass-split me-2"></i>
                     <span>Under Review MT5</span>

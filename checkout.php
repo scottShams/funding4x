@@ -73,24 +73,18 @@
 
     $discountPrice = null;
 
-    
+    $promoCode = true;
     // If GET has price → use it
     if (isset($_GET['price'])) {
 
         $checkoutPrice = (int) $_GET['price'];
         $discountPrice = null;
-
-        // Store in session & cookie
-        $_SESSION['checkout_price'] = $checkoutPrice;
-        setcookie('checkout_price', $checkoutPrice, time() + (1 * 24 * 60 * 60), "/");
+        $promoCode = false;
 
     }
-    /* If session has price → use it (highest priority)
-    ===============================
-    DISCOUNT LOGIC FOR NEW USERS
-    =============================== */
-    //Apply discount only when session price exists (NOT GET price)
-    elseif (isset($_SESSION['checkout_price'])) {
+
+    //Apply discount only when session price exists from GET (NOT restored from cookie)
+    elseif (isset($_SESSION['checkout_price']) && !empty($_SESSION['checkout_price'])) {
 
         $sessionPrice = $checkoutPrice = (int) $_SESSION['checkout_price'];
 
@@ -125,9 +119,10 @@
 
             // apply discount to actual checkout price
             $discountPrice = $discountedPrice;
+            $promoCode = false;
 
         } elseif ($hasActive2HourDiscount && !$user['discount_taken'] ) {
-
+            $promoCode = false;
             // If within 2 hours, always use the same discount price
             $discountPrice = (int) $_COOKIE['discount_price'];
         }else{
@@ -158,6 +153,41 @@
         $amount = (float)$_POST['amount'];
 
         try {
+            // If a promo was applied in session, re-validate and compute final amount server-side
+            if (isset($_SESSION['applied_promo']) && is_array($_SESSION['applied_promo'])) {
+                $promo = $_SESSION['applied_promo'];
+                // Re-validate promo (exists, not expired, usage limit)
+                $stmtPromo = $pdo->prepare('SELECT * FROM promo_codes WHERE id = ?');
+                $stmtPromo->execute([(int)$promo['id']]);
+                $promoRow = $stmtPromo->fetch(PDO::FETCH_ASSOC);
+                if ($promoRow) {
+                    if (!empty($promoRow['expires_at']) && strtotime($promoRow['expires_at']) < time()) {
+                        // expired — ignore
+                        unset($_SESSION['applied_promo']);
+                    } elseif (!is_null($promoRow['max_uses']) && (int)$promoRow['uses'] >= (int)$promoRow['max_uses']) {
+                        unset($_SESSION['applied_promo']);
+                    } else {
+                        // compute final amount
+                        if ($promoRow['type'] === 'percent') {
+                            $discountAmount = round($checkoutPrice * ((float)$promoRow['value'] / 100.0), 2);
+                        } else {
+                            $discountAmount = round((float)$promoRow['value'], 2);
+                        }
+                        $amount = max(round($checkoutPrice - $discountAmount, 2), 0.00);
+
+                        // increment uses
+                        $updateUses = $pdo->prepare('UPDATE promo_codes SET uses = uses + 1 WHERE id = ?');
+                        $updateUses->execute([(int)$promoRow['id']]);
+
+                        // mark discount taken
+                        $stmt = $pdo->prepare("UPDATE waitlist_users SET discount_taken = 1 WHERE id = ?");
+                        $stmt->execute([$user['id']]);
+                    }
+                } else {
+                    unset($_SESSION['applied_promo']);
+                }
+            }
+
             if ($paymentMethod === 'crypto') {
                 // Handle crypto payment
                 $cryptoType = $_POST['crypto_type'] ?? 'USDC';
@@ -377,7 +407,7 @@
             
             <!-- ORIGINAL CHECKOUT GRID -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            
+
                 <!-- LEFT COLUMN: Order Summary -->
                 <div class="lg:col-span-1 bg-card-white p-6 rounded-xl shadow-xl border-t-4 border-trophy-gold h-fit lg:sticky lg:top-24">
                     <h2 class="text-2xl font-bold text-primary-purple mb-4 border-b pb-2">Order Summary</h2>
@@ -386,35 +416,104 @@
                         <!-- Item 1 -->
                         <div class="flex justify-between text-gray-700">
                             <span class="text-sm">Competition Entry Fee</span>
-                            <span class="font-semibold">$<?php echo $finalPrice; ?></span>
+                            <span class="font-semibold" id="original-price">$<?php echo $checkoutPrice; ?></span>
                         </div>
-                      
 
-                        
-                        <div class="border-t border-dashed my-4 pt-3"></div>
-
-                        <!-- Subtotal
-                        <div class="flex justify-between text-base">
-                            <span>Subtotal:</span>
-                            <span class="font-medium">$148.00</span>
+                        <!-- Discount line (shown when promo applied) -->
+                        <div id="discount-line" class="flex justify-between text-gray-700 hidden">
+                            <span class="text-sm">Promo Discount</span>
+                            <span class="font-semibold text-green-600" id="discount-amount"></span>
                         </div>
-                    -->
 
-                        <!-- Tax/Fees
-                        <div class="flex justify-between text-sm text-gray-500">
-                            <span>Platform Fee (2.5%):</span>
-                            <span class="font-medium">$3.70</span>
+                        <!-- Promo code input -->
+                        <?php if($promoCode): ?>
+                        <div class="mt-3">
+                            <label for="promo_code" class="text-sm">Have a promo code?</label>
+                            <div class="flex gap-2 mt-2 max-w-md">
+                                <input id="promo_code" class="form-input rounded px-3 py-2 border w-full" placeholder="Enter promo code">
+                                <button class="px-4 py-2 bg-primary-purple text-white rounded" onclick="applyPromo()">Apply</button>
+                            </div>
+                            <div id="promo-status" class="text-sm mt-2 text-gray-600 hidden"></div>
                         </div>
-                    -->
+                        <?php endif; ?>
 
                         <div class="border-t mt-4 pt-4"></div>
 
                         <!-- Total -->
                         <div class="flex justify-between items-center text-xl font-extrabold text-header-dark">
                             <span>Total Due:</span>
-                            <span class="text-primary-purple">$<?php echo $finalPrice; ?></span>
+                            <span class="text-primary-purple" id="final-price">$<?php echo $finalPrice; ?></span>
                         </div>
+
+                        <!-- Hidden input for payment amount -->
+                        <input type="hidden" id="payment_amount" value="<?php echo $finalPrice; ?>">
                     </div>
+
+                    <script>
+                        async function applyPromo() {
+                            const code = document.getElementById('promo_code').value.trim();
+                            const status = document.getElementById('promo-status');
+                            if (!code) {
+                                status.classList.remove('hidden');
+                                status.classList.add('text-red-600');
+                                status.textContent = 'Please enter a promo code.';
+                                return;
+                            }
+                            status.classList.remove('hidden');
+                            status.classList.remove('text-red-600');
+                            status.classList.add('text-blue-600');
+                            status.textContent = 'Checking promo code...';
+
+                            try {
+                                const res = await fetch('apply_promo.php', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                                    body: JSON.stringify({ promo_code: code })
+                                });
+                                const data = await res.json();
+                                if (res.ok && data.success) {
+                                    const appliedPromoInput = document.getElementById('applied_promo_code');
+                                    if (appliedPromoInput) appliedPromoInput.value = data.promo.code;
+                                    const finalPriceEl = document.getElementById('final-price');
+                                    if (finalPriceEl) finalPriceEl.textContent = '$' + (data.final_price).toFixed(2);
+                                    const discountLine = document.getElementById('discount-line');
+                                    if (discountLine) discountLine.classList.remove('hidden');
+                                    const discountAmount = document.getElementById('discount-amount');
+                                    if (discountAmount) discountAmount.textContent = '-$' + (data.discount).toFixed(2);
+                                    const paymentAmount = document.getElementById('payment_amount');
+                                    if (paymentAmount) paymentAmount.value = (data.final_price).toFixed(2);
+                                    // Update button texts
+                                    const buttons = document.querySelectorAll('button[type="submit"]');
+                                    buttons.forEach(btn => {
+                                        if (btn.textContent.includes('Pay $') || btn.textContent.includes('Confirm Crypto Payment')) {
+                                            if (btn.textContent.includes('Pay $')) {
+                                                btn.textContent = `Pay $${(data.final_price).toFixed(2)}`;
+                                            } else if (btn.textContent.includes('Confirm Crypto Payment')) {
+                                                btn.textContent = `Confirm Crypto Payment ($${(data.final_price).toFixed(2)})`;
+                                            }
+                                        }
+                                    });
+                                    // Update crypto form amounts
+                                    const cryptoSendAmount = document.getElementById('crypto-send-amount');
+                                    if (cryptoSendAmount) cryptoSendAmount.textContent = (data.final_price).toFixed(2);
+                                    const checkboxAmount = document.getElementById('checkbox-amount');
+                                    if (checkboxAmount) checkboxAmount.textContent = (data.final_price).toFixed(2);
+                                    status.classList.remove('text-blue-600');
+                                    status.classList.add('text-green-600');
+                                    status.textContent = `Promo applied: ${data.promo.code} — Discount $${(data.discount).toFixed(2)}`;
+                                } else {
+                                    status.classList.remove('text-blue-600');
+                                    status.classList.add('text-red-600');
+                                    status.textContent = data.message || 'Promo invalid';
+                                }
+                            } catch (err) {
+                                status.classList.remove('text-blue-600');
+                                status.classList.add('text-red-600');
+                                status.textContent = 'Network error. Please try again.';
+                                console.error(err);
+                            }
+                        }
+                    </script>
                 </div>
 
                 <!-- RIGHT COLUMN: Payment Methods -->
@@ -508,7 +607,7 @@
                             <h3 class="text-xl font-bold text-primary-purple mb-6">Pay with Crypto (USDC)</h3>
                             <form action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>" method="POST" onsubmit="handlePayment(event, 'Crypto')">
                                 <p class="text-gray-600 mb-6">
-                                    Please send exactly <span class="font-bold text-lg text-primary-purple"><?php echo $finalPrice; ?> USDC or USDT</span> to the address below.
+                                    Please send exactly <span class="font-bold text-lg text-primary-purple">$<span id="crypto-send-amount"><?php echo $finalPrice; ?></span> USDC or USDT</span> to the address below.
                                 </p>
 
                                 
@@ -555,7 +654,7 @@
                                         <input type="checkbox" name="payment_confirmation" required
                                                class="mr-3 w-4 h-4 text-primary-purple bg-gray-100 border-gray-300 rounded focus:ring-primary-purple focus:ring-2">
                                         <span class="text-sm font-medium text-gray-700">
-                                            I have sent the Payment of <strong>$<?php echo $finalPrice; ?></strong> by Cryptocurrency to Funding4x
+                                            I have sent the Payment of <strong>$<span id="checkbox-amount"><?php echo $finalPrice; ?></span></strong> by Cryptocurrency to Funding4x
                                         </span>
                                     </label>
                                 </div>
@@ -738,7 +837,7 @@
             const formData = new FormData(event.target);
             formData.append('process_payment', '1');
             formData.append('payment_method', method.toLowerCase().replace(' ', '_'));
-            formData.append('amount', '<?php echo $finalPrice; ?>');
+            formData.append('amount', document.getElementById('payment_amount').value);
 
             // Add specific fields based on payment method
             if (method.toLowerCase() === 'crypto') {
