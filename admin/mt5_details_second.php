@@ -459,6 +459,7 @@ ob_start();
                         <th>ID</th>
                         <th>User Name</th>
                         <th>User Email</th>
+                        <th>Challenge ID</th>
                         <th>Credits</th>
                         <th>MT5 Username</th>
                         <th>MT5 Password</th>
@@ -475,6 +476,7 @@ ob_start();
                         <td><?php echo $detail['id']; ?></td>
                         <td><?php echo htmlspecialchars($detail['name']); ?></td>
                         <td><?php echo htmlspecialchars($detail['email']); ?></td>
+                        <td><?php echo htmlspecialchars($detail['challenge_id']); ?></td>
                         <td>
                             <span id="credit-<?php echo $detail['user_id']; ?>"><?php echo $detail['user_credit'] ?? 0; ?></span>
                         </td>
