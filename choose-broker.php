@@ -3,10 +3,9 @@
     // Include database connection
     require_once 'database.php';
 
-    // Check if update is allowed via REF=mt5s parameter
+    // Check if update is allowed via REF=mt5s parameter (admin link). Server-side permission will be set once we know the challenge_id.
     $allowUpdate = isset($_GET['REF']) && $_GET['REF'] === 'mt5s';
-    
-    
+
     // Get database connection
     $pdo = getPDO();
     $email = $_SESSION['user_email'] ?? '';
@@ -82,6 +81,12 @@
     // Get challenge ID from query param
     $challengeId = isset($_GET['challenge_id']) ? (int)$_GET['challenge_id'] : null;
 
+    // If admin REF link and challenge_id present, set short-lived server-side permission
+    if ($allowUpdate && $challengeId) {
+        $_SESSION['allow_mt5_update'] = $challengeId;
+        $_SESSION['allow_mt5_update_expires'] = time() + 3600; // valid for 1 hour
+    }
+
     // Check if MT5 details are already submitted for this challenge
     if ($challengeId) {
         $stmt = $pdo->prepare("SELECT * FROM mt5_details WHERE user_id = ? AND challenge_id = ?");
@@ -94,8 +99,11 @@
         $mt5Details = $stmt->fetch(PDO::FETCH_ASSOC);
     }
     $hasMT5Details = $mt5Details ? true : false;
-    // Allow update when a challenge-specific record exists (enable resubmit per challenge)
-    $isUpdateMode = $hasMT5Details ? true : ($allowUpdate && $hasMT5Details);
+    // Only enable update mode if the admin REF link was used and a challenge-specific record exists
+    $isUpdateMode = ($allowUpdate && $hasMT5Details);
+
+    // If update mode is enabled but the status is not pending, show blocked notice on page load
+    $blockedUpdate = $isUpdateMode && (!empty($mt5Details['status']) && $mt5Details['status'] !== 'pending');
 ?>
 
 <!DOCTYPE html>
@@ -505,11 +513,11 @@
     </div>
 
     <!-- Blocked Update Modal (pass/fail) -->
-    <div id="blocked-update-modal" class="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-50 hidden animate-fade-in">
+    <div id="blocked-update-modal" class="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-50 <?php echo $blockedUpdate ? '' : 'hidden'; ?> animate-fade-in">
         <div class="bg-white p-8 rounded-2xl shadow-2xl max-w-lg mx-4 border-t-4 border-primary-purple transform scale-95 animate-modal-appear">
             <div class="text-center">
                 <h3 class="text-2xl font-semibold text-primary-purple mb-4">Update Not Allowed</h3>
-                <p id="blocked-update-text" class="text-gray-700 mb-6">Your test status is final and cannot be changed.</p>
+                <p id="blocked-update-text" class="text-gray-700 mb-6"><?php echo $blockedUpdate ? "Sorry! You cannot update this test because its status is '{$mt5Details['status']}'." : 'Your test status is final and cannot be changed.'; ?></p>
                 <div class="flex justify-center">
                     <button onclick="document.getElementById('blocked-update-modal').classList.add('hidden')" class="px-6 py-3 bg-primary-purple text-white rounded-lg font-bold">OK</button>
                 </div>

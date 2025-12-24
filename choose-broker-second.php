@@ -3,7 +3,7 @@
     // Include database connection
     require_once 'database.php';
     $allowUpdate = $userId = $email = null;
-    // Check if update is allowed via REF=mt5s parameter
+    // Check if update is allowed via REF=mt5ts parameter (admin link for Test 2). Server-side permission will be set once we know the challenge_id.
     $allowUpdate = isset($_GET['REF']) && $_GET['REF'] === 'mt5ts';
 
     // Get database connection
@@ -72,6 +72,13 @@
 
     // Check if MT5 details are already submitted for this challenge
     $challengeId = isset($_GET['challenge_id']) ? (int)$_GET['challenge_id'] : null;
+
+    // If admin REF link and challenge_id present, set short-lived server-side permission for Test 2 updates
+    if ($allowUpdate && $challengeId) {
+        $_SESSION['allow_mt5_update_second'] = $challengeId;
+        $_SESSION['allow_mt5_update_second_expires'] = time() + 3600; // valid for 1 hour
+    }
+
     if ($challengeId) {
         $stmt = $pdo->prepare("SELECT * FROM mt5_details_second WHERE user_id = ? AND challenge_id = ?");
         $stmt->execute([$user['id'], $challengeId]);
@@ -82,8 +89,11 @@
         $mt5DetailsSecond = $stmt->fetch(PDO::FETCH_ASSOC);
     }
     $hasMT5DetailsSecond = $mt5DetailsSecond ? true : false;
-    // Allow updates per challenge
-    $isUpdateModeSecond = $hasMT5DetailsSecond ? true : ($allowUpdate && $hasMT5DetailsSecond);
+    // Only enable update mode if the admin REF link was used and a challenge-specific record exists
+    $isUpdateModeSecond = ($allowUpdate && $hasMT5DetailsSecond);
+
+    // If update mode is enabled but the status is not pending, show blocked notice on page load
+    $blockedUpdateSecond = $isUpdateModeSecond && (!empty($mt5DetailsSecond['status']) && $mt5DetailsSecond['status'] !== 'pending');
 
 ?>
 
@@ -365,11 +375,11 @@
     </div>
 
     <!-- Blocked Update Modal (pass/fail) -->
-    <div id="blocked-update-modal-second" class="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-50 hidden animate-fade-in">
+    <div id="blocked-update-modal-second" class="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-50 <?php echo $blockedUpdateSecond ? '' : 'hidden'; ?> animate-fade-in">
         <div class="bg-white p-8 rounded-2xl shadow-2xl max-w-lg mx-4 border-t-4 border-primary-purple transform scale-95 animate-modal-appear">
             <div class="text-center">
                 <h3 class="text-2xl font-semibold text-primary-purple mb-4">Update Not Allowed</h3>
-                <p id="blocked-update-text-second" class="text-gray-700 mb-6">Your test status is final and cannot be changed.</p>
+                <p id="blocked-update-text-second" class="text-gray-700 mb-6"><?php echo $blockedUpdateSecond ? "Sorry! You cannot update this test because its status is '{$mt5DetailsSecond['status']}'." : 'Your test status is final and cannot be changed.'; ?></p>
                 <div class="flex justify-center">
                     <button onclick="document.getElementById('blocked-update-modal-second').classList.add('hidden')" class="px-6 py-3 bg-primary-purple text-white rounded-lg font-bold">OK</button>
                 </div>

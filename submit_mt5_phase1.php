@@ -41,12 +41,16 @@ if ($username === '' || $server === '') {
 $pdo = getPDO();
 try {
     // Check challenge exists and belongs to user
-    $stmt = $pdo->prepare("SELECT id, user_id FROM challenges WHERE id = ?");
-    $stmt->execute([$challengeId]);
-    $challenge = $stmt->fetch(PDO::FETCH_ASSOC);
-    if (!$challenge || (int)$challenge['user_id'] !== $userId) {
+    $check = $pdo->prepare("
+        SELECT id 
+        FROM challenges 
+        WHERE id = ? AND user_id = ?
+    ");
+    $check->execute([$challengeId, $_SESSION['user_id']]);
+
+    if (!$check->fetch()) {
         http_response_code(403);
-        echo json_encode(['success' => false, 'message' => 'Invalid challenge or not owned by user']);
+        echo json_encode(['success' => false, 'message' => 'Unauthorized challenge access']);
         exit;
     }
 
@@ -54,32 +58,56 @@ try {
     $stmt = $pdo->prepare("SELECT id, status FROM mt5_details WHERE challenge_id = ?");
     $stmt->execute([$challengeId]);
     $existing = $stmt->fetch(PDO::FETCH_ASSOC);
-    $allowUpdate = !empty($data['allow_update']);
+
+    // Server-side allowUpdate — only grant update if user previously visited the admin REF link for this challenge and the session flag is valid
+    $allowUpdate = isset($_SESSION['allow_mt5_update']) && (int)$_SESSION['allow_mt5_update'] === $challengeId && (!empty($_SESSION['allow_mt5_update_expires']) && time() < $_SESSION['allow_mt5_update_expires']);
+
     if ($existing) {
-        // Block updates when status is pass or fail
-        if (in_array($existing['status'], ['pass', 'fail'])) {
-            http_response_code(403);
-            echo json_encode(['success' => false, 'message' => "Sorry! You cannot update this as you have already '{$existing['status']}' this Test"]);
-            exit;
-        }
 
-        if ($allowUpdate) {
-            // Safe update path
-            $update = $pdo->prepare("UPDATE mt5_details SET username = ?, password = ?, server = ?, instrument = ?, test_type = ?, status = 'updated', status_updated_at = NOW() WHERE id = ?");
-            $update->execute([$username, $password, $server, $instrument, $test_type, (int)$existing['id']]);
+        // Only allow update if:
+        // - admin REF link is used
+        // - status is pending
+        if ($allowUpdate && $existing['status'] === 'pending') {
 
-            $stmt = $pdo->prepare("SELECT id, user_id, challenge_id, username, server, instrument, status, submitted_at, test_type FROM mt5_details WHERE id = ?");
+            $update = $pdo->prepare("
+                UPDATE mt5_details 
+                SET username = ?, password = ?, server = ?, instrument = ?, test_type = ?, 
+                    status = 'updated', status_updated_at = NOW()
+                WHERE id = ?
+            ");
+            $update->execute([
+                $username,
+                $password,
+                $server,
+                $instrument,
+                $test_type,
+                (int)$existing['id']
+            ]);
+
+            $stmt = $pdo->prepare("
+                SELECT id, user_id, challenge_id, username, server, instrument, status, submitted_at, test_type 
+                FROM mt5_details 
+                WHERE id = ?
+            ");
             $stmt->execute([(int)$existing['id']]);
             $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            // Clear the temporary session permission after a successful update
+            unset($_SESSION['allow_mt5_update'], $_SESSION['allow_mt5_update_expires']);
 
             echo json_encode(['success' => true, 'mt5' => $row, 'updated' => true]);
             exit;
         }
 
-        http_response_code(409);
-        echo json_encode(['success' => false, 'message' => 'Phase 1 already submitted for this challenge']);
+        // Block everything else
+        http_response_code(403);
+        echo json_encode([
+            'success' => false,
+            'message' => "Sorry! You cannot update this test because its status is '{$existing['status']}'."
+        ]);
         exit;
     }
+
 
     // Insert phase 1
     $insert = $pdo->prepare("INSERT INTO mt5_details (user_id, challenge_id, username, password, server, instrument, test_type, status) VALUES (?, ?, ?, ?, ?, ?, ?, 'pending')");
