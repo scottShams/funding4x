@@ -881,7 +881,7 @@
                                     <!-- Phase 2 -->
                                     <div class="p-4 border-b border-gray-100 <?php echo ($p2 && $p2['status'] === 'pass') ? 'bg-success-green/5' : ''; ?>">
                                         <div class="w-full flex justify-between items-center text-left">
-                                            <a href="choose-broker-second.php?challenge_id=<?php echo $ch['id']; ?>" class="flex-1 text-left">
+                                            <a href="choose-broker-second.php?challenge_id=<?php echo $ch['challenge_number']; ?>" class="flex-1 text-left">
                                                 <span class="font-bold text-header-dark flex items-center">
                                                     <?php if ($p2 && $p2['status'] === 'pass'): ?>
                                                         <i class="fas fa-check-circle text-success-green mr-3"></i> Phase 2: <?php echo htmlspecialchars(ucfirst($p2['status'])); ?>
@@ -917,7 +917,7 @@
                                     <!-- Phase 1 -->
                                     <div class="p-4 border-b border-gray-100 <?php echo ($p1 && $p1['status'] === 'pass') ? 'bg-success-green/5' : ''; ?>">
                                         <div class="w-full flex justify-between items-center text-left">
-                                            <a href="choose-broker.php?challenge_id=<?php echo $ch['id']; ?>" class="flex-1 text-left">
+                                            <a href="choose-broker.php?challenge_id=<?php echo $ch['challenge_number']; ?>" class="flex-1 text-left">
                                                 <span class="font-bold text-header-dark flex items-center">
                                                     <?php if ($p1 && $p1['status'] === 'pass'): ?>
                                                         <i class="fas fa-check-circle text-success-green mr-3"></i> Phase 1: <?php echo htmlspecialchars(ucfirst($p1['status'])); ?>
@@ -1293,6 +1293,7 @@
             if (noMsg) noMsg.remove();
 
             const id = ch.id;
+            const challengeId = ch.challenge_number;
             const name = escapeHtml(ch.challenge_name || ('Challenge #' + ch.challenge_number));
             const status = escapeHtml(ch.status || 'pending');
             const p1server = escapeHtml((p1 && p1.server) ? p1.server : '--');
@@ -1315,7 +1316,7 @@
 
                 <div class="p-4 border-b border-gray-100">
                     <div class="w-full flex justify-between items-center text-left">
-                        <a href="choose-broker-second.php?challenge_id=${id}" class="flex-1 text-left">
+                        <a href="choose-broker-second.php?challenge_id=${challengeId}" class="flex-1 text-left">
                             <span class="font-bold text-header-dark flex items-center">
                                 <i class="fas fa-clock text-gray-500 mr-3"></i> ${p2Submitted ? 'Phase 2: Submitted' : 'Phase 2: Not submitted'}
                             </span>
@@ -1344,7 +1345,7 @@
 
                 <div class="p-4 border-b border-gray-100">
                     <div class="w-full flex justify-between items-center text-left">
-                        <a href="choose-broker.php?challenge_id=${id}" class="flex-1 text-left">
+                        <a href="choose-broker.php?challenge_id=${challengeId}" class="flex-1 text-left">
                             <span class="font-bold text-header-dark flex items-center">
                                 <i class="fas fa-clock text-gray-500 mr-3"></i> ${p1Submitted ? 'Phase 1: Submitted' : 'Phase 1: Not submitted'}
                             </span>
