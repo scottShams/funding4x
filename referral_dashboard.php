@@ -1777,7 +1777,7 @@ if ($user) {
 
             // ID 4 — Trading Test 1
             if(id === 4){
-                if(!USER_KNOWLEDGE_TEST_COMPLETED || !USERCREDIT){
+                if(!USER_KNOWLEDGE_TEST_COMPLETED){
                     showDynamicModal(
                         "Not Ready Yet",
                         "Sorry you must Complete the previous items before you can View Your Challenges",
