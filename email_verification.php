@@ -806,6 +806,7 @@ class EmailVerification {
         }
 
         $content = "
+            Hi {$name},<br />
             We are unable to add your MT5 Login details to our system due to your Starting Balance showing wrong.<br /><br />
 
             Please ensure your starting balance is \$5000 only. We cannot approve the account until you ensure the balance is showing exactly \$5000.<br /><br />
@@ -842,6 +843,8 @@ class EmailVerification {
         }
 
         $content = "
+            Hi {$name},<br />
+            
             We are unable to add your MT5 Login details to our system due to your Starting Balance showing wrong.<br /><br />
 
             There seems to be a problem with your login details. <br /><br />
