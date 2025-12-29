@@ -131,10 +131,6 @@
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if ($user) {
-        if (isset($user['paid_user']) && (int)$user['paid_user'] === 1) {
-            header('Location: my_dashboard.php');
-            exit;
-        }
         // Check if user status is inactive
         if (isset($user['status']) && $user['status'] === 'inactive') {
             $emailError = 'Your account is currently inactive. Please contact support for assistance.';
