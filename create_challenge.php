@@ -47,10 +47,6 @@ try {
     $insert->execute([$userId, $challengeNumber, $challengeName]);
     $challengeId = (int)$pdo->lastInsertId();
 
-    // NEW: update user credit for existing user
-    $updateIP = $pdo->prepare("UPDATE waitlist_users SET user_credit = 0 WHERE id = ?");
-    $updateIP->execute([$userId]);
-
     // Fetch the created challenge
     $stmtC = $pdo->prepare("SELECT id, user_id, challenge_number, challenge_name, status, created_at FROM challenges WHERE id = ?");
     $stmtC->execute([$challengeId]);
