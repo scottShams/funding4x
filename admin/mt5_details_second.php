@@ -552,6 +552,13 @@ ob_start();
                                     Actions
                                 </button>
                                 <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton<?php echo $detail['id']; ?>">
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="#" onclick="sendMt5IssueEmail(<?php echo $detail['id']; ?>, '<?php echo htmlspecialchars($detail['name']); ?>', '<?php echo htmlspecialchars($detail['email']); ?>', '<?php echo htmlspecialchars($detail['challenge_id']); ?>', 'login_problem')">
+                                        <i class="bi bi-envelope me-2"></i>MT5 Login Problem
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="#" onclick="sendMt5IssueEmail(<?php echo $detail['id']; ?>, '<?php echo htmlspecialchars($detail['name']); ?>', '<?php echo htmlspecialchars($detail['email']); ?>', '<?php echo htmlspecialchars($detail['challenge_id']); ?>', 'wrong_balance')">
+                                        <i class="bi bi-envelope me-2"></i>MT5 Wrong Balance
+                                    </a></li>
                                     <li><a class="dropdown-item" href="#" onclick="openEmailModal(<?php echo $detail['user_id']; ?>, '<?php echo htmlspecialchars($detail['name']); ?>', '<?php echo htmlspecialchars($detail['email']); ?>')">
                                         <i class="bi bi-envelope me-2"></i>Send Mail
                                     </a></li>
@@ -586,13 +593,7 @@ ob_start();
                                     <li><a class="dropdown-item text-warning" href="#" onclick="updateStatus(<?php echo $detail['id']; ?>, 'pending', '<?php echo htmlspecialchars($detail['name']); ?>')">
                                         <i class="bi bi-clock me-2"></i>Mark as Pending
                                     </a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item" href="#" onclick="sendMt5IssueEmail(<?php echo $detail['id']; ?>, '<?php echo htmlspecialchars($detail['name']); ?>', '<?php echo htmlspecialchars($detail['email']); ?>', '<?php echo htmlspecialchars($detail['challenge_id']); ?>', 'login_problem')">
-                                        <i class="bi bi-envelope me-2"></i>MT5 Login Problem
-                                    </a></li>
-                                    <li><a class="dropdown-item" href="#" onclick="sendMt5IssueEmail(<?php echo $detail['id']; ?>, '<?php echo htmlspecialchars($detail['name']); ?>', '<?php echo htmlspecialchars($detail['email']); ?>', '<?php echo htmlspecialchars($detail['challenge_id']); ?>', 'wrong_balance')">
-                                        <i class="bi bi-envelope me-2"></i>MT5 Wrong Balance
-                                    </a></li>
+                                    
                                 </ul>
                             </div>
                         </td>
