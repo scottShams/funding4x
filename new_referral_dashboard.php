@@ -337,8 +337,68 @@
 
         $_SESSION['checkout_price'] = $checkoutPrice;
     }
-
 ?>
+
+<?php
+function getStatusBadgePHP($status) {
+    $bgClass = 'bg-trophy-gold';
+    $textClass = 'text-header-dark';
+    $text = ucfirst(str_replace('_', ' ', $status));
+    switch($status) {
+        case 'pending':
+            $bgClass = 'bg-gray-500';
+            $textClass = 'text-white';
+            break;
+        case 'active':
+            $bgClass = 'bg-success-green';
+            $textClass = 'text-white';
+            break;
+        case 'completed':
+            $bgClass = 'bg-blue-500';
+            $textClass = 'text-white';
+            break;
+        default:
+            break;
+    }
+    return "<span class=\"$bgClass $textClass text-sm font-bold px-3 py-1 rounded-full\">$text</span>";
+}
+
+function getPhasStatusBadgePHP($status) {
+    $bgClass = 'bg-trophy-gold';
+    $textClass = 'text-header-dark';
+    $text = ucfirst(str_replace('_', ' ', $status));
+    switch($status) {
+        case 'pending':
+            $bgClass = 'bg-orange-500';
+            $textClass = 'text-white';
+            break;
+        case 'under_review':
+            $bgClass = 'bg-yellow-500';
+            $textClass = 'text-white';
+            break;
+        case 'pass':
+            $bgClass = 'bg-success-green';
+            $textClass = 'text-white';
+            break;
+        case 'running':
+            $bgClass = 'bg-blue-500';
+            $textClass = 'text-white';
+            break;
+        case 'fail':
+            $bgClass = 'bg-fail-red';
+            $textClass = 'text-white';
+            break;
+        case 'updated':
+            $bgClass = 'bg-gray-500';
+            $textClass = 'text-white';
+            break;
+        default:
+            break;
+    }
+    return "<span class=\"$bgClass $textClass text-sm font-bold px-3 py-1 rounded-full\">$text</span>";
+}
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -361,7 +421,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
     <!-- Icon library for symbols -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-    
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <style>
         /* Configure Tailwind for Inter font and prestigious purple colors */
         :root {
@@ -452,35 +513,13 @@
          * @param {string} buttonId The ID of the button to provide feedback on.
          */
         function copyToClipboard(text, buttonId) {
-            const button = document.getElementById(buttonId);
-            
-            // Create a temporary input element
-            const tempInput = document.createElement('input');
-            tempInput.value = text;
-            document.body.appendChild(tempInput);
-            
-            // Select the text
-            tempInput.select();
-            tempInput.setSelectionRange(0, 99999); // For mobile devices
-            
-            // Copy the text
-            try {
-                document.execCommand('copy');
-                button.innerHTML = '<i class="fas fa-check"></i> Copied!';
-                button.classList.add('bg-success-green');
-                button.classList.remove('bg-primary-purple');
-            } catch (err) {
+            navigator.clipboard.writeText(text).then(() => {
+                const type = buttonId.includes('login') ? 'Login' : 'Password';
+                Swal.fire('Success', `${type} copied to clipboard!`, 'success');
+            }).catch(err => {
                 console.error('Copy failed:', err);
-                button.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Error';
-            }
-            
-            // Clean up and reset button text
-            document.body.removeChild(tempInput);
-            setTimeout(() => {
-                button.innerHTML = '<i class="fas fa-copy"></i> Copy';
-                button.classList.remove('bg-success-green');
-                button.classList.add('bg-primary-purple');
-            }, 2000);
+                Swal.fire('Error', 'Failed to copy to clipboard', 'error');
+            });
         }
     </script>
 </head>
@@ -875,7 +914,7 @@
                                 <div id="challenge-card-<?php echo $ch['id']; ?>" class="border border-gray-200 rounded-xl mb-6 overflow-hidden">
                                     <div class="bg-primary-purple text-white p-4 flex justify-between items-center">
                                         <h4 class="text-lg font-semibold"><?php echo htmlspecialchars($ch['challenge_name'] ?: 'Challenge #' . $ch['challenge_number']); ?></h4>
-                                        <span class="bg-trophy-gold text-header-dark text-sm font-bold px-3 py-1 rounded-full"><?php echo htmlspecialchars(ucfirst($ch['status'])); ?></span>
+                                        <?php echo getStatusBadgePHP($ch['status']); ?>
                                     </div>
 
                                     <!-- Phase 2 -->
@@ -884,9 +923,12 @@
                                             <a href="choose-broker-second.php?challenge_id=<?php echo $ch['id']; ?>" class="flex-1 text-left">
                                                 <span class="font-bold text-header-dark flex items-center">
                                                     <?php if ($p2 && $p2['status'] === 'pass'): ?>
-                                                        <i class="fas fa-check-circle text-success-green mr-3"></i> Phase 2: <?php echo htmlspecialchars(ucfirst($p2['status'])); ?>
+                                                        <i class="fas fa-check-circle text-success-green mr-3"></i>
+                                                        Phase 2: <?php echo getPhasStatusBadgePHP($p2['status']); ?>
                                                     <?php else: ?>
-                                                        <i class="fas fa-clock text-gray-500 mr-3"></i> Phase 2: <?php echo ($p2 ? htmlspecialchars(ucfirst($p2['status'])) : 'Not submitted'); ?>
+                                                        <i class="fas fa-clock text-gray-500 mr-3"></i>
+                                                        Phase 2:
+                                                        <?php echo ($p2 ? getPhasStatusBadgePHP($p2['status']) : 'Not submitted'); ?>
                                                     <?php endif; ?>
                                                 </span>
                                             </a>
@@ -920,9 +962,12 @@
                                             <a href="choose-broker.php?challenge_id=<?php echo $ch['id']; ?>" class="flex-1 text-left">
                                                 <span class="font-bold text-header-dark flex items-center">
                                                     <?php if ($p1 && $p1['status'] === 'pass'): ?>
-                                                        <i class="fas fa-check-circle text-success-green mr-3"></i> Phase 1: <?php echo htmlspecialchars(ucfirst($p1['status'])); ?>
+                                                        <i class="fas fa-check-circle text-success-green mr-3"></i>
+                                                        Phase 1: <?php echo getPhasStatusBadgePHP($p1['status']); ?>
                                                     <?php else: ?>
-                                                        <i class="fas fa-clock text-gray-500 mr-3"></i> Phase 1: <?php echo ($p1 ? htmlspecialchars(ucfirst($p1['status'])) : 'Not submitted'); ?>
+                                                        <i class="fas fa-clock text-gray-500 mr-3"></i>
+                                                        Phase 1:
+                                                        <?php echo ($p1 ? getPhasStatusBadgePHP($p1['status']) : 'Not submitted'); ?>
                                                     <?php endif; ?>
                                                 </span>
                                             </a>
@@ -1285,6 +1330,41 @@
                 .replace(/'/g, '&#039;');
         }
 
+        function getStatusBadge(status) {
+            let bgClass = 'bg-trophy-gold';
+            let textClass = 'text-header-dark';
+            let text = status.charAt(0).toUpperCase() + status.slice(1).replace('_', ' ');
+            switch(status) {
+                case 'pending':
+                    bgClass = 'bg-gray-500';
+                    textClass = 'text-white';
+                    break;
+                case 'under_review':
+                    bgClass = 'bg-yellow-500';
+                    textClass = 'text-white';
+                    break;
+                case 'pass':
+                    bgClass = 'bg-success-green';
+                    textClass = 'text-white';
+                    break;
+                case 'running':
+                    bgClass = 'bg-blue-500';
+                    textClass = 'text-white';
+                    break;
+                case 'fail':
+                    bgClass = 'bg-fail-red';
+                    textClass = 'text-white';
+                    break;
+                case 'updated':
+                    bgClass = 'bg-purple-500';
+                    textClass = 'text-white';
+                    break;
+                default:
+                    break;
+            }
+            return `<span class="${bgClass} ${textClass} text-sm font-bold px-3 py-1 rounded-full">${text}</span>`;
+        }
+
         function insertChallengeCard(ch, p1, p2) {
             const list = document.getElementById('challenge-list');
             if (!list) return;
@@ -1293,8 +1373,8 @@
             if (noMsg) noMsg.remove();
 
             const id = ch.id;
+            console.log(ch.status);
             const name = escapeHtml(ch.challenge_name || ('Challenge #' + ch.challenge_number));
-            const status = escapeHtml(ch.status || 'pending');
             const p1server = escapeHtml((p1 && p1.server) ? p1.server : '--');
             const p1user = escapeHtml((p1 && p1.username) ? p1.username : '--');
             const p1pass = escapeHtml((p1 && p1.password) ? p1.password : '--');
@@ -1310,7 +1390,7 @@
             card.innerHTML = `
                 <div class="bg-primary-purple text-white p-4 flex justify-between items-center">
                     <h4 class="text-lg font-semibold">${name}</h4>
-                    <span class="bg-trophy-gold text-header-dark text-sm font-bold px-3 py-1 rounded-full">${status}</span>
+                    ${getStatusBadge(ch.status || 'pending')}
                 </div>
 
                 <div class="p-4 border-b border-gray-100">
