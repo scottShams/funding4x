@@ -314,6 +314,41 @@ if (isset($_POST['action']) && $_POST['action'] === 'make_payment') {
     exit;
 }
 
+// Handle send MT5 issue email action
+if (isset($_POST['action']) && $_POST['action'] === 'send_mt5_issue_email') {
+header('Content-Type: application/json');
+
+    $mt5Id = (int)$_POST['mt5_id'];
+    $challengeId = $_POST['challenge_id'];
+    $issueType = $_POST['issue_type'];
+
+    // Get user email and user_id
+    $userStmt = $pdo->prepare("SELECT u.email, u.name, m.user_id FROM mt5_details_second m JOIN waitlist_users u ON m.user_id = u.id WHERE m.id = ?");
+    $userStmt->execute([$mt5Id]);
+    $userData = $userStmt->fetch(PDO::FETCH_ASSOC);
+
+    if ($userData) {
+        require_once '../email_verification.php';
+        if($issueType === 'login_problem') {
+            $emailSent = EmailVerification::sendMt5LoginProblemEmail($userData['email'], $userData['name'], $challengeId, 'mt5_details_second.php');
+        } elseif($issueType === 'wrong_balance') {
+            $emailSent = EmailVerification::sendMt5IssueEmail($userData['email'], $userData['name'], $challengeId, 'mt5_details_second.php');
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Invalid issue type']);
+            exit;
+        }
+
+        // Record audit
+        $adminId = $_SESSION['admin_id'] ?? null;
+        recordAdminAction($pdo, $adminId, 'send_mt5_issue_email', $userData['user_id'], ['mt5_id' => $mt5Id, 'challenge_id' => $challengeId]);
+
+        echo json_encode(['success' => true, 'message' => 'Email sent successfully', 'email_sent' => $emailSent]);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'User not found']);
+    }
+    exit;
+}
+
 // ----------------------
 // CSV EXPORT
 // ----------------------
@@ -550,6 +585,13 @@ ob_start();
                                     </a></li>
                                     <li><a class="dropdown-item text-warning" href="#" onclick="updateStatus(<?php echo $detail['id']; ?>, 'pending', '<?php echo htmlspecialchars($detail['name']); ?>')">
                                         <i class="bi bi-clock me-2"></i>Mark as Pending
+                                    </a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="#" onclick="sendMt5IssueEmail(<?php echo $detail['id']; ?>, '<?php echo htmlspecialchars($detail['name']); ?>', '<?php echo htmlspecialchars($detail['email']); ?>', '<?php echo htmlspecialchars($detail['challenge_id']); ?>', 'login_problem')">
+                                        <i class="bi bi-envelope me-2"></i>MT5 Login Problem
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="#" onclick="sendMt5IssueEmail(<?php echo $detail['id']; ?>, '<?php echo htmlspecialchars($detail['name']); ?>', '<?php echo htmlspecialchars($detail['email']); ?>', '<?php echo htmlspecialchars($detail['challenge_id']); ?>', 'wrong_balance')">
+                                        <i class="bi bi-envelope me-2"></i>MT5 Wrong Balance
                                     </a></li>
                                 </ul>
                             </div>
@@ -1704,4 +1746,56 @@ $(document).ready(function() {
         });
     });
 });
+
+// Send MT5 issue email function
+function sendMt5IssueEmail(mt5Id, userName, userEmail, challengeId, issueType) {
+    const issueText = issueType === 'login_problem' ? 'MT5 Login Problem' : 'MT5 Wrong Balance';
+    Swal.fire({
+        title: 'Send ' + issueText + ' Email',
+        text: `Send email to "${userName}" about ${issueText.toLowerCase()}?`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#007bff',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Yes, send email',
+        cancelButtonText: 'Cancel'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.ajax({
+                url: 'mt5_details_second.php',
+                type: 'POST',
+                data: {
+                    action: 'send_mt5_issue_email',
+                    mt5_id: mt5Id,
+                    challenge_id: challengeId,
+                    issue_type: issueType
+                },
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        Swal.fire({
+                            title: 'Success!',
+                            text: 'Email sent successfully.',
+                            icon: 'success',
+                            timer: 2000
+                        });
+                    } else {
+                        Swal.fire({
+                            title: 'Error!',
+                            text: response.message || 'Failed to send email.',
+                            icon: 'error'
+                        });
+                    }
+                },
+                error: function() {
+                    Swal.fire({
+                        title: 'Error!',
+                        text: 'An error occurred while sending email.',
+                        icon: 'error'
+                    });
+                }
+            });
+        }
+    });
+}
 </script>

@@ -789,6 +789,73 @@ class EmailVerification {
     }
 
     /**
+     * Send MT5 issue email (login problem or wrong balance)
+     * @param string $email User email
+     * @param string $name User name
+     * @param string $challengeId Challenge ID
+     * @param string $page The page name (mt5_details.php or mt5_details_second.php)
+     * @return bool Success status
+     */
+    public static function sendMt5IssueEmail($email, $name, $challengeId, $page) {
+        $subject = "Funding4x - MT5 Account Issue";
+
+        if ($page == 'mt5_details.php') {
+            $link = "https://funding4x.com/choose-broker.php?challenge_id={$challengeId}&REF=mt5s";
+        } else {
+            $link = "https://funding4x.com/choose-broker-second.php?challenge_id={$challengeId}&REF=mt5ts";
+        }
+
+        $content = "
+            We are unable to add your MT5 Login details to our system due to your Starting Balance showing wrong.<br /><br />
+
+            Please ensure your starting balance is \$5000 only. We cannot approve the account until you ensure the balance is showing exactly \$5000.<br /><br />
+
+            <b>We recommend you open a new Demo Account with the correct setting which are:</b><br /><br />
+
+            Leverage: 1:100<br />
+            Balance: \$5000<br /><br />
+
+            <b>Please submit your MT5 Login details again by clicking this link:</b><br />
+            <a href='{$link}'>{$link}</a><br /><br />
+
+            Thank You
+        ";
+
+        return self::sendCustomEmail($email, $name, $subject, $content);
+    }
+
+    /**
+     * Send MT5 issue email (login problem or wrong balance)
+     * @param string $email User email
+     * @param string $name User name
+     * @param string $challengeId Challenge ID
+     * @param string $page The page name (mt5_details.php or mt5_details_second.php)
+     * @return bool Success status
+     */
+    public static function sendMt5LoginProblemEmail($email, $name, $challengeId, $page) {
+        $subject = "Funding4x - MT5 Account Issue";
+
+        if ($page == 'mt5_details.php') {
+            $link = "https://funding4x.com/choose-broker.php?challenge_id={$challengeId}&REF=mt5s";
+        } else {
+            $link = "https://funding4x.com/choose-broker-second.php?challenge_id={$challengeId}&REF=mt5ts";
+        }
+
+        $content = "
+            We are unable to add your MT5 Login details to our system due to your Starting Balance showing wrong.<br /><br />
+
+            There seems to be a problem with your login details. <br /><br />
+
+            Please check your Username, Password and Server and <strong>SUBMIT the details again</strong> by clicking this link here (you must click this link): <br /><br />
+
+            <a href='{$link}'>{$link}</a><br /><br />
+
+            Thank You
+        ";
+
+        return self::sendCustomEmail($email, $name, $subject, $content);
+    }
+    /**
      * Get site URL
      * @return string Site URL
      */
