@@ -326,45 +326,45 @@
         exit;
     }
 
-// Handle send MT5 issue email action
-if (isset($_POST['action']) && $_POST['action'] === 'send_mt5_issue_email') {
-    header('Content-Type: application/json');
+    // Handle send MT5 issue email action
+    if (isset($_POST['action']) && $_POST['action'] === 'send_mt5_issue_email') {
+        header('Content-Type: application/json');
 
-    $mt5Id = (int)$_POST['mt5_id'];
-    $challengeId = $_POST['challenge_id'];
-    $issueType = $_POST['issue_type'];
+        $mt5Id = (int)$_POST['mt5_id'];
+        $challengeId = $_POST['challenge_id'];
+        $issueType = $_POST['issue_type'];
 
-    // Get user email and user_id
-    $userStmt = $pdo->prepare("SELECT u.email, u.name, m.user_id FROM mt5_details m JOIN waitlist_users u ON m.user_id = u.id WHERE m.id = ?");
-    $userStmt->execute([$mt5Id]);
-    $userData = $userStmt->fetch(PDO::FETCH_ASSOC);
+        // Get user email and user_id
+        $userStmt = $pdo->prepare("SELECT u.email, u.name, m.user_id FROM mt5_details m JOIN waitlist_users u ON m.user_id = u.id WHERE m.id = ?");
+        $userStmt->execute([$mt5Id]);
+        $userData = $userStmt->fetch(PDO::FETCH_ASSOC);
 
-    if ($userData) {
-        require_once '../email_verification.php';
-        if($issueType === 'login_problem') {
-            $emailSent = EmailVerification::sendMt5LoginProblemEmail($userData['email'], $userData['name'], $challengeId, 'mt5_details.php');
-        } elseif($issueType === 'wrong_balance') {
-            $emailSent = EmailVerification::sendMt5IssueEmail($userData['email'], $userData['name'], $challengeId, 'mt5_details.php');
+        if ($userData) {
+            require_once '../email_verification.php';
+            if($issueType === 'login_problem') {
+                $emailSent = EmailVerification::sendMt5LoginProblemEmail($userData['email'], $userData['name'], $challengeId, 'mt5_details.php');
+            } elseif($issueType === 'wrong_balance') {
+                $emailSent = EmailVerification::sendMt5IssueEmail($userData['email'], $userData['name'], $challengeId, 'mt5_details.php');
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Invalid issue type']);
+                exit;
+            }
+            
+
+            // Record audit
+            $adminId = $_SESSION['admin_id'] ?? null;
+            recordAdminAction($pdo, $adminId, 'send_mt5_issue_email', $userData['user_id'], ['mt5_id' => $mt5Id, 'challenge_id' => $challengeId]);
+
+            echo json_encode(['success' => true, 'message' => 'Email sent successfully', 'email_sent' => $emailSent]);
         } else {
-            echo json_encode(['success' => false, 'message' => 'Invalid issue type']);
-            exit;
+            echo json_encode(['success' => false, 'message' => 'User not found']);
         }
-        
-
-        // Record audit
-        $adminId = $_SESSION['admin_id'] ?? null;
-        recordAdminAction($pdo, $adminId, 'send_mt5_issue_email', $userData['user_id'], ['mt5_id' => $mt5Id, 'challenge_id' => $challengeId]);
-
-        echo json_encode(['success' => true, 'message' => 'Email sent successfully', 'email_sent' => $emailSent]);
-    } else {
-        echo json_encode(['success' => false, 'message' => 'User not found']);
+        exit;
     }
-    exit;
-}
 
-// ----------------------
-// CSV EXPORT
-// ----------------------
+    // ----------------------
+    // CSV EXPORT
+    // ----------------------
     if (isset($_GET['export']) && $_GET['export'] === 'csv') {
         // Prepare query to fetch all MT5 details
         $export_query = "

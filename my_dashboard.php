@@ -305,8 +305,6 @@ if ($user) {
 
     // Dynamic pricing for checkout
     $checkoutPrice = 36;
-
-    $_SESSION['checkout_price'] = $checkoutPrice;
 }
 
 ?>
@@ -717,8 +715,22 @@ if ($user) {
                         <i class="fas fa-star text-trophy-gold ml-2"></i>
                     </div>
                 </div>
-                <br />
                 <?php endif; ?>
+                <!-- View Challenges Button -->
+                <!-- <div class="mt-8 mb-10 p-8 sm:p-12 rounded-2xl bg-gradient-to-br from-primary-purple via-purple-600 to-indigo-600 text-white shadow-2xl transform hover:scale-[1.01] transition duration-300">
+    
+                    <div class="max-w-4xl mx-auto text-center">
+                        <button
+                            onclick="window.location.href='new_referral_dashboard.php'"
+                            class="inline-flex items-center justify-center px-10 py-4 text-lg font-bold rounded-xl
+                                bg-white text-primary-purple
+                                hover:bg-gray-100 transition duration-300
+                                shadow-lg hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-white/40">
+                            View my Challenges
+                        </button>
+                    </div>
+                </div> -->
+
                 <!-- Title Block -->
                 <div class="mb-8 p-4 bg-white rounded-xl shadow-lg border-l-4 border-primary-purple">
                     <h2 class="text-3xl font-extrabold text-primary-purple mb-2">
@@ -758,10 +770,16 @@ if ($user) {
                             <p class="text-sm"><del>Normally $59</del>, now only $36 for First Comers</p>
                         </button> -->
                         
-                        <button onclick="window.location.href='checkout.php'" class="bg-trophy-gold p-4 rounded-xl shadow-lg border-b-4 border-yellow-700 cursor-pointer">
-                            <p class="font-bold text-lg mb-1">Buy Now - 38% Off</p>
-                            <p class="text-sm"><del>Normally $59</del>, now only $<?php echo $checkoutPrice; ?> for First Comers</p>
-                        </button>
+                        <form action="set_checkout_price.php" method="POST">
+                            <input type="hidden" name="price" value="<?php echo $checkoutPrice; ?>">
+                            <button type="submit"
+                                class="bg-trophy-gold p-4 rounded-xl shadow-lg border-b-4 border-yellow-700 cursor-pointer">
+                                <p class="font-bold text-lg mb-1">Buy Now - 38% Off</p>
+                                <p class="text-sm">
+                                    <del>Normally $59</del>, now only $<?php echo $checkoutPrice; ?> for First Comers
+                                </p>
+                            </button>
+                        </form>
                     </div>
                 </div>
 
@@ -778,6 +796,23 @@ if ($user) {
                     </div>
                 </div>
                 <?php endif; ?>
+
+                <?php if ($user && isset($user['user_credit']) && $user['user_credit'] < 0): ?>
+                <div class="mt-8 mb-10 p-8 sm:p-12 rounded-2xl bg-slate-800 text-white shadow-2xl transform hover:scale-[1.01] transition duration-300 border-l-8 border-red-500">
+                    <div class="max-w-4xl mx-auto text-center">
+                        <h2 class="text-4xl sm:text-5xl font-extrabold tracking-tight mb-4 text-white">
+                            Application Status Update
+                        </h2>
+                        <p class="text-lg mb-4 opacity-90">
+                            Thank you for your interest in our funded account program. After a careful review of your recent evaluation, we regret to inform you that your application has been <strong>declined</strong> at this time.
+                        </p>
+                        <p class="text-md opacity-75 italic">
+                            Please check your email for detailed feedback and information on when you are eligible to re-apply.
+                        </p>
+                    </div>
+                </div>
+                <?php endif; ?>
+                
             </div>
 
             <!-- Referral Link Content - col-8 on medium+ screens, full width on mobile -->
@@ -1610,8 +1645,6 @@ if ($user) {
 
     </script>
     <script>
-
-        
         const USER_EMAIL_VERIFIED = <?php echo ($user && $user['email_verified'] == 1) ? 'true' : 'false'; ?>;
         const USER_QUIZ_COMPLETED = <?php echo ($user && !empty($user['quiz_result'])) ? 'true' : 'false'; ?>;
         const USER_KNOWLEDGE_TEST_COMPLETED = <?php echo ($user && !empty($user['knowledge_test_result'])) ? 'true' : 'false'; ?>;
@@ -1676,17 +1709,10 @@ if ($user) {
             { id: 3, name: "3. Complete the Knowledge Check", redirectTo: "knowledge-test.php", isCompleted: <?php echo ($user && !empty($user['knowledge_test_result'])) ? 'true' : 'false'; ?> },
             {
                 id: 4,
-                name: `4. Pass the Trading Test 1 <?php echo $badgeHtml; ?>`,
-                redirectTo: "rule.php?REF=broker1",
-                isCompleted: <?php echo ($user && !empty($mt5_details['status'])) ? 'true' : 'false'; ?>
-            },
-            { 
-                id: 5, 
-                name: `5. Pass the Trading Test 2 <?php echo $badgeHtml2; ?>`, 
-                redirectTo: "rule.php?REF=broker2", 
-                isCompleted: <?php echo ($user && !empty($mt5_details_second['status'])) ? 'true' : 'false'; ?> 
-            },
-            { id: 6, name: "6. Get your $5000 Funded Account", isCompleted: false }
+                name: `4. View My Challenges`,
+                redirectTo: "new_referral_dashboard.php",
+                isCompleted: false
+            }
         ];
 
         const checklistContainer = document.getElementById('topic-checklist');
@@ -1751,10 +1777,10 @@ if ($user) {
 
             // ID 4 — Trading Test 1
             if(id === 4){
-                if(!USER_KNOWLEDGE_TEST_COMPLETED || !USERCREDIT){
+                if(!USER_KNOWLEDGE_TEST_COMPLETED){
                     showDynamicModal(
                         "Not Ready Yet",
-                        "We will Review your account and update it SOON. Please check regularly daily. Thank You. <br /><br /> Make sure you have completed the Knowledge Check AND that you have Test Credit. <br /><br /><strong>To get Trading Test Credit</strong> you must have 5 completed Referral or you can <strong>Buy a Trading Test</strong>",
+                        "Sorry you must Complete the previous items before you can View Your Challenges",
                         "red-600"
                     );
                     return;
@@ -1763,19 +1789,6 @@ if ($user) {
                 return;
             }
 
-            // ID 5 — Trading Test 2
-            if(id === 5){
-                if(!USER_MT5_DETAILS_STATUS || USER_MT5_DETAILS_STATUS !== 'pass'){
-                    showDynamicModal(
-                        "Not Ready",
-                        "Sorry you have not Passed the Trading Test 1 Yet. Please complete Trading Test 1.",
-                        "red-600"
-                    );
-                    return;
-                }
-                window.location.href = topic.redirectTo;
-                return;
-            }
 
             // Other IDs (Disabled)
             showDynamicModal(
