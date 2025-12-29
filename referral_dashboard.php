@@ -725,7 +725,7 @@ if ($user) {
     
                     <div class="max-w-4xl mx-auto text-center">
                         <button
-                            onclick="window.location.href='new_referral_dashboard.php'"
+                            onclick="window.location.href='my.php'"
                             class="inline-flex items-center justify-center px-10 py-4 text-lg font-bold rounded-xl
                                 bg-white text-primary-purple
                                 hover:bg-gray-100 transition duration-300
@@ -1714,7 +1714,7 @@ if ($user) {
             {
                 id: 4,
                 name: `4. View My Challenges`,
-                redirectTo: "new_referral_dashboard.php",
+                redirectTo: "my-challenges.php",
                 isCompleted: false
             }
         ];
