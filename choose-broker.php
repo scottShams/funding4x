@@ -519,7 +519,7 @@
                 <h3 class="text-2xl font-semibold text-primary-purple mb-4">Update Not Allowed</h3>
                 <p id="blocked-update-text" class="text-gray-700 mb-6"><?php echo $blockedUpdate ? "Sorry! You cannot update this test because its status is '{$mt5Details['status']}'." : 'Your test status is final and cannot be changed.'; ?></p>
                 <div class="flex justify-center">
-                    <button onclick="document.getElementById('blocked-update-modal').classList.add('hidden')" class="px-6 py-3 bg-primary-purple text-white rounded-lg font-bold">OK</button>
+                    <button onclick="window.location.href = 'new_referral_dashboard.php'" class="px-6 py-3 bg-primary-purple text-white rounded-lg font-bold">OK</button>
                 </div>
             </div>
         </div>
