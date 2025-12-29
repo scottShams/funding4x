@@ -43,9 +43,8 @@ try {
     $insert->execute([$userId, $challengeNumber, $challengeName]);
     $challengeId = (int)$pdo->lastInsertId();
 
-    $insert = $pdo->prepare("INSERT INTO challenges (user_id, challenge_number, challenge_name, status) VALUES (?, ?, ?, 'pending')");
-    $insert->execute([$userId, $challengeNumber, $challengeName]);
-    $challengeId = (int)$pdo->lastInsertId();
+    $updateCredit = $pdo->prepare("UPDATE waitlist_users SET user_credit = ? WHERE id = ?");
+    $updateCredit->execute([0, $userId]);
 
     // Fetch the created challenge
     $stmtC = $pdo->prepare("SELECT id, user_id, challenge_number, challenge_name, status, created_at FROM challenges WHERE id = ?");
@@ -68,7 +67,7 @@ try {
     }
 
     // Otherwise redirect back to dashboard anchored to new challenge
-    header('Location: new_referral_dashboard.php#challenge-' . $challengeId);
+    header('Location: my-challenges.php#challenge-' . $challengeId);
     exit;
 } catch (Exception $e) {
     http_response_code(500);
