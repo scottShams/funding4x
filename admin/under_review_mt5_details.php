@@ -151,11 +151,18 @@
                             if ($files['error'][$i] === UPLOAD_ERR_OK) {
                                 $fileName = uniqid() . '_under_review_' . basename($files['name'][$i]);
                                 $filePath = $uploadDir . $fileName;
+                                $relativePath = 'testResults/' . $fileName;
                                 if (move_uploaded_file($files['tmp_name'][$i], $filePath)) {
-                                    $attachmentPaths[] = $filePath;
+                                    $attachmentPaths[] = $relativePath;
                                 }
                             }
                         }
+                    }
+
+                    // Save attachment paths to database
+                    if (!empty($attachmentPaths)) {
+                        $stmt = $pdo->prepare("UPDATE $table SET attachment_paths = ? WHERE id = ?");
+                        $stmt->execute([json_encode($attachmentPaths), $mt5Id]);
                     }
 
                     // Send under review email with attachments
@@ -422,13 +429,14 @@
             u.name,
             u.email,
             u.user_credit,
-            m.challenge_id
+            m.challenge_id,
+            m.attachment_paths
         FROM (
-            SELECT id, user_id, username, password, server, instrument, status, fail_reason, pass_reason, test_type, submitted_at, status_updated_at, challenge_id, 'mt5_details' as table_name
+            SELECT id, user_id, username, password, server, instrument, status, fail_reason, pass_reason, attachment_paths, test_type, submitted_at, status_updated_at, challenge_id, 'mt5_details' as table_name
             FROM mt5_details
             WHERE status = 'under_review'
             UNION ALL
-            SELECT id, user_id, username, password, server, instrument, status, fail_reason, pass_reason, test_type, submitted_at, status_updated_at, challenge_id, 'mt5_details_second' as table_name
+            SELECT id, user_id, username, password, server, instrument, status, fail_reason, pass_reason, attachment_paths, test_type, submitted_at, status_updated_at, challenge_id, 'mt5_details_second' as table_name
             FROM mt5_details_second
             WHERE status = 'under_review'
         ) m
@@ -485,6 +493,7 @@
                         <th>ID</th>
                         <th>User Name</th>
                         <th>User Email</th>
+                        <th>Challenge ID</th>
                         <th>Credits</th>
                         <th>MT5 Username</th>
                         <th>MT5 Password</th>
@@ -502,6 +511,7 @@
                         <td><?php echo $detail['id']; ?></td>
                         <td><?php echo htmlspecialchars($detail['name']); ?></td>
                         <td><?php echo htmlspecialchars($detail['email']); ?></td>
+                        <td><?php echo htmlspecialchars($detail['challenge_id']); ?></td>
                         <td>
                             <span id="credit-<?php echo $detail['user_id']; ?>"><?php echo $detail['user_credit'] ?? 0; ?></span>
                         </td>
@@ -540,6 +550,21 @@
                                     Actions
                                 </button>
                                 <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton_<?php echo $detail['table_name']; ?>_<?php echo $detail['id']; ?>">
+                                    <?php if (!empty($detail['attachment_paths'])): ?>
+                                        <?php
+                                        $attachmentPaths = json_decode($detail['attachment_paths'], true);
+                                        if (is_array($attachmentPaths) && !empty($attachmentPaths)):
+                                        ?>
+                                            <li>
+                                                <a class="dropdown-item"
+                                                href="#"
+                                                onclick="downloadAttachment('<?php echo $detail['table_name']; ?>', <?php echo $detail['id']; ?>, '<?php echo htmlspecialchars($detail['name']); ?>')">
+                                                    <i class="bi bi-download me-2"></i> Download Attachment
+                                                </a>
+                                            </li>
+                                            <li><hr class="dropdown-divider"></li>
+                                        <?php endif; ?>
+                                    <?php endif; ?>
                                     <li><a class="dropdown-item" href="#" onclick="openEmailModal(<?php echo $detail['user_id']; ?>, '<?php echo htmlspecialchars($detail['name']); ?>', '<?php echo htmlspecialchars($detail['email']); ?>')">
                                         <i class="bi bi-envelope me-2"></i>Send Mail
                                     </a></li>
@@ -870,6 +895,10 @@
 </style>
 
 <script>
+    function downloadAttachment(tableName, rowId, userName) {
+        const url = `download_attachment.php?table=${encodeURIComponent(tableName)}&id=${rowId}`;
+        window.location.href = url;
+    }
     $(document).ready(function() {
         var table = $('#mt5Table').DataTable({
             dom: '<"row mb-3"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>' +
