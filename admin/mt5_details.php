@@ -75,21 +75,49 @@
                     require_once '../email_verification.php';
                     $failReasons = json_decode($userData['fail_reason'], true) ?: [];
 
-                    // Handle file upload
-                    $attachmentPath = null;
+                    // Handle file upload (FAIL)
+                    $attachmentPaths = [];
+
                     if (isset($_FILES['failFile']) && $_FILES['failFile']['error'] === UPLOAD_ERR_OK) {
-                        $uploadDir = __DIR__ . '/testResults/';
-                        if (!is_dir($uploadDir)) {
-                            mkdir($uploadDir, 0755, true);
-                        }
-                        $fileName = uniqid() . '_' . basename($_FILES['failFile']['name']);
+                       $uploadDir = __DIR__ . '/testResults/';
+                       if (!is_dir($uploadDir)) {
+                           if (!mkdir($uploadDir, 0755, true)) {
+                               error_log("Failed to create upload directory: $uploadDir");
+                               echo json_encode(['success' => false, 'message' => 'Failed to create upload directory']);
+                               exit;
+                           }
+                       }
+
+                        $fileName = uniqid() . '_fail_' . basename($_FILES['failFile']['name']);
+                        $relativePath = 'testResults/' . $fileName;
                         $filePath = $uploadDir . $fileName;
+
                         if (move_uploaded_file($_FILES['failFile']['tmp_name'], $filePath)) {
-                            $attachmentPath = $filePath;
+                            $attachmentPaths[] = $relativePath;
+
+                            // Save to DB
+                            $stmt = $pdo->prepare("
+                                UPDATE mt5_details
+                                SET attachment_paths = ?
+                                WHERE id = ?
+                            ");
+                            $success = $stmt->execute([
+                                json_encode($attachmentPaths),
+                                $mt5Id
+                            ]);
+                            
+                            if (!$success) {
+                                error_log("Failed to save attachment paths for fail status. MT5 ID: $mt5Id, Error: " . implode(", ", $stmt->errorInfo()));
+                            }
                         }
                     }
 
-                    $emailSent = EmailVerification::sendFailEmail($userData['email'], $userData['name'], $failReasons, $attachmentPath);
+                    $emailSent = EmailVerification::sendFailEmail(
+                        $userData['email'],
+                        $userData['name'],
+                        $failReasons,
+                        $attachmentPaths[0] ?? null
+                    );
                 }
             } elseif ($newStatus === 'pass') {
                 // Get user email for sending pass notification
@@ -100,27 +128,54 @@
                 if ($userData) {
                     require_once '../email_verification.php';
 
-                    // Handle pass certificate file upload (multiple files)
+                    // Handle pass certificate upload (PASS)
                     $attachmentPaths = [];
+
                     if (isset($_FILES['passCertificateFile'])) {
                         $uploadDir = __DIR__ . '/testResults/';
                         if (!is_dir($uploadDir)) {
                             mkdir($uploadDir, 0755, true);
                         }
+
                         $files = $_FILES['passCertificateFile'];
                         $fileCount = count($files['name']);
+
                         for ($i = 0; $i < $fileCount; $i++) {
                             if ($files['error'][$i] === UPLOAD_ERR_OK) {
                                 $fileName = uniqid() . '_pass_' . basename($files['name'][$i]);
+                                $relativePath = 'testResults/' . $fileName;
                                 $filePath = $uploadDir . $fileName;
+
                                 if (move_uploaded_file($files['tmp_name'][$i], $filePath)) {
-                                    $attachmentPaths[] = $filePath;
+                                    $attachmentPaths[] = $relativePath;
                                 }
+                            }
+                        }
+
+                        // Save to DB
+                        if (!empty($attachmentPaths)) {
+                            $stmt = $pdo->prepare("
+                                UPDATE mt5_details
+                                SET attachment_paths = ?
+                                WHERE id = ?
+                            ");
+                            $success = $stmt->execute([
+                                json_encode($attachmentPaths),
+                                $mt5Id
+                            ]);
+                            
+                            if (!$success) {
+                                error_log("Failed to save attachment paths for pass status. MT5 ID: $mt5Id, Error: " . implode(", ", $stmt->errorInfo()));
                             }
                         }
                     }
 
-                    $emailSent = EmailVerification::sendPassEmail($userData['email'], $userData['name'], $attachmentPaths);
+                    $emailSent = EmailVerification::sendPassEmail(
+                        $userData['email'],
+                        $userData['name'],
+                        $attachmentPaths
+                    );
+
                 }
             } elseif ($newStatus === 'under_review') {
                 // Get user email for sending under review notification
@@ -131,28 +186,54 @@
                 if ($userData) {
                     require_once '../email_verification.php';
 
-                    // Handle under review file upload (multiple files)
+                    // Handle under review upload
                     $attachmentPaths = [];
+
                     if (isset($_FILES['underReviewFile'])) {
                         $uploadDir = __DIR__ . '/testResults/';
                         if (!is_dir($uploadDir)) {
                             mkdir($uploadDir, 0755, true);
                         }
+
                         $files = $_FILES['underReviewFile'];
                         $fileCount = count($files['name']);
+
                         for ($i = 0; $i < $fileCount; $i++) {
                             if ($files['error'][$i] === UPLOAD_ERR_OK) {
                                 $fileName = uniqid() . '_under_review_' . basename($files['name'][$i]);
+                                $relativePath = 'testResults/' . $fileName;
                                 $filePath = $uploadDir . $fileName;
+
                                 if (move_uploaded_file($files['tmp_name'][$i], $filePath)) {
-                                    $attachmentPaths[] = $filePath;
+                                    $attachmentPaths[] = $relativePath;
                                 }
+                            }
+                        }
+
+                        // Save to DB
+                        if (!empty($attachmentPaths)) {
+                            $stmt = $pdo->prepare("
+                                UPDATE mt5_details
+                                SET attachment_paths = ?
+                                WHERE id = ?
+                            ");
+                            $success = $stmt->execute([
+                                json_encode($attachmentPaths),
+                                $mt5Id
+                            ]);
+                            
+                            if (!$success) {
+                                error_log("Failed to save attachment paths for under_review status. MT5 ID: $mt5Id, Error: " . implode(", ", $stmt->errorInfo()));
                             }
                         }
                     }
 
-                    // Send under review email with attachments
-                    $emailSent = EmailVerification::sendUnderReviewEmail($userData['email'], $userData['name'], $attachmentPaths);
+                    $emailSent = EmailVerification::sendUnderReviewEmail(
+                        $userData['email'],
+                        $userData['name'],
+                        $attachmentPaths
+                    );
+
                 }
             }
 

@@ -34,3 +34,5 @@ CREATE TABLE mt5_details_second (
 
     UNIQUE KEY uq_challenge_second (challenge_id)
 );
+ALTER TABLE mt5_details_second
+ADD COLUMN attachment_paths JSON DEFAULT NULL AFTER pass_reason;

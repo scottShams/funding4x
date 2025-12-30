@@ -1,360 +1,507 @@
 <?php
-require_once 'functions/auth.php';
-checkAdminAuth();
-require_once 'functions/audit.php';
-require_once '../database.php';
+    require_once 'functions/auth.php';
+    checkAdminAuth();
+    require_once 'functions/audit.php';
+    require_once '../database.php';
 
-// Get database connection
-$pdo = getPDO();
+    // Get database connection
+    $pdo = getPDO();
 
-// Handle status update action
-if (isset($_POST['action']) && $_POST['action'] === 'update_status') {
-    header('Content-Type: application/json');
+    // Handle status update action
+    if (isset($_POST['action']) && $_POST['action'] === 'update_status') {
+        header('Content-Type: application/json');
 
-    $mt5Id = (int)$_POST['mt5_id'];
-    $newStatus = $_POST['status'];
+        $mt5Id = (int)$_POST['mt5_id'];
+        $newStatus = $_POST['status'];
 
-    // Validate status
-    if (!in_array($newStatus, ['pass', 'fail', 'pending', 'running', 'under_review'])) {
-        echo json_encode(['success' => false, 'message' => 'Invalid status']);
-        exit;
-    }
-
-    // Handle fail reasons
-    $failReasons = isset($_POST['fail_reasons']) ? $_POST['fail_reasons'] : [];
-
-    // Get target user id for logging
-    $userIdStmt = $pdo->prepare("SELECT user_id FROM mt5_details_second WHERE id = ?");
-    $userIdStmt->execute([$mt5Id]);
-    $targetUserRow = $userIdStmt->fetch(PDO::FETCH_ASSOC);
-    $targetUserId = $targetUserRow['user_id'] ?? null;
-
-    // Update status
-    if ($newStatus === 'fail') {
-        $failReasonJson = json_encode($failReasons);
-        $stmt = $pdo->prepare("UPDATE mt5_details_second SET status = ?, fail_reason = ?, status_updated_at = NOW() WHERE id = ?");
-        $success = $stmt->execute([$newStatus, $failReasonJson, $mt5Id]);
-        if (!$success) {
-            error_log("Failed to update mt5_details_second for fail status. MT5 ID: $mt5Id, Error: " . implode(", ", $stmt->errorInfo()));
-        }
-    } else {
-        $stmt = $pdo->prepare("UPDATE mt5_details_second SET status = ?, status_updated_at = NOW() WHERE id = ?");
-        $success = $stmt->execute([$newStatus, $mt5Id]);
-        if (!$success) {
-            error_log("Failed to update mt5_details_second for $newStatus status. MT5 ID: $mt5Id, Error: " . implode(", ", $stmt->errorInfo()));
-        }
-    }
-
-    if ($success) {
-        // Send email if status is "running", "fail", or "pass"
-        $emailSent = true;
-        if ($newStatus === 'running') {
-            // Get user email for sending notification
-            $userStmt = $pdo->prepare("SELECT u.email, u.name FROM mt5_details_second m JOIN waitlist_users u ON m.user_id = u.id WHERE m.id = ?");
-            $userStmt->execute([$mt5Id]);
-            $userData = $userStmt->fetch(PDO::FETCH_ASSOC);
-
-            if ($userData) {
-                require_once '../email_verification.php';
-                $emailSent = EmailVerification::sendAccountReadyEmail($userData['email'], $userData['name']);
-            }
-        } elseif ($newStatus === 'fail') {
-            // Get user email and fail reasons for sending notification
-            $userStmt = $pdo->prepare("SELECT u.email, u.name, m.fail_reason FROM mt5_details_second m JOIN waitlist_users u ON m.user_id = u.id WHERE m.id = ?");
-            $userStmt->execute([$mt5Id]);
-            $userData = $userStmt->fetch(PDO::FETCH_ASSOC);
-
-            if ($userData) {
-                require_once '../email_verification.php';
-                $failReasons = json_decode($userData['fail_reason'], true) ?: [];
-
-                // Handle file upload
-                $attachmentPath = null;
-                if (isset($_FILES['failFile']) && $_FILES['failFile']['error'] === UPLOAD_ERR_OK) {
-                    $uploadDir = __DIR__ . '/testResults/';
-                    if (!is_dir($uploadDir)) {
-                        mkdir($uploadDir, 0755, true);
-                    }
-                    $fileName = uniqid() . '_' . basename($_FILES['failFile']['name']);
-                    $filePath = $uploadDir . $fileName;
-                    if (move_uploaded_file($_FILES['failFile']['tmp_name'], $filePath)) {
-                        $attachmentPath = $filePath;
-                    }
-                }
-
-                $emailSent = EmailVerification::sendFailEmail($userData['email'], $userData['name'], $failReasons, $attachmentPath);
-            }
-        } elseif ($newStatus === 'pass') {
-            // Get user email for sending pass notification
-            $userStmt = $pdo->prepare("SELECT u.email, u.name FROM mt5_details_second m JOIN waitlist_users u ON m.user_id = u.id WHERE m.id = ?");
-            $userStmt->execute([$mt5Id]);
-            $userData = $userStmt->fetch(PDO::FETCH_ASSOC);
-
-            if ($userData) {
-                require_once '../email_verification.php';
-
-                // Handle pass certificate file upload
-                $attachmentPath = null;
-                if (isset($_FILES['passCertificateFile']) && $_FILES['passCertificateFile']['error'] === UPLOAD_ERR_OK) {
-                    $uploadDir = __DIR__ . '/testResults/';
-                    if (!is_dir($uploadDir)) {
-                        mkdir($uploadDir, 0755, true);
-                    }
-                    $fileName = uniqid() . '_pass_' . basename($_FILES['passCertificateFile']['name']);
-                    $filePath = $uploadDir . $fileName;
-                    if (move_uploaded_file($_FILES['passCertificateFile']['tmp_name'], $filePath)) {
-                        $attachmentPath = $filePath;
-                    }
-                }
-
-                $emailSent = EmailVerification::sendPassEmail($userData['email'], $userData['name'], $attachmentPath);
-            }
-        } elseif ($newStatus === 'under_review') {
-            // Get user email for sending under review notification
-            $userStmt = $pdo->prepare("SELECT u.email, u.name FROM mt5_details_second m JOIN waitlist_users u ON m.user_id = u.id WHERE m.id = ?");
-            $userStmt->execute([$mt5Id]);
-            $userData = $userStmt->fetch(PDO::FETCH_ASSOC);
-
-            if ($userData) {
-                require_once '../email_verification.php';
-
-                // Handle under review file upload (multiple files)
-                $attachmentPaths = [];
-                if (isset($_FILES['underReviewFile'])) {
-                    $uploadDir = __DIR__ . '/testResults/';
-                    if (!is_dir($uploadDir)) {
-                        mkdir($uploadDir, 0755, true);
-                    }
-                    $files = $_FILES['underReviewFile'];
-                    $fileCount = count($files['name']);
-                    for ($i = 0; $i < $fileCount; $i++) {
-                        if ($files['error'][$i] === UPLOAD_ERR_OK) {
-                            $fileName = uniqid() . '_under_review_' . basename($files['name'][$i]);
-                            $filePath = $uploadDir . $fileName;
-                            if (move_uploaded_file($files['tmp_name'][$i], $filePath)) {
-                                $attachmentPaths[] = $filePath;
-                            }
-                        }
-                    }
-                }
-
-                // Send under review email with attachments
-                $emailSent = EmailVerification::sendUnderReviewEmail($userData['email'], $userData['name'], $attachmentPaths);
-            }
-        }
-
-        // Record audit
-        $adminId = $_SESSION['admin_id'] ?? null;
-        $details = ['mt5_id' => $mt5Id, 'new_status' => $newStatus];
-        if ($newStatus === 'fail') {
-            $details['fail_reasons'] = $failReasons;
-        }
-        if ($newStatus === 'pass') {
-            $details['attachments'] = isset($attachmentPath) ? 1 : 0;
-        }
-        if ($newStatus === 'under_review') {
-            $details['attachments'] = isset($attachmentPaths) ? count($attachmentPaths) : 0;
-        }
-        recordAdminAction($pdo, $adminId, 'update_status', $targetUserId, $details);
-
-        echo json_encode([
-            'success' => true,
-            'message' => 'Status updated successfully',
-            'email_sent' => $emailSent
-        ]);
-    } else {
-        echo json_encode(['success' => false, 'message' => 'Failed to update status']);
-    }
-    exit;
-}
-
-// Handle add credit action
-if (isset($_POST['action']) && $_POST['action'] === 'add_credit') {
-    header('Content-Type: application/json');
-
-    $userId = (int)$_POST['user_id'];
-
-    // Increment user_credit by 1 and mark as manual update
-    $stmt = $pdo->prepare("UPDATE waitlist_users SET user_credit = user_credit + 1, manual_credit_update = 1, credit_updated_at = NOW() WHERE id = ?");
-    $success = $stmt->execute([$userId]);
-
-    if ($success) {
-        // Get new credit value
-        $stmt = $pdo->prepare("SELECT user_credit FROM waitlist_users WHERE id = ?");
-        $stmt->execute([$userId]);
-        $result = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        // Record audit
-        $adminId = $_SESSION['admin_id'] ?? null;
-        recordAdminAction($pdo, $adminId, 'add_credit', $userId, ['new_credit' => $result['user_credit']]);
-
-        echo json_encode(['success' => true, 'message' => 'Credit added successfully', 'new_credit' => $result['user_credit']]);
-    } else {
-        echo json_encode(['success' => false, 'message' => 'Failed to add credit']);
-    }
-    exit;
-}
-
-// Handle remove credit action
-if (isset($_POST['action']) && $_POST['action'] === 'remove_credit') {
-    header('Content-Type: application/json');
-
-    $userId = (int)$_POST['user_id'];
-
-    // Decrement user_credit by 1, but not below 0 and mark as manual update
-    $stmt = $pdo->prepare("UPDATE waitlist_users SET user_credit = GREATEST(0, user_credit - 1), manual_credit_update = 1, credit_updated_at = NOW() WHERE id = ?");
-    $success = $stmt->execute([$userId]);
-
-    if ($success) {
-        // Get new credit value
-        $stmt = $pdo->prepare("SELECT user_credit FROM waitlist_users WHERE id = ?");
-        $stmt->execute([$userId]);
-        $result = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        // Record audit
-        $adminId = $_SESSION['admin_id'] ?? null;
-        recordAdminAction($pdo, $adminId, 'remove_credit', $userId, ['new_credit' => $result['user_credit']]);
-
-        echo json_encode(['success' => true, 'message' => 'Credit removed successfully', 'new_credit' => $result['user_credit']]);
-    } else {
-        echo json_encode(['success' => false, 'message' => 'Failed to remove credit']);
-    }
-    exit;
-}
-
-// Handle test type update action
-if (isset($_POST['action']) && $_POST['action'] === 'update_test_type') {
-    header('Content-Type: application/json');
-
-    $mt5Id = (int)$_POST['mt5_id'];
-    $newTestType = $_POST['test_type'];
-
-    // Validate test type
-    $validTestTypes = ['50:50 F4x', '20:80 F4x', '10:90 F4x', '80:20 F4x', '70:30 F4x', '60:40 F4x'];
-    if (!in_array($newTestType, $validTestTypes)) {
-        echo json_encode(['success' => false, 'message' => 'Invalid test type']);
-        exit;
-    }
-
-    // Get target user id for logging
-    $userIdStmt = $pdo->prepare("SELECT user_id FROM mt5_details_second WHERE id = ?");
-    $userIdStmt->execute([$mt5Id]);
-    $targetUserRow = $userIdStmt->fetch(PDO::FETCH_ASSOC);
-    $targetUserId = $targetUserRow['user_id'] ?? null;
-
-    // Update test type
-    $stmt = $pdo->prepare("UPDATE mt5_details_second SET test_type = ? WHERE id = ?");
-    $success = $stmt->execute([$newTestType, $mt5Id]);
-
-    if ($success) {
-        // Record audit
-        $adminId = $_SESSION['admin_id'] ?? null;
-        recordAdminAction($pdo, $adminId, 'update_test_type', $targetUserId, ['mt5_id' => $mt5Id, 'new_test_type' => $newTestType]);
-
-        echo json_encode(['success' => true, 'message' => 'Test type updated successfully']);
-    } else {
-        echo json_encode(['success' => false, 'message' => 'Failed to update test type']);
-    }
-    exit;
-}
-
-// Handle make payment action
-if (isset($_POST['action']) && $_POST['action'] === 'make_payment') {
-    header('Content-Type: application/json');
-
-    $userId = (int)$_POST['user_id'];
-    $amount = (float)$_POST['amount'];
-    $paymentDate = $_POST['payment_date'];
-    $transactionHash = $_POST['transaction_hash'];
-    $description = $_POST['description'] ?? '';
-
-    // Validate required fields
-    if (empty($amount) || empty($paymentDate) || empty($transactionHash)) {
-        echo json_encode(['success' => false, 'message' => 'Amount, payment date, and transaction hash are required']);
-        exit;
-    }
-
-    try {
-        // Insert payment record
-        $stmt = $pdo->prepare("INSERT INTO payments (
-            user_id, payment_method, amount, currency, status, crypto_type, crypto_network,
-            transaction_hash, notes, payment_source, created_by_admin_id, created_at
-        ) VALUES (?, 'crypto', ?, 'USD', 'completed', 'USDC', 'Tron', ?, ?, 'admin', ?, ?)");
-
-        $adminId = $_SESSION['admin_id'] ?? null;
-        $success = $stmt->execute([
-            $userId,
-            $amount,
-            $transactionHash,
-            $description,
-            $adminId,
-            $paymentDate
-        ]);
-
-        if ($success) {
-            
-            $stmt = $pdo->prepare("UPDATE waitlist_users SET paid_user = 1 WHERE id = ?");
-            $stmt->execute([$userId]);
-            
-            // Record audit
-            $adminId = $_SESSION['admin_id'] ?? null;
-            recordAdminAction($pdo, $adminId, 'make_payment', $userId, [
-                'amount' => $amount,
-                'transaction_hash' => $transactionHash,
-                'description' => $description
-            ]);
-
-            echo json_encode(['success' => true, 'message' => 'Payment recorded successfully']);
-        } else {
-            echo json_encode(['success' => false, 'message' => 'Failed to record payment']);
-        }
-    } catch (Exception $e) {
-        echo json_encode(['success' => false, 'message' => 'Database error: ' . $e->getMessage()]);
-    }
-    exit;
-}
-
-// Handle send MT5 issue email action
-if (isset($_POST['action']) && $_POST['action'] === 'send_mt5_issue_email') {
-header('Content-Type: application/json');
-
-    $mt5Id = (int)$_POST['mt5_id'];
-    $challengeId = $_POST['challenge_id'];
-    $issueType = $_POST['issue_type'];
-
-    // Get user email and user_id
-    $userStmt = $pdo->prepare("SELECT u.email, u.name, m.user_id FROM mt5_details_second m JOIN waitlist_users u ON m.user_id = u.id WHERE m.id = ?");
-    $userStmt->execute([$mt5Id]);
-    $userData = $userStmt->fetch(PDO::FETCH_ASSOC);
-
-    if ($userData) {
-        require_once '../email_verification.php';
-        if($issueType === 'login_problem') {
-            $emailSent = EmailVerification::sendMt5LoginProblemEmail($userData['email'], $userData['name'], $challengeId, 'mt5_details_second.php');
-        } elseif($issueType === 'wrong_balance') {
-            $emailSent = EmailVerification::sendMt5IssueEmail($userData['email'], $userData['name'], $challengeId, 'mt5_details_second.php');
-        } else {
-            echo json_encode(['success' => false, 'message' => 'Invalid issue type']);
+        // Validate status
+        if (!in_array($newStatus, ['pass', 'fail', 'pending', 'running', 'under_review'])) {
+            echo json_encode(['success' => false, 'message' => 'Invalid status']);
             exit;
         }
 
-        // Record audit
-        $adminId = $_SESSION['admin_id'] ?? null;
-        recordAdminAction($pdo, $adminId, 'send_mt5_issue_email', $userData['user_id'], ['mt5_id' => $mt5Id, 'challenge_id' => $challengeId]);
+        // Handle fail reasons
+        $failReasons = isset($_POST['fail_reasons']) ? $_POST['fail_reasons'] : [];
 
-        echo json_encode(['success' => true, 'message' => 'Email sent successfully', 'email_sent' => $emailSent]);
-    } else {
-        echo json_encode(['success' => false, 'message' => 'User not found']);
+        // Get target user id for logging
+        $userIdStmt = $pdo->prepare("SELECT user_id FROM mt5_details_second WHERE id = ?");
+        $userIdStmt->execute([$mt5Id]);
+        $targetUserRow = $userIdStmt->fetch(PDO::FETCH_ASSOC);
+        $targetUserId = $targetUserRow['user_id'] ?? null;
+
+        // Update status
+        if ($newStatus === 'fail') {
+            $failReasonJson = json_encode($failReasons);
+            $stmt = $pdo->prepare("UPDATE mt5_details_second SET status = ?, fail_reason = ?, status_updated_at = NOW() WHERE id = ?");
+            $success = $stmt->execute([$newStatus, $failReasonJson, $mt5Id]);
+            if (!$success) {
+                error_log("Failed to update mt5_details_second for fail status. MT5 ID: $mt5Id, Error: " . implode(", ", $stmt->errorInfo()));
+            }
+        } else {
+            $stmt = $pdo->prepare("UPDATE mt5_details_second SET status = ?, status_updated_at = NOW() WHERE id = ?");
+            $success = $stmt->execute([$newStatus, $mt5Id]);
+            if (!$success) {
+                error_log("Failed to update mt5_details_second for $newStatus status. MT5 ID: $mt5Id, Error: " . implode(", ", $stmt->errorInfo()));
+            }
+        }
+
+        if ($success) {
+            // Send email if status is "running", "fail", or "pass"
+            $emailSent = true;
+            if ($newStatus === 'running') {
+                // Get user email for sending notification
+                $userStmt = $pdo->prepare("SELECT u.email, u.name FROM mt5_details_second m JOIN waitlist_users u ON m.user_id = u.id WHERE m.id = ?");
+                $userStmt->execute([$mt5Id]);
+                $userData = $userStmt->fetch(PDO::FETCH_ASSOC);
+
+                if ($userData) {
+                    require_once '../email_verification.php';
+                    $emailSent = EmailVerification::sendAccountReadyEmail($userData['email'], $userData['name']);
+                }
+            } elseif ($newStatus === 'fail') {
+                // Get user email and fail reasons for sending notification
+                $userStmt = $pdo->prepare("SELECT u.email, u.name, m.fail_reason FROM mt5_details_second m JOIN waitlist_users u ON m.user_id = u.id WHERE m.id = ?");
+                $userStmt->execute([$mt5Id]);
+                $userData = $userStmt->fetch(PDO::FETCH_ASSOC);
+
+                if ($userData) {
+                    require_once '../email_verification.php';
+                    $failReasons = json_decode($userData['fail_reason'], true) ?: [];
+
+                    // Handle file upload (FAIL)
+                    $attachmentPaths = [];
+
+                    if (isset($_FILES['failFile']) && $_FILES['failFile']['error'] === UPLOAD_ERR_OK) {
+                       $uploadDir = __DIR__ . '/testResults/';
+                       if (!is_dir($uploadDir)) {
+                           if (!mkdir($uploadDir, 0755, true)) {
+                               error_log("Failed to create upload directory: $uploadDir");
+                               echo json_encode(['success' => false, 'message' => 'Failed to create upload directory']);
+                               exit;
+                           }
+                       }
+
+                        $fileName = uniqid() . '_fail_' . basename($_FILES['failFile']['name']);
+                        $relativePath = 'testResults/' . $fileName;
+                        $filePath = $uploadDir . $fileName;
+
+                        if (move_uploaded_file($_FILES['failFile']['tmp_name'], $filePath)) {
+                            $attachmentPaths[] = $relativePath;
+
+                            // Save to DB
+                            $stmt = $pdo->prepare("
+                                UPDATE mt5_details_second
+                                SET attachment_paths = ?
+                                WHERE id = ?
+                            ");
+                            $success = $stmt->execute([
+                                json_encode($attachmentPaths),
+                                $mt5Id
+                            ]);
+                            
+                            if (!$success) {
+                                error_log("Failed to save attachment paths for fail status. MT5 ID: $mt5Id, Error: " . implode(", ", $stmt->errorInfo()));
+                            }
+                        }
+                    }
+
+                    $emailSent = EmailVerification::sendFailEmail(
+                        $userData['email'],
+                        $userData['name'],
+                        $failReasons,
+                        $attachmentPaths[0] ?? null
+                    );
+                }
+            } elseif ($newStatus === 'pass') {
+                // Get user email for sending pass notification
+                $userStmt = $pdo->prepare("SELECT u.email, u.name FROM mt5_details_second m JOIN waitlist_users u ON m.user_id = u.id WHERE m.id = ?");
+                $userStmt->execute([$mt5Id]);
+                $userData = $userStmt->fetch(PDO::FETCH_ASSOC);
+
+                if ($userData) {
+                    require_once '../email_verification.php';
+
+                    // Handle pass certificate upload (PASS)
+                    $attachmentPaths = [];
+
+                    if (isset($_FILES['passCertificateFile'])) {
+                        $uploadDir = __DIR__ . '/testResults/';
+                        if (!is_dir($uploadDir)) {
+                            mkdir($uploadDir, 0755, true);
+                        }
+
+                        $files = $_FILES['passCertificateFile'];
+                        $fileCount = count($files['name']);
+
+                        for ($i = 0; $i < $fileCount; $i++) {
+                            if ($files['error'][$i] === UPLOAD_ERR_OK) {
+                                $fileName = uniqid() . '_pass_' . basename($files['name'][$i]);
+                                $relativePath = 'testResults/' . $fileName;
+                                $filePath = $uploadDir . $fileName;
+
+                                if (move_uploaded_file($files['tmp_name'][$i], $filePath)) {
+                                    $attachmentPaths[] = $relativePath;
+                                }
+                            }
+                        }
+
+                        // Save to DB
+                        if (!empty($attachmentPaths)) {
+                            $stmt = $pdo->prepare("
+                                UPDATE mt5_details_second
+                                SET attachment_paths = ?
+                                WHERE id = ?
+                            ");
+                            $success = $stmt->execute([
+                                json_encode($attachmentPaths),
+                                $mt5Id
+                            ]);
+                            
+                            if (!$success) {
+                                error_log("Failed to save attachment paths for pass status. MT5 ID: $mt5Id, Error: " . implode(", ", $stmt->errorInfo()));
+                            }
+                        }
+                    }
+
+                    $emailSent = EmailVerification::sendPassEmail(
+                        $userData['email'],
+                        $userData['name'],
+                        $attachmentPaths
+                    );
+                }
+            } elseif ($newStatus === 'under_review') {
+                // Get user email for sending under review notification
+                $userStmt = $pdo->prepare("SELECT u.email, u.name FROM mt5_details_second m JOIN waitlist_users u ON m.user_id = u.id WHERE m.id = ?");
+                $userStmt->execute([$mt5Id]);
+                $userData = $userStmt->fetch(PDO::FETCH_ASSOC);
+
+                if ($userData) {
+                    require_once '../email_verification.php';
+
+                    // Handle under review upload
+                    $attachmentPaths = [];
+
+                    if (isset($_FILES['underReviewFile'])) {
+                        $uploadDir = __DIR__ . '/testResults/';
+                        if (!is_dir($uploadDir)) {
+                            mkdir($uploadDir, 0755, true);
+                        }
+
+                        $files = $_FILES['underReviewFile'];
+                        $fileCount = count($files['name']);
+
+                        for ($i = 0; $i < $fileCount; $i++) {
+                            if ($files['error'][$i] === UPLOAD_ERR_OK) {
+                                $fileName = uniqid() . '_under_review_' . basename($files['name'][$i]);
+                                $relativePath = 'testResults/' . $fileName;
+                                $filePath = $uploadDir . $fileName;
+
+                                if (move_uploaded_file($files['tmp_name'][$i], $filePath)) {
+                                    $attachmentPaths[] = $relativePath;
+                                }
+                            }
+                        }
+
+                        // Save to DB
+                        if (!empty($attachmentPaths)) {
+                            $stmt = $pdo->prepare("
+                                UPDATE mt5_details_second
+                                SET attachment_paths = ?
+                                WHERE id = ?
+                            ");
+                            $success = $stmt->execute([
+                                json_encode($attachmentPaths),
+                                $mt5Id
+                            ]);
+                            
+                            if (!$success) {
+                                error_log("Failed to save attachment paths for under_review status. MT5 ID: $mt5Id, Error: " . implode(", ", $stmt->errorInfo()));
+                            }
+                        }
+                    }
+
+                    $emailSent = EmailVerification::sendUnderReviewEmail(
+                        $userData['email'],
+                        $userData['name'],
+                        $attachmentPaths
+                    );
+                }
+            }
+
+            // Record audit
+            $adminId = $_SESSION['admin_id'] ?? null;
+            $details = ['mt5_id' => $mt5Id, 'new_status' => $newStatus];
+            if ($newStatus === 'fail') {
+                $details['fail_reasons'] = $failReasons;
+            }
+            if ($newStatus === 'pass') {
+                $details['attachments'] = isset($attachmentPaths) ? count($attachmentPaths) : 0;
+            }
+            if ($newStatus === 'under_review') {
+                $details['attachments'] = isset($attachmentPaths) ? count($attachmentPaths) : 0;
+            }
+            recordAdminAction($pdo, $adminId, 'update_status', $targetUserId, $details);
+
+            echo json_encode([
+                'success' => true,
+                'message' => 'Status updated successfully',
+                'email_sent' => $emailSent
+            ]);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Failed to update status']);
+        }
+        exit;
     }
-    exit;
-}
 
-// ----------------------
-// CSV EXPORT
-// ----------------------
-if (isset($_GET['export']) && $_GET['export'] === 'csv') {
-    // Prepare query to fetch all MT5 details second
-    $export_query = "
+    // Handle add credit action
+    if (isset($_POST['action']) && $_POST['action'] === 'add_credit') {
+        header('Content-Type: application/json');
+
+        $userId = (int)$_POST['user_id'];
+
+        // Increment user_credit by 1 and mark as manual update
+        $stmt = $pdo->prepare("UPDATE waitlist_users SET user_credit = user_credit + 1, manual_credit_update = 1, credit_updated_at = NOW() WHERE id = ?");
+        $success = $stmt->execute([$userId]);
+
+        if ($success) {
+            // Get new credit value
+            $stmt = $pdo->prepare("SELECT user_credit FROM waitlist_users WHERE id = ?");
+            $stmt->execute([$userId]);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            // Record audit
+            $adminId = $_SESSION['admin_id'] ?? null;
+            recordAdminAction($pdo, $adminId, 'add_credit', $userId, ['new_credit' => $result['user_credit']]);
+
+            echo json_encode(['success' => true, 'message' => 'Credit added successfully', 'new_credit' => $result['user_credit']]);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Failed to add credit']);
+        }
+        exit;
+    }
+
+    // Handle remove credit action
+    if (isset($_POST['action']) && $_POST['action'] === 'remove_credit') {
+        header('Content-Type: application/json');
+
+        $userId = (int)$_POST['user_id'];
+
+        // Decrement user_credit by 1, but not below 0 and mark as manual update
+        $stmt = $pdo->prepare("UPDATE waitlist_users SET user_credit = GREATEST(0, user_credit - 1), manual_credit_update = 1, credit_updated_at = NOW() WHERE id = ?");
+        $success = $stmt->execute([$userId]);
+
+        if ($success) {
+            // Get new credit value
+            $stmt = $pdo->prepare("SELECT user_credit FROM waitlist_users WHERE id = ?");
+            $stmt->execute([$userId]);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            // Record audit
+            $adminId = $_SESSION['admin_id'] ?? null;
+            recordAdminAction($pdo, $adminId, 'remove_credit', $userId, ['new_credit' => $result['user_credit']]);
+
+            echo json_encode(['success' => true, 'message' => 'Credit removed successfully', 'new_credit' => $result['user_credit']]);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Failed to remove credit']);
+        }
+        exit;
+    }
+
+    // Handle test type update action
+    if (isset($_POST['action']) && $_POST['action'] === 'update_test_type') {
+        header('Content-Type: application/json');
+
+        $mt5Id = (int)$_POST['mt5_id'];
+        $newTestType = $_POST['test_type'];
+
+        // Validate test type
+        $validTestTypes = ['50:50 F4x', '20:80 F4x', '10:90 F4x', '80:20 F4x', '70:30 F4x', '60:40 F4x'];
+        if (!in_array($newTestType, $validTestTypes)) {
+            echo json_encode(['success' => false, 'message' => 'Invalid test type']);
+            exit;
+        }
+
+        // Get target user id for logging
+        $userIdStmt = $pdo->prepare("SELECT user_id FROM mt5_details_second WHERE id = ?");
+        $userIdStmt->execute([$mt5Id]);
+        $targetUserRow = $userIdStmt->fetch(PDO::FETCH_ASSOC);
+        $targetUserId = $targetUserRow['user_id'] ?? null;
+
+        // Update test type
+        $stmt = $pdo->prepare("UPDATE mt5_details_second SET test_type = ? WHERE id = ?");
+        $success = $stmt->execute([$newTestType, $mt5Id]);
+
+        if ($success) {
+            // Record audit
+            $adminId = $_SESSION['admin_id'] ?? null;
+            recordAdminAction($pdo, $adminId, 'update_test_type', $targetUserId, ['mt5_id' => $mt5Id, 'new_test_type' => $newTestType]);
+
+            echo json_encode(['success' => true, 'message' => 'Test type updated successfully']);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Failed to update test type']);
+        }
+        exit;
+    }
+
+    // Handle make payment action
+    if (isset($_POST['action']) && $_POST['action'] === 'make_payment') {
+        header('Content-Type: application/json');
+
+        $userId = (int)$_POST['user_id'];
+        $amount = (float)$_POST['amount'];
+        $paymentDate = $_POST['payment_date'];
+        $transactionHash = $_POST['transaction_hash'];
+        $description = $_POST['description'] ?? '';
+
+        // Validate required fields
+        if (empty($amount) || empty($paymentDate) || empty($transactionHash)) {
+            echo json_encode(['success' => false, 'message' => 'Amount, payment date, and transaction hash are required']);
+            exit;
+        }
+
+        try {
+            // Insert payment record
+            $stmt = $pdo->prepare("INSERT INTO payments (
+                user_id, payment_method, amount, currency, status, crypto_type, crypto_network,
+                transaction_hash, notes, payment_source, created_by_admin_id, created_at
+            ) VALUES (?, 'crypto', ?, 'USD', 'completed', 'USDC', 'Tron', ?, ?, 'admin', ?, ?)");
+
+            $adminId = $_SESSION['admin_id'] ?? null;
+            $success = $stmt->execute([
+                $userId,
+                $amount,
+                $transactionHash,
+                $description,
+                $adminId,
+                $paymentDate
+            ]);
+
+            if ($success) {
+                
+                $stmt = $pdo->prepare("UPDATE waitlist_users SET paid_user = 1 WHERE id = ?");
+                $stmt->execute([$userId]);
+                
+                // Record audit
+                $adminId = $_SESSION['admin_id'] ?? null;
+                recordAdminAction($pdo, $adminId, 'make_payment', $userId, [
+                    'amount' => $amount,
+                    'transaction_hash' => $transactionHash,
+                    'description' => $description
+                ]);
+
+                echo json_encode(['success' => true, 'message' => 'Payment recorded successfully']);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Failed to record payment']);
+            }
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'message' => 'Database error: ' . $e->getMessage()]);
+        }
+        exit;
+    }
+
+    // Handle send MT5 issue email action
+    if (isset($_POST['action']) && $_POST['action'] === 'send_mt5_issue_email') {
+    header('Content-Type: application/json');
+
+        $mt5Id = (int)$_POST['mt5_id'];
+        $challengeId = $_POST['challenge_id'];
+        $issueType = $_POST['issue_type'];
+
+        // Get user email and user_id
+        $userStmt = $pdo->prepare("SELECT u.email, u.name, m.user_id FROM mt5_details_second m JOIN waitlist_users u ON m.user_id = u.id WHERE m.id = ?");
+        $userStmt->execute([$mt5Id]);
+        $userData = $userStmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($userData) {
+            require_once '../email_verification.php';
+            if($issueType === 'login_problem') {
+                $emailSent = EmailVerification::sendMt5LoginProblemEmail($userData['email'], $userData['name'], $challengeId, 'mt5_details_second.php');
+            } elseif($issueType === 'wrong_balance') {
+                $emailSent = EmailVerification::sendMt5IssueEmail($userData['email'], $userData['name'], $challengeId, 'mt5_details_second.php');
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Invalid issue type']);
+                exit;
+            }
+
+            // Record audit
+            $adminId = $_SESSION['admin_id'] ?? null;
+            recordAdminAction($pdo, $adminId, 'send_mt5_issue_email', $userData['user_id'], ['mt5_id' => $mt5Id, 'challenge_id' => $challengeId]);
+
+            echo json_encode(['success' => true, 'message' => 'Email sent successfully', 'email_sent' => $emailSent]);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'User not found']);
+        }
+        exit;
+    }
+
+    // ----------------------
+    // CSV EXPORT
+    // ----------------------
+    if (isset($_GET['export']) && $_GET['export'] === 'csv') {
+        // Prepare query to fetch all MT5 details second
+        $export_query = "
+            SELECT
+                m.*,
+                u.name,
+                u.email,
+                u.user_credit
+            FROM mt5_details_second m
+            JOIN waitlist_users u ON m.user_id = u.id
+            ORDER BY m.submitted_at DESC
+        ";
+        $export_stmt = $pdo->prepare($export_query);
+        $export_stmt->execute();
+        $export_mt5_details = $export_stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Set CSV headers
+        header('Content-Type: text/csv; charset=utf-8');
+        header('Content-Disposition: attachment; filename=mt5_details_second_' . date('Y-m-d_H-i-s') . '.csv');
+        header('Pragma: no-cache');
+        header('Expires: 0');
+
+        // Open output stream
+        $output = fopen('php://output', 'w');
+
+        // Add UTF-8 BOM for Excel compatibility
+        fprintf($output, chr(0xEF) . chr(0xBB) . chr(0xBF));
+
+        // CSV headers
+        fputcsv($output, ['ID', 'User Name', 'User Email', 'MT5 Username', 'MT5 Password', 'Server', 'Instrument', 'Status', 'Submitted At']);
+
+        // Loop through MT5 details and write rows
+        foreach ($export_mt5_details as $detail) {
+            fputcsv($output, [
+                $detail['id'] ?? 'N/A',
+                $detail['name'] ?? 'N/A',
+                $detail['email'] ?? 'N/A',
+                $detail['username'] ?? 'N/A',
+                $detail['password'] ?? 'N/A',
+                $detail['server'] ?? 'N/A',
+                $detail['instrument'] ?? 'N/A',
+                $detail['status'] ?? 'pending',
+                !empty($detail['submitted_at'])
+                    ? date('d/m/Y H:i:s', strtotime($detail['submitted_at']))
+                    : 'N/A'
+            ]);
+        }
+
+        fclose($output);
+        exit;
+    }
+
+    // Get MT5 status counts
+    $mt5Stats = $pdo->query("
+        SELECT
+            SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) AS pending_count,
+            SUM(CASE WHEN status = 'running' THEN 1 ELSE 0 END) AS running_count,
+            SUM(CASE WHEN status = 'pass' THEN 1 ELSE 0 END) AS pass_count,
+            SUM(CASE WHEN status = 'fail' THEN 1 ELSE 0 END) AS fail_count,
+            COUNT(*) AS total_count
+        FROM mt5_details_second
+    ")->fetch(PDO::FETCH_ASSOC);
+
+    // Get MT5 details with user info
+    $query = "
         SELECT
             m.*,
             u.name,
@@ -364,71 +511,9 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
         JOIN waitlist_users u ON m.user_id = u.id
         ORDER BY m.submitted_at DESC
     ";
-    $export_stmt = $pdo->prepare($export_query);
-    $export_stmt->execute();
-    $export_mt5_details = $export_stmt->fetchAll(PDO::FETCH_ASSOC);
-
-    // Set CSV headers
-    header('Content-Type: text/csv; charset=utf-8');
-    header('Content-Disposition: attachment; filename=mt5_details_second_' . date('Y-m-d_H-i-s') . '.csv');
-    header('Pragma: no-cache');
-    header('Expires: 0');
-
-    // Open output stream
-    $output = fopen('php://output', 'w');
-
-    // Add UTF-8 BOM for Excel compatibility
-    fprintf($output, chr(0xEF) . chr(0xBB) . chr(0xBF));
-
-    // CSV headers
-    fputcsv($output, ['ID', 'User Name', 'User Email', 'MT5 Username', 'MT5 Password', 'Server', 'Instrument', 'Status', 'Submitted At']);
-
-    // Loop through MT5 details and write rows
-    foreach ($export_mt5_details as $detail) {
-        fputcsv($output, [
-            $detail['id'] ?? 'N/A',
-            $detail['name'] ?? 'N/A',
-            $detail['email'] ?? 'N/A',
-            $detail['username'] ?? 'N/A',
-            $detail['password'] ?? 'N/A',
-            $detail['server'] ?? 'N/A',
-            $detail['instrument'] ?? 'N/A',
-            $detail['status'] ?? 'pending',
-            !empty($detail['submitted_at'])
-                ? date('d/m/Y H:i:s', strtotime($detail['submitted_at']))
-                : 'N/A'
-        ]);
-    }
-
-    fclose($output);
-    exit;
-}
-
-// Get MT5 status counts
-$mt5Stats = $pdo->query("
-    SELECT
-        SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) AS pending_count,
-        SUM(CASE WHEN status = 'running' THEN 1 ELSE 0 END) AS running_count,
-        SUM(CASE WHEN status = 'pass' THEN 1 ELSE 0 END) AS pass_count,
-        SUM(CASE WHEN status = 'fail' THEN 1 ELSE 0 END) AS fail_count,
-        COUNT(*) AS total_count
-    FROM mt5_details_second
-")->fetch(PDO::FETCH_ASSOC);
-
-// Get MT5 details with user info
-$query = "
-    SELECT
-        m.*,
-        u.name,
-        u.email,
-        u.user_credit
-    FROM mt5_details_second m
-    JOIN waitlist_users u ON m.user_id = u.id
-    ORDER BY m.submitted_at DESC
-";
-$stmt = $pdo->prepare($query);
-$stmt->execute();
-$mt5_details = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $stmt = $pdo->prepare($query);
+    $stmt->execute();
+    $mt5_details = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
 <?php
