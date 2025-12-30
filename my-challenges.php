@@ -1147,7 +1147,7 @@
                 </div>
 
                 <!-- Knowledge Test Result -->
-                <?php if (!empty($user['knowledge_test_result'])): ?>
+                <!-- <?php if (!empty($user['knowledge_test_result'])): ?>
                 <div class="card">
                     <h3 class="text-xl font-bold text-primary-purple mb-4 flex items-center">
                         <i class="fas fa-brain mr-2"></i> Knowledge Test Result
@@ -1172,7 +1172,6 @@
                             $formattedDate = $completionDate ? date('F j, Y \a\t g:i A', strtotime($completionDate)) : 'Unknown date';
                     ?>
                     <div class="space-y-6">
-                        <!-- Summary Cards -->
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div class="bg-gradient-to-br from-success-green to-green-600 text-white p-6 rounded-xl shadow-lg">
                                 <div class="flex items-center justify-between">
@@ -1214,7 +1213,6 @@
                             </div>
                         </div>
                         
-                        <!-- Progress Bar -->
                         <div class="bg-gray-100 rounded-full h-4 overflow-hidden">
                             <div class="h-full bg-gradient-to-r from-success-green to-green-500" style="width: <?php echo round(($correctCount / $totalQuestions) * 100, 1); ?>%"></div>
                         </div>
@@ -1222,7 +1220,6 @@
                             Overall Score: <?php echo round(($correctCount / $totalQuestions) * 100, 1); ?>%
                         </p>
                         
-                        <!-- Detailed Results -->
                         <div class="bg-gray-50 rounded-lg p-4">
                             <h4 class="font-bold text-primary-purple mb-3">Detailed Results</h4>
                             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -1246,7 +1243,7 @@
                     </div>
                     <?php } ?>
                 </div>
-                <?php endif; ?>
+                <?php endif; ?> -->
             </div>
         </div>
 
