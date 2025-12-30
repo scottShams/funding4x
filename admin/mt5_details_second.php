@@ -594,8 +594,8 @@ ob_start();
                     <?php foreach ($mt5_details as $detail): ?>
                     <tr>
                         <td><?php echo $detail['id']; ?></td>
-                        <td><?php echo htmlspecialchars($detail['name']); ?></td>
-                        <td><?php echo htmlspecialchars($detail['email']); ?></td>
+                        <td><a href="user_dashboard.php?user_id=<?php echo $detail['user_id']; ?>" target="_blank"><?php echo htmlspecialchars($detail['name']); ?></a></td>
+                        <td><a href="user_dashboard.php?user_id=<?php echo $detail['user_id']; ?>" target="_blank"><?php echo htmlspecialchars($detail['email']); ?></a></td>
                         <td><?php echo htmlspecialchars($detail['challenge_id']); ?></td>
                         <td>
                             <span id="credit-<?php echo $detail['user_id']; ?>"><?php echo $detail['user_credit'] ?? 0; ?></span>
