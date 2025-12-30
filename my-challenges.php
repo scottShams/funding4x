@@ -1298,6 +1298,11 @@
     </div>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
+        // Mobile menu toggle
+        document.getElementById('menuToggle').addEventListener('click', function() {
+            document.getElementById('mobileMenu').classList.toggle('hidden');
+        });
+
         <?php if ($user && $totalReferrals > 0): ?>
             const ctx = document.getElementById('referralPieChart').getContext('2d');
             const chart = new Chart(ctx, {
