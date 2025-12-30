@@ -1106,7 +1106,7 @@
                             // Find the row containing this dropdown
                             const dropdownButton = document.querySelector(`#dropdownMenuButton${mt5Id}`);
                             const row = dropdownButton.closest('tr');
-                            const statusCell = row.querySelector('td:nth-child(9) .badge'); // Status is 8th column
+                            const statusCell = row.querySelector('td:nth-child(10) .badge'); // Status is 10th column
 
                             // Update badge class and text
                             let badgeClass = 'bg-warning';
@@ -1263,7 +1263,7 @@
                         // Update the status badge in the same row
                         const dropdownButton = document.querySelector(`#dropdownMenuButton${window.currentMt5Id}`);
                         const row = dropdownButton.closest('tr');
-                        const statusCell = row.querySelector('td:nth-child(9) .badge'); // Status is 8th column
+                        const statusCell = row.querySelector('td:nth-child(10) .badge'); // Status is 10th column
                         statusCell.className = 'badge bg-danger';
                         statusCell.textContent = 'Fail';
 
@@ -1427,7 +1427,7 @@
                         // Update the status badge in the same row
                         const dropdownButton = document.querySelector(`#dropdownMenuButton${window.currentMt5Id}`);
                         const row = dropdownButton.closest('tr');
-                        const statusCell = row.querySelector('td:nth-child(9) .badge'); // Status is 8th column
+                        const statusCell = row.querySelector('td:nth-child(10) .badge'); // Status is 10th column
                         statusCell.className = 'badge bg-success';
                         statusCell.textContent = 'Pass';
 
@@ -1606,7 +1606,7 @@
                         // Update the status badge in the same row
                         const dropdownButton = document.querySelector(`#dropdownMenuButton${window.currentMt5Id}`);
                         const row = dropdownButton.closest('tr');
-                        const statusCell = row.querySelector('td:nth-child(9) .badge'); // Status is 8th column
+                        const statusCell = row.querySelector('td:nth-child(10) .badge'); // Status is 10th column
                         statusCell.className = 'badge bg-info';
                         statusCell.textContent = 'Under Review';
 
