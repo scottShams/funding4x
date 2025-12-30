@@ -853,15 +853,15 @@
                     }
                     if ($hasAnyFail):
                 ?>
-                <div class="card mt-4 bg-primary-purple text-white">
-                    <div class="p-6 text-center">
-                        <h4 class="text-xl font-extrabold">Special Offer for Referrals!</h4>
-                        <p class="text-sm mt-2">As a valued referrer, enjoy an exclusive discount on your funded account test. Use code <strong>REFERRAL20</strong> at checkout for 20% off!</p>
-                        <div class="mt-4">
-                            <button onclick="window.location.href='checkout.php'" class="bg-trophy-gold text-header-dark px-4 py-2 rounded-md font-semibold">Go to Checkout</button>
+                    <div class="card mt-4 bg-primary-purple text-white">
+                        <div class="p-6 text-center">
+                            <h4 class="text-xl font-extrabold">Special Offer for Referrals!</h4>
+                            <p class="text-sm mt-2">As a valued referrer, enjoy an exclusive discount on your funded account test. Use code <strong>REFERRAL20</strong> at checkout for 20% off!</p>
+                            <div class="mt-4">
+                                <button onclick="window.location.href='checkout.php'" class="bg-trophy-gold text-header-dark px-4 py-2 rounded-md font-semibold">Go to Checkout</button>
+                            </div>
                         </div>
                     </div>
-                </div>
                 <?php endif; ?>
 
                 <!-- Challenges list -->
@@ -1145,6 +1145,108 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Knowledge Test Result -->
+                <?php if (!empty($user['knowledge_test_result'])): ?>
+                <div class="card">
+                    <h3 class="text-xl font-bold text-primary-purple mb-4 flex items-center">
+                        <i class="fas fa-brain mr-2"></i> Knowledge Test Result
+                    </h3>
+                    <?php
+                        $result = json_decode($user['knowledge_test_result'], true);
+                        if ($result && isset($result['answers'])) {
+                            $answers = $result['answers'];
+                            $totalQuestions = $result['total_questions'] ?? count($answers);
+                            $correctCount = 0;
+                            $incorrectCount = 0;
+                            
+                            foreach ($answers as $answer) {
+                                if ($answer === 'correct') {
+                                    $correctCount++;
+                                } else {
+                                    $incorrectCount++;
+                                }
+                            }
+                            
+                            $completionDate = $result['completed_at'] ?? null;
+                            $formattedDate = $completionDate ? date('F j, Y \a\t g:i A', strtotime($completionDate)) : 'Unknown date';
+                    ?>
+                    <div class="space-y-6">
+                        <!-- Summary Cards -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="bg-gradient-to-br from-success-green to-green-600 text-white p-6 rounded-xl shadow-lg">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-green-100 text-sm font-medium">CORRECT ANSWERS</p>
+                                        <p class="text-3xl font-bold mt-1"><?php echo $correctCount; ?></p>
+                                    </div>
+                                    <i class="fas fa-check-circle text-4xl opacity-80"></i>
+                                </div>
+                                <div class="mt-2 text-green-100 text-sm">
+                                    <?php echo round(($correctCount / $totalQuestions) * 100, 1); ?>% of total
+                                </div>
+                            </div>
+                            
+                            <div class="bg-gradient-to-br from-fail-red to-red-600 text-white p-6 rounded-xl shadow-lg">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-red-100 text-sm font-medium">INCORRECT ANSWERS</p>
+                                        <p class="text-3xl font-bold mt-1"><?php echo $incorrectCount; ?></p>
+                                    </div>
+                                    <i class="fas fa-times-circle text-4xl opacity-80"></i>
+                                </div>
+                                <div class="mt-2 text-red-100 text-sm">
+                                    <?php echo round(($incorrectCount / $totalQuestions) * 100, 1); ?>% of total
+                                </div>
+                            </div>
+                            
+                            <div class="bg-gradient-to-br from-primary-purple to-purple-600 text-white p-6 rounded-xl shadow-lg">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-purple-100 text-sm font-medium">TOTAL QUESTIONS</p>
+                                        <p class="text-3xl font-bold mt-1"><?php echo $totalQuestions; ?></p>
+                                    </div>
+                                    <i class="fas fa-question-circle text-4xl opacity-80"></i>
+                                </div>
+                                <div class="mt-2 text-purple-100 text-sm">
+                                    Completed on <?php echo $formattedDate; ?>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Progress Bar -->
+                        <div class="bg-gray-100 rounded-full h-4 overflow-hidden">
+                            <div class="h-full bg-gradient-to-r from-success-green to-green-500" style="width: <?php echo round(($correctCount / $totalQuestions) * 100, 1); ?>%"></div>
+                        </div>
+                        <p class="text-center text-sm text-gray-600 font-medium">
+                            Overall Score: <?php echo round(($correctCount / $totalQuestions) * 100, 1); ?>%
+                        </p>
+                        
+                        <!-- Detailed Results -->
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <h4 class="font-bold text-primary-purple mb-3">Detailed Results</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                                <?php foreach ($answers as $question => $status): ?>
+                                    <div class="flex items-center justify-between p-3 bg-white rounded-lg border-l-4 <?php echo $status === 'correct' ? 'border-success-green' : 'border-fail-red'; ?>">
+                                        <div>
+                                            <p class="font-medium text-sm"><?php echo ucfirst(str_replace('_', ' ', $question)); ?></p>
+                                            <p class="text-xs text-gray-500"><?php echo ucfirst(str_replace('_', ' ', $question)); ?></p>
+                                        </div>
+                                        <div class="text-2xl">
+                                            <?php echo $status === 'correct' ? '<i class="fas fa-check-circle text-success-green"></i>' : '<i class="fas fa-times-circle text-fail-red"></i>'; ?>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                    </div>
+                    <?php } else { ?>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="text-sm text-gray-700">Unable to parse test results.</p>
+                    </div>
+                    <?php } ?>
+                </div>
+                <?php endif; ?>
             </div>
         </div>
 
@@ -1156,43 +1258,111 @@
                 </h3>
                 
                 <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead>
+                    <table class="min-w-full divide-y divide-gray-200 rounded-xl overflow-hidden">
+                        <thead class="bg-primary-purple">
                             <tr>
-                                <th class="px-6 py-3 text-left text-xs font-bold table-header rounded-tl-xl">Referral Name</th>
-                                <th class="px-6 py-3 text-left text-xs font-bold table-header">Status</th>
-                                <th class="px-6 py-3 text-left text-xs font-bold table-header">Date Joined</th>
-                                <th class="px-6 py-3 text-right text-xs font-bold table-header rounded-tr-xl">Commission Earned</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-trophy-gold uppercase tracking-wider rounded-tl-xl">
+                                    Referred Trader
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-trophy-gold uppercase tracking-wider">
+                                    IsTrader
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-trophy-gold uppercase tracking-wider">
+                                    IsReal
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-center text-xs font-bold text-trophy-gold uppercase tracking-wider">
+                                    IsVerified
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-center text-xs font-bold text-trophy-gold uppercase tracking-wider">
+                                    Status
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-center text-xs font-bold text-trophy-gold uppercase tracking-wider rounded-tr-xl">
+                                    Credit
+                                </th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-200 text-gray-700">
+                        <tbody class="bg-white divide-y divide-gray-200">
                             <?php if (!empty($referrals)): ?>
                                 <?php foreach ($referrals as $r): ?>
-                                    <tr class="table-row">
-                                        <td class="px-6 py-4 whitespace-nowrap"><?php echo htmlspecialchars($r['name'] ?: ($r['email'] ?? '—')); ?></td>
-                                        <td class="px-6 py-4 whitespace-nowrap"><?php
-                                            $statusText = 'Pending';
-                                            $statusClass = 'text-gray-600';
-                                            if ($r['email_verified'] == 1 && $r['quiz_result'] != null && $r['user_ip'] !== $user['user_ip']) {
-                                                $statusText = 'Funded';
-                                                $statusClass = 'text-success-green';
-                                            } else if ($r['quiz_result'] == null) {
-                                                $statusText = 'Phase 1';
-                                                $statusClass = 'text-primary-purple';
-                                            } else {
-                                                $statusText = 'Failed/Retry';
-                                                $statusClass = 'text-fail-red';
-                                            }
-                                            echo "<span class=\"$statusClass font-medium\">$statusText</span>";
-                                        ?></td>
-                                        <td class="px-6 py-4 whitespace-nowrap"><?php echo date('M j, Y', strtotime($r['created_at'])); ?></td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-right"><?php echo '$' . number_format(($r['commission'] ?? 0), 2); ?></td>
+                                    <?php
+                                        $isVerified = ($r['email_verified'] == 1 && $r['quiz_result'] != null && $r['user_ip'] !== $user['user_ip']);
+                                    ?>
+                                    <tr class="hover:bg-gray-50">
+                                        <!-- Name -->
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                            <?php echo htmlspecialchars($r['name'] ?: ($r['email'] ?? '—')); ?>
+                                        </td>
+
+                                        <!-- Trader / Non Trader -->
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            <?php if (!empty($r['quiz_result'])): ?>
+                                                <span style="background:#d1fae5; color:#065f46; padding:3px 8px; border-radius:6px; font-weight:600;">
+                                                    Trader
+                                                </span>
+                                            <?php elseif(empty($r['quiz_result']) && $r['status'] === 'inactive'): ?>
+                                                <span style="background:#fee2e2; color:#991b1b; padding:3px 8px; border-radius:6px; font-weight:600;">
+                                                    Non Trader
+                                                </span>
+                                            <?php else: ?>
+                                                <span style="background:#fee2e2; color:#991b1b; padding:3px 8px; border-radius:6px; font-weight:600;">
+                                                    Unknown
+                                                </span>
+                                            <?php endif; ?>
+                                        </td>
+
+                                        <!-- Fake / Real -->
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            <?php if ($r['user_ip'] === $user['user_ip']): ?>
+                                                <span style="background:#fee2e2; color:#991b1b; padding:3px 8px; border-radius:6px; font-weight:600;">
+                                                    Fake
+                                                </span>
+                                            <?php else: ?>
+                                                <span style="background:#d1fae5; color:#065f46; padding:3px 8px; border-radius:6px; font-weight:600;">
+                                                    Real
+                                                </span>
+                                            <?php endif; ?>
+                                        </td>
+
+                                        <!-- Verification Completed / Pending -->
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
+                                            <?php if ($isVerified): ?>
+                                                <span style="background:#d1fae5; color:#065f46; padding:4px 10px; border-radius:8px; font-weight:600;">
+                                                    <i class="fas fa-check-circle mr-1"></i> Verified
+                                                </span>
+                                            <?php else: ?>
+                                                <span style="background:#fef3c7; color:#92400e; padding:4px 10px; border-radius:8px; font-weight:600;">
+                                                    <i class="fas fa-x mr-1"></i> Unverified
+                                                </span>
+                                            <?php endif; ?>
+                                        </td>
+
+                                        <!-- Status Completed / Pending -->
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
+                                            <?php if ($r['status'] === 'active' && !empty($r['quiz_result'])): ?>
+                                                <span style="background:#d1fae5; color:#065f46; padding:4px 10px; border-radius:8px; font-weight:600;">
+                                                    <i class="fas fa-check-circle mr-1"></i> Completed
+                                                </span>
+                                            <?php else: ?>
+                                                <span style="background:#fef3c7; color:#92400e; padding:4px 10px; border-radius:8px; font-weight:600;">
+                                                    <i class="fas fa-clock mr-1"></i> Pending
+                                                </span>
+                                            <?php endif; ?>
+                                        </td>
+
+                                        <!-- Icon (tick or pending) -->
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
+                                            <?php if ($isVerified): ?>
+                                                <span class="text-lg text-green-600 font-bold">✓</span>
+                                            <?php else: ?>
+                                                <span class="text-lg text-yellow-600 font-bold">⏳</span>
+                                            <?php endif; ?>
+                                        </td>
                                     </tr>
                                 <?php endforeach; ?>
                             <?php else: ?>
-                            <tr class="table-row">
-                                <td colspan="4" class="px-6 py-4 text-center">No referrals yet.</td>
-                            </tr>
+                                <tr class="table-row">
+                                    <td colspan="6" class="px-6 py-4 text-center">No referrals yet.</td>
+                                </tr>
                             <?php endif; ?>
                         </tbody>
                     </table>
