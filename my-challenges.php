@@ -333,66 +333,64 @@
 
         $_SESSION['checkout_price'] = $checkoutPrice;
     }
-?>
 
-<?php
-function getStatusBadgePHP($status) {
-    $bgClass = 'bg-trophy-gold';
-    $textClass = 'text-header-dark';
-    $text = ucfirst(str_replace('_', ' ', $status));
-    switch($status) {
-        case 'pending':
-            $bgClass = 'bg-gray-500';
-            $textClass = 'text-white';
-            break;
-        case 'active':
-            $bgClass = 'bg-success-green';
-            $textClass = 'text-white';
-            break;
-        case 'completed':
-            $bgClass = 'bg-blue-500';
-            $textClass = 'text-white';
-            break;
-        default:
-            break;
+    function getStatusBadgePHP($status) {
+        $bgClass = 'bg-trophy-gold';
+        $textClass = 'text-header-dark';
+        $text = ucfirst(str_replace('_', ' ', $status));
+        switch($status) {
+            case 'pending':
+                $bgClass = 'bg-gray-500';
+                $textClass = 'text-white';
+                break;
+            case 'active':
+                $bgClass = 'bg-success-green';
+                $textClass = 'text-white';
+                break;
+            case 'completed':
+                $bgClass = 'bg-blue-500';
+                $textClass = 'text-white';
+                break;
+            default:
+                break;
+        }
+        return "<span class=\"$bgClass $textClass text-sm font-bold px-3 py-1 rounded-full\">$text</span>";
     }
-    return "<span class=\"$bgClass $textClass text-sm font-bold px-3 py-1 rounded-full\">$text</span>";
-}
 
-function getPhasStatusBadgePHP($status) {
-    $bgClass = 'bg-trophy-gold';
-    $textClass = 'text-header-dark';
-    $text = ucfirst(str_replace('_', ' ', $status));
-    switch($status) {
-        case 'pending':
-            $bgClass = 'bg-orange-500';
-            $textClass = 'text-white';
-            break;
-        case 'under_review':
-            $bgClass = 'bg-yellow-500';
-            $textClass = 'text-white';
-            break;
-        case 'pass':
-            $bgClass = 'bg-success-green';
-            $textClass = 'text-white';
-            break;
-        case 'running':
-            $bgClass = 'bg-blue-500';
-            $textClass = 'text-white';
-            break;
-        case 'fail':
-            $bgClass = 'bg-fail-red';
-            $textClass = 'text-white';
-            break;
-        case 'updated':
-            $bgClass = 'bg-gray-500';
-            $textClass = 'text-white';
-            break;
-        default:
-            break;
+    function getPhasStatusBadgePHP($status) {
+        $bgClass = 'bg-trophy-gold';
+        $textClass = 'text-header-dark';
+        $text = ucfirst(str_replace('_', ' ', $status));
+        switch($status) {
+            case 'pending':
+                $bgClass = 'bg-orange-500';
+                $textClass = 'text-white';
+                break;
+            case 'under_review':
+                $bgClass = 'bg-yellow-500';
+                $textClass = 'text-white';
+                break;
+            case 'pass':
+                $bgClass = 'bg-success-green';
+                $textClass = 'text-white';
+                break;
+            case 'running':
+                $bgClass = 'bg-blue-500';
+                $textClass = 'text-white';
+                break;
+            case 'fail':
+                $bgClass = 'bg-fail-red';
+                $textClass = 'text-white';
+                break;
+            case 'updated':
+                $bgClass = 'bg-gray-500';
+                $textClass = 'text-white';
+                break;
+            default:
+                break;
+        }
+        return "<span class=\"$bgClass $textClass text-sm font-bold px-3 py-1 rounded-full\">$text</span>";
     }
-    return "<span class=\"$bgClass $textClass text-sm font-bold px-3 py-1 rounded-full\">$text</span>";
-}
 ?>
 
 <!DOCTYPE html>
@@ -417,7 +415,8 @@ function getPhasStatusBadgePHP($status) {
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
     <!-- Icon library for symbols -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.js"></script>
 
     <style>
         /* Configure Tailwind for Inter font and prestigious purple colors */
@@ -511,12 +510,34 @@ function getPhasStatusBadgePHP($status) {
         function copyToClipboard(text, buttonId) {
             navigator.clipboard.writeText(text).then(() => {
                 const type = buttonId.includes('login') ? 'Login' : 'Password';
-                Swal.fire('Success', `${type} copied to clipboard!`, 'success');
+
+                Swal.fire({
+                    icon: 'success',
+                    title: `${type} copied!`,
+                    text: `${type} has been copied to your clipboard.`,
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 2000,
+                    timerProgressBar: true
+                });
+
             }).catch(err => {
                 console.error('Copy failed:', err);
-                Swal.fire('Error', 'Failed to copy to clipboard', 'error');
+
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Copy failed',
+                    text: 'Unable to copy to clipboard.',
+                });
             });
         }
+
+        function downloadAttachment(tableName, rowId) {
+            const url = `download_attachment.php?table=${encodeURIComponent(tableName)}&id=${rowId}`;
+            window.location.href = url;
+        }
+
     </script>
 </head>
 
@@ -945,8 +966,37 @@ function getPhasStatusBadgePHP($status) {
                                                 <div><span class="font-medium">Password:</span> <code class="font-mono" id="password-p2-<?php echo $ch['id']; ?>"><?php echo htmlspecialchars($p2['password'] ?? '--'); ?></code></div>
                                             </div>
                                             <div class="mt-3 flex justify-end space-x-2">
-                                                <button id="btn-login-p2-<?php echo $ch['id']; ?>" onclick="copyToClipboard(<?php echo json_encode($p2['username'] ?? ''); ?>, 'btn-login-p2-<?php echo $ch['id']; ?>')" class="text-xs bg-primary-purple text-white px-3 py-1 rounded-full hover:bg-opacity-80 transition"><i class="fas fa-copy"></i> Copy Login</button>
-                                                <button id="btn-password-p2-<?php echo $ch['id']; ?>" onclick="copyToClipboard(<?php echo json_encode($p2['password'] ?? ''); ?>, 'btn-password-p2-<?php echo $ch['id']; ?>')" class="text-xs bg-primary-purple text-white px-3 py-1 rounded-full hover:bg-opacity-80 transition"><i class="fas fa-copy"></i> Copy Password</button>
+                                                <?php if (!empty($p2['attachment_paths'])): ?>
+                                                    <?php
+                                                        $attachmentPaths = json_decode($p2['attachment_paths'], true);
+                                                        if (is_array($attachmentPaths) && !empty($attachmentPaths)):
+                                                    ?>
+                                                    <button
+                                                        onclick="downloadAttachment('mt5_details_second',<?php echo $p2['id']; ?>)"
+                                                        class="text-xs bg-success-green text-white px-3 py-1 rounded-full hover:bg-opacity-80 transition">
+                                                        <i class="fas fa-download"></i> Download Certificate
+                                                    </button>
+                                                    <?php endif; ?>
+                                                <?php endif; ?>
+                                                <button
+                                                    id="btn-login-p2-<?php echo $ch['id']; ?>"
+                                                    onclick="copyToClipboard(
+                                                        <?php echo htmlspecialchars(json_encode($p2['username'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>,
+                                                        'btn-login-p2-<?php echo $ch['id']; ?>'
+                                                    )"
+                                                    class="text-xs bg-primary-purple text-white px-3 py-1 rounded-full hover:bg-opacity-80 transition">
+                                                    <i class="fas fa-copy"></i> Copy Login
+                                                </button>
+
+                                                <button
+                                                    id="btn-password-p2-<?php echo $ch['id']; ?>"
+                                                    onclick="copyToClipboard(
+                                                        <?php echo htmlspecialchars(json_encode($p2['password'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>,
+                                                        'btn-password-p2-<?php echo $ch['id']; ?>'
+                                                    )"
+                                                    class="text-xs bg-primary-purple text-white px-3 py-1 rounded-full hover:bg-opacity-80 transition">
+                                                    <i class="fas fa-copy"></i> Copy Password
+                                                </button>
                                             </div>
                                         </div>
                                         <?php endif; ?>
@@ -984,8 +1034,37 @@ function getPhasStatusBadgePHP($status) {
                                                 <div><span class="font-medium">Password:</span> <code class="font-mono" id="password-p1-<?php echo $ch['id']; ?>"><?php echo htmlspecialchars($p1['password'] ?? '--'); ?></code></div>
                                             </div>
                                             <div class="mt-3 flex justify-end space-x-2">
-                                                <button id="btn-login-p1-<?php echo $ch['id']; ?>" onclick="copyToClipboard(<?php echo json_encode($p1['username'] ?? ''); ?>, 'btn-login-p1-<?php echo $ch['id']; ?>')" class="text-xs bg-primary-purple text-white px-3 py-1 rounded-full hover:bg-opacity-80 transition"><i class="fas fa-copy"></i> Copy Login</button>
-                                                <button id="btn-password-p1-<?php echo $ch['id']; ?>" onclick="copyToClipboard(<?php echo json_encode($p1['password'] ?? ''); ?>, 'btn-password-p1-<?php echo $ch['id']; ?>')" class="text-xs bg-primary-purple text-white px-3 py-1 rounded-full hover:bg-opacity-80 transition"><i class="fas fa-copy"></i> Copy Password</button>
+                                                <?php if (!empty($p1['attachment_paths'])): ?>
+                                                    <?php
+                                                        $attachmentPaths = json_decode($p1['attachment_paths'], true);
+                                                        if (is_array($attachmentPaths) && !empty($attachmentPaths)):
+                                                    ?>
+                                                    <button
+                                                        onclick="downloadAttachment('mt5_details',<?php echo $p1['id']; ?>)"
+                                                        class="text-xs bg-success-green text-white px-3 py-1 rounded-full hover:bg-opacity-80 transition">
+                                                        <i class="fas fa-download"></i> Download Certificate
+                                                    </button>
+                                                    <?php endif; ?>
+                                                <?php endif; ?>
+                                                <button
+                                                    id="btn-login-p2-<?php echo $ch['id']; ?>"
+                                                    onclick="copyToClipboard(
+                                                        <?php echo htmlspecialchars(json_encode($p1['username'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>,
+                                                        'btn-login-p2-<?php echo $ch['id']; ?>'
+                                                    )"
+                                                    class="text-xs bg-primary-purple text-white px-3 py-1 rounded-full hover:bg-opacity-80 transition">
+                                                    <i class="fas fa-copy"></i> Copy Login
+                                                </button>
+
+                                                <button
+                                                    id="btn-password-p2-<?php echo $ch['id']; ?>"
+                                                    onclick="copyToClipboard(
+                                                        <?php echo htmlspecialchars(json_encode($p1['password'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>,
+                                                        'btn-password-p2-<?php echo $ch['id']; ?>'
+                                                    )"
+                                                    class="text-xs bg-primary-purple text-white px-3 py-1 rounded-full hover:bg-opacity-80 transition">
+                                                    <i class="fas fa-copy"></i> Copy Password
+                                                </button>
                                             </div>
                                         </div>
                                         <?php endif; ?>
