@@ -31,7 +31,7 @@
     // If only one file → direct download
     if (count($paths) === 1) {
         $relativePath = $paths[0];
-        $filePath = realpath(__DIR__ . '/../' . $relativePath);
+        $filePath = realpath(__DIR__ . '/' . $relativePath);
 
         if (!$filePath || !file_exists($filePath)) {
             die('File not found');
