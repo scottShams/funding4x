@@ -421,13 +421,14 @@
             m.*,
             u.name,
             u.email,
-            u.user_credit
+            u.user_credit,
+            m.challenge_id
         FROM (
-            SELECT id, user_id, username, password, server, instrument, status, fail_reason, pass_reason, test_type, submitted_at, status_updated_at, 'mt5_details' as table_name
+            SELECT id, user_id, username, password, server, instrument, status, fail_reason, pass_reason, test_type, submitted_at, status_updated_at, challenge_id, 'mt5_details' as table_name
             FROM mt5_details
             WHERE status = 'under_review'
             UNION ALL
-            SELECT id, user_id, username, password, server, instrument, status, fail_reason, pass_reason, test_type, submitted_at, status_updated_at, 'mt5_details_second' as table_name
+            SELECT id, user_id, username, password, server, instrument, status, fail_reason, pass_reason, test_type, submitted_at, status_updated_at, challenge_id, 'mt5_details_second' as table_name
             FROM mt5_details_second
             WHERE status = 'under_review'
         ) m
