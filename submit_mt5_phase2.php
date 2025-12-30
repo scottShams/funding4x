@@ -55,15 +55,20 @@ try {
     }
 
     // Get phase 1 record
-    $stmt = $pdo->prepare("SELECT id FROM mt5_details WHERE challenge_id = ?");
+    $stmt = $pdo->prepare("SELECT id, status FROM mt5_details WHERE challenge_id = ?");
     $stmt->execute([$challengeId]);
     $p1 = $stmt->fetch(PDO::FETCH_ASSOC);
-    if (!$p1) {
+
+    if (!$p1 || $p1['status'] !== 'pass') {
         http_response_code(400);
-        echo json_encode(['success' => false, 'message' => 'Phase 1 must be submitted before Phase 2']);
+        echo json_encode([
+            'success' => false,
+            'message' => 'Phase 1 must be submitted or passed before Phase 2'
+        ]);
         exit;
     }
-    $mt5_details_id = (int)$p1['id'];
+
+    $mt5_details_id = (int) $p1['id'];
 
     // Check if phase 2 already exists
     $stmt = $pdo->prepare("SELECT id, status FROM mt5_details_second WHERE challenge_id = ?");

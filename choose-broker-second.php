@@ -73,6 +73,56 @@
     // Check if MT5 details are already submitted for this challenge
     $challengeId = isset($_GET['challenge_id']) ? (int)$_GET['challenge_id'] : null;
 
+    // Check if user has passed Phase 1 for this challenge
+    if ($challengeId) {
+        $stmt = $pdo->prepare("SELECT status FROM mt5_details WHERE user_id = ? AND challenge_id = ?");
+        $stmt->execute([$user['id'], $challengeId]);
+        $phase1 = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$phase1 || $phase1['status'] !== 'pass') {
+            ?>
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Access Denied</title>
+                <script src="https://cdn.tailwindcss.com"></script>
+                <script>
+                    tailwind.config = {
+                        theme: {
+                            extend: {
+                                colors: {
+                                    'primary-purple': '#4f009d',
+                                    'header-dark': '#240046',
+                                }
+                            }
+                        }
+                    }
+                </script>
+            </head>
+            <body class="min-h-screen flex items-center justify-center bg-gray-100">
+                <div class="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-50">
+                    <div class="bg-white p-10 rounded-3xl shadow-2xl max-w-lg mx-4 border-t-4 border-primary-purple">
+                        <div class="text-center">
+                            <h2 class="text-3xl font-extrabold text-primary-purple mb-4">Access Denied</h2>
+                            <p class="text-gray-700 mb-8 leading-relaxed text-lg">
+                                You must submit and pass Phase 1 before accessing Trading Test 2.
+                            </p>
+                            <div class="flex justify-center space-x-4">
+                                <a href="my-challenges.php" class="px-8 py-4 bg-primary-purple text-white font-bold rounded-xl shadow-lg hover:bg-header-dark transition-all duration-300 transform hover:scale-105">
+                                    Go to My Challenges
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </body>
+            </html>
+            <?php
+            exit;
+        }
+    }
+
     // If admin REF link and challenge_id present, set short-lived server-side permission for Test 2 updates
     if ($allowUpdate && $challengeId) {
         $_SESSION['allow_mt5_update_second'] = $challengeId;
